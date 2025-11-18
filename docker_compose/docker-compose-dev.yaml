@@ -1,0 +1,19 @@
+services:
+  web:
+    container_name: mp-web-dev
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: mp-web-dev
+    pull_policy: build
+    ports:
+      - "${DJANGO_PORT}:8000"
+    volumes:
+      - ..:/app/
+    env_file:
+      - ../.env
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy

@@ -1,0 +1,65 @@
+[project]
+name = "marketplace-api"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "henwix",email = "492b675xhpd1@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.14,<4.0"
+dependencies = [
+    "django (>=5.2.8,<6.0.0)",
+    "djangorestframework (>=3.16.1,<4.0.0)",
+    "djangorestframework-simplejwt (>=5.5.1,<6.0.0)",
+    "boto3 (>=1.40.75,<2.0.0)",
+    "celery (>=5.5.3,<6.0.0)",
+    "django-redis (>=6.0.0,<7.0.0)",
+    "drf-spectacular (>=0.29.0,<0.30.0)",
+    "django-filter (>=25.2,<26.0)",
+    "punq (>=0.7.0,<0.8.0)",
+    "django-extensions (>=4.1,<5.0)",
+    "django-cors-headers (>=4.9.0,<5.0.0)",
+    "orjson (>=3.11.4,<4.0.0)",
+    "stripe (>=13.2.0,<14.0.0)",
+    "social-auth-app-django (>=5.6.0,<6.0.0)",
+    "psycopg2 (>=2.9.11,<3.0.0)"
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^9.7.0"
+pre-commit = "^4.4.0"
+pytest-django = "^4.11.1"
+factory-boy = "^3.3.3"
+
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = ["A003", "A002", "B904"]
+
+[tool.ruff.lint.pyupgrade]
+# Preserve types, even if a file imports `from __future__ import annotations`.
+keep-runtime-typing = true
+
+[tool.ruff.lint.isort]
+known-third-party = ["django", "rest_framework"]
+
+[tool.ruff.format]
+quote-style = "single"
+indent-style = "space"
+skip-magic-trailing-comma = false
+docstring-code-format = true
