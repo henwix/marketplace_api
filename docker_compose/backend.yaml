@@ -1,10 +1,10 @@
 services:
-  web:
-    container_name: mp-web-dev
+  backend:
+    container_name: mp-backend-dev
     build:
       context: ..
       dockerfile: Dockerfile
-    image: mp-web-dev
+    image: mp-backend-dev
     pull_policy: build
     ports:
       - "${DJANGO_PORT}:8000"

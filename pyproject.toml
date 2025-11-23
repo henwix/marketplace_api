@@ -35,6 +35,9 @@ pre-commit = "^4.4.0"
 pytest-django = "^4.11.1"
 factory-boy = "^3.3.3"
 
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "src.project.settings.dev"
+python_files = ["test_*.py", "*_test.py", "testing/python/*.py"]
 
 [tool.ruff]
 line-length = 120

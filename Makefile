@@ -1,9 +1,9 @@
 DC = docker compose
 LOGS = docker logs
 EXEC = docker exec -it
-APP_DEV_FILE = docker_compose/docker-compose-dev.yaml
+APP_DEV_FILE = docker_compose/backend.yaml
 STORAGES_FILE = docker_compose/storages.yaml
-APP_CONTAINER = mp-web-dev
+APP_CONTAINER = mp-backend-dev
 MANAGE_PY = python manage.py
 ENV = --env-file .env
 

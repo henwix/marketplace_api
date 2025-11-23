@@ -1,0 +1,18 @@
+import punq
+
+from src.apps.users.repositories.users import BaseUserRepository, ORMUserRepository
+from src.apps.users.services.users import BaseUserService, UserService
+from src.apps.users.use_cases.create import CreateUserUseCase
+from src.apps.users.use_cases.set_password import SetPasswordUserUseCase
+
+
+def init_users(container: punq.Container) -> None:
+    # use cases
+    container.register(CreateUserUseCase)
+    container.register(SetPasswordUserUseCase)
+
+    # services
+    container.register(BaseUserService, UserService)
+
+    # repositories
+    container.register(BaseUserRepository, ORMUserRepository)
