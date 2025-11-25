@@ -4,8 +4,8 @@
 
 #### apps
 
-- [ ] users
-- [ ] authorization
+- [x] base users endpoints: `CRUD` and `set_password`
+- [x] base authorization endpoints with JWT tokens
 - [ ] products
   - [ ] reviews
 - [ ] cart
@@ -16,8 +16,13 @@
 
 - [ ] users
   - [x] models
-  - [ ] CRUD for users
-  - [x] auth jwt
+  - [x] CRUD for users
+  - [ ] `set_email`, `set_email_confirm` endpoints and validate email in user creation
+- [ ] auth
+  - [x] jwt
+  - [ ] login endpoint
+  - [ ] OTP
+  - [ ] oauth2
 - [ ] products
   - [ ] models(products, categories, reviews + review and products images: продумать как они будут сохраняться и получаться)
   - [ ] CRUD for products
@@ -33,4 +38,3 @@
   - [ ] список заказов покупателя + список заказов, которые видны у продавцов: кто заказал, адрес доставки, список товаров
 - [ ] payments
 - [ ] adresses - для доставок
-- [ ] oauth2

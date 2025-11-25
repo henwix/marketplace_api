@@ -18,6 +18,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=20,
         help_text=_('Phone number'),
     )
+    password = models.CharField(_('password'), max_length=128, help_text=_('Password'))
     avatar = models.CharField(
         max_length=255,
         null=True,

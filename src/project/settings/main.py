@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'drf_spectacular',
     # api apps
     'src.apps.users.apps.UsersConfig',
+    'src.apps.products.apps.ProductsConfig',
     'src.apps.common.apps.CommonConfig',
 ]
 

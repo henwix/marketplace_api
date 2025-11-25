@@ -1,24 +1,17 @@
 import pytest
+from django.core.exceptions import ValidationError
 
 from src.apps.users.models import User
 from src.apps.users.repositories.users import BaseUserRepository
-
-
-@pytest.mark.parametrize(
-    argnames=[
-        'expected_first_name',
-        'expected_last_name',
-        'expected_email',
-        'expected_phone',
-        'expected_password',
-    ],
-    argvalues=[
-        ('Hello', 'World', 'test@example.com', '+978658358284', 'test_password_123456'),
-        ('John', 'Doe', 'john@example.com', '+18482612425', 'johndoe82461942'),
-        ('Jane', 'Doe', 'JaneDoe@test.com', '+1234567690249238', 'JANE_DOE_PASSWORD-1029!@)$&0217501231'),
-        ('Name', 'Test', 'HelloWorld@test.test', '+887674726472112', 'helloworld_1234+_()*#@!@(&$%)(*!@&^%!^$%(@!($)'),
-    ],
+from src.tests.v1.users.test_data.create_user import (
+    CREATE_USER_ARGNAMES,
+    CREATE_USER_ARGVALUES,
+    CREATE_USER_WITH_NONE_ARGVALUES,
 )
+from src.tests.v1.users.test_data.set_password_user import SET_PASSWORD_ARGNAMES, SET_PASSWORD_ARGVALUES
+
+
+@pytest.mark.parametrize(argnames=CREATE_USER_ARGNAMES, argvalues=CREATE_USER_ARGVALUES)
 @pytest.mark.django_db
 def test_user_created(
     user_repository: BaseUserRepository,
@@ -28,6 +21,7 @@ def test_user_created(
     expected_phone: str,
     expected_password: str,
 ):
+    """Test that a user is created successfully"""
     created_user = user_repository.create(
         data={
             'first_name': expected_first_name,
@@ -45,16 +39,36 @@ def test_user_created(
     assert created_user.check_password(expected_password) is True
 
 
-@pytest.mark.parametrize(
-    'expected_password',
-    ['1234q1234q', '9124972ASkjfhakjfgLF', 'HelloWorld_41528', 'Gjaskjdh12h', 'new_password_test_12391724_TEST'],
-)
+@pytest.mark.parametrize(argnames=CREATE_USER_ARGNAMES, argvalues=CREATE_USER_WITH_NONE_ARGVALUES)
+def test_user_create_validation_error_raised(
+    user_repository: BaseUserRepository,
+    expected_first_name: str | None,
+    expected_last_name: str | None,
+    expected_email: str | None,
+    expected_phone: str | None,
+    expected_password: str,
+):
+    """Test that creating a user without required fields raises a validation error"""
+    with pytest.raises(ValidationError):
+        user_repository.create(
+            data={
+                'first_name': expected_first_name,
+                'last_name': expected_last_name,
+                'email': expected_email,
+                'phone': expected_phone,
+                'password': expected_password,
+            },
+        )
+
+
+@pytest.mark.parametrize(argnames=SET_PASSWORD_ARGNAMES, argvalues=SET_PASSWORD_ARGVALUES)
 @pytest.mark.django_db
 def test_password_updated(
     user_repository: BaseUserRepository,
     user: User,
     expected_password: str,
 ):
-    assert not user.check_password(expected_password)
+    """Test that the password is updated successfully"""
+    assert user.check_password(expected_password) is False
     user_repository.set_password(user=user, password=expected_password)
-    assert user.check_password(expected_password)
+    assert user.check_password(expected_password) is True

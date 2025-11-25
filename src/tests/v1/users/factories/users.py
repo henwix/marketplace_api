@@ -1,7 +1,11 @@
 import factory
 from factory.django import DjangoModelFactory
+from faker import Faker
 
 from src.apps.users.models import User
+from src.tests.v1.users.factories.common import lazy_function_factory
+
+fake = Faker()
 
 
 class UserModelFactory(DjangoModelFactory):
@@ -11,5 +15,5 @@ class UserModelFactory(DjangoModelFactory):
     first_name = factory.Faker('first_name')
     last_name = factory.Faker('last_name')
     email = factory.Faker('email')
-    phone = factory.Faker('phone_number')
+    phone = lazy_function_factory(value=fake.phone_number, max_length=20)
     password = factory.Faker('password')

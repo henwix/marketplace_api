@@ -20,7 +20,7 @@ class UpdateUserSerializer(serializers.ModelSerializer):
 
 
 class PasswordUserSerializer(serializers.Serializer):
-    new_password = serializers.CharField(max_length=128)
+    new_password = serializers.CharField(max_length=128, help_text='New password for the user')
 
     def validate_new_password(self, value):
         validate_password(value)
