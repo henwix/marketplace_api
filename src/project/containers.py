@@ -3,6 +3,7 @@ from logging import Logger, getLogger
 
 import punq
 
+from src.apps.sellers.containers import init_sellers
 from src.apps.users.containers import init_users
 
 
@@ -15,6 +16,7 @@ def _initialize_container() -> punq.Container:
     container = punq.Container()
 
     init_users(container=container)
+    init_sellers(container=container)
     container.register(Logger, factory=getLogger, name='django.logger')
 
     return container

@@ -1,6 +1,5 @@
-from typing import Any
-
 import factory
+from punq import Any
 
 
 def lazy_function_factory(value: Any, max_length: int = 20) -> factory.LazyFunction:

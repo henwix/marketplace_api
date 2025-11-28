@@ -6,7 +6,8 @@
 #
 #
 # class Product(TimedBaseModel):
-#     name = models.CharField(max_length=255)
+#     seller = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name='products')
+#     title = models.CharField(max_length=255)
 #     price = models.DecimalField(max_digits=10, decimal_places=2)
 #     description = models.TextField()
 #     stock = models.PositiveIntegerField(default=0)
@@ -14,7 +15,10 @@
 #
 #
 # class ProductReview(TimedBaseModel):
-#     user = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name='product_reviews')
+#     author = models.ForeignKey(to=User, on_delete=models.CASCADE, related_name='product_reviews')
 #     product = models.ForeignKey(to=Product, on_delete=models.CASCADE, related_name='reviews')
 #     rating = models.SmallIntegerField(default=1, validators=[MinValueValidator(1), MaxValueValidator(5)])
 #     text = models.TextField()
+
+
+# ProductReviewImages

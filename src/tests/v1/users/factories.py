@@ -3,7 +3,7 @@ from factory.django import DjangoModelFactory
 from faker import Faker
 
 from src.apps.users.models import User
-from src.tests.v1.users.factories.common import lazy_function_factory
+from src.tests.v1.factories import lazy_function_factory
 
 fake = Faker()
 

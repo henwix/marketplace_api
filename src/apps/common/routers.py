@@ -5,7 +5,7 @@ from rest_framework.routers import (
 )
 
 
-class CustomUserRouter(SimpleRouter):
+class CustomRouter(SimpleRouter):
     routes = [
         # List route.
         Route(

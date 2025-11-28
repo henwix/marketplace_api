@@ -1,12 +1,12 @@
 from django.urls import include, path
 
 from src.api.v1.users.views import UserViewSet
-from src.apps.users.routers import CustomUserRouter
+from src.apps.common.routers import CustomRouter
 
 app_name = 'users'
 
 
-user_router = CustomUserRouter()
+user_router = CustomRouter()
 user_router.register(prefix='users', viewset=UserViewSet, basename='users')
 
 

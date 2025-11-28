@@ -6,6 +6,7 @@
 
 - [x] base users endpoints: `CRUD` and `set_password`
 - [x] base authorization endpoints with JWT tokens
+- [x] base sellers endpoints
 - [ ] products
   - [ ] reviews
 - [ ] cart
@@ -17,7 +18,12 @@
 - [ ] users
   - [x] models
   - [x] CRUD for users
+  - [ ] CRUD tests
   - [ ] `set_email`, `set_email_confirm` endpoints and validate email in user creation
+- [ ] sellers
+  - [x] models
+  - [x] CRUD for sellers
+  - [ ] CRUD tests
 - [ ] auth
   - [x] jwt
   - [ ] login endpoint
@@ -26,7 +32,7 @@
 - [ ] products
   - [ ] models(products, categories, reviews + review and products images: продумать как они будут сохраняться и получаться)
   - [ ] CRUD for products
-  - [ ] Products searching, filtering, ordering
+  - [ ] Products searching, filtering, ordering. Searching by category
   - [ ] Favorites products(избранное, понравившееся, сердечко типа)
 - [ ] cart
   - [ ] models

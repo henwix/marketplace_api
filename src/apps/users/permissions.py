@@ -14,10 +14,12 @@ class UserPermission(BasePermission):
     ]
 
     def has_permission(self, request, view):
-        if view.action in self.AUTH_NOT_REQUIRED_ACTIONS:
+        action = getattr(view, 'action', None)
+
+        if action in self.AUTH_NOT_REQUIRED_ACTIONS:
             return True
 
-        if view.action in self.AUTH_REQUIRED_ACTIONS and request.user.is_authenticated:
+        if action in self.AUTH_REQUIRED_ACTIONS and request.user.is_authenticated:
             return True
 
         return False

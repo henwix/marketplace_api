@@ -3,7 +3,7 @@ import pytest
 from src.apps.users.exceptions.users import UserWithDataAlreadyExistsError
 from src.apps.users.models import User
 from src.apps.users.services.users import BaseUserService
-from src.tests.v1.users.factories.users import UserModelFactory
+from src.tests.v1.users.factories import UserModelFactory
 from src.tests.v1.users.test_data.create_user import CREATE_USER_ARGNAMES, CREATE_USER_ARGVALUES
 from src.tests.v1.users.test_data.set_password_user import SET_PASSWORD_ARGNAMES, SET_PASSWORD_ARGVALUES
 

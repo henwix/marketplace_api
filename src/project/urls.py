@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
@@ -12,3 +13,11 @@ urlpatterns = [
     # v1 api endpoints
     path('v1/', include('src.api.v1.urls')),
 ]
+
+
+if settings.DEBUG:
+    urlpatterns.extend(
+        [
+            path('silk/', include('silk.urls', namespace='silk')),
+        ],
+    )

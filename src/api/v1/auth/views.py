@@ -2,13 +2,13 @@ from drf_spectacular.utils import extend_schema
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
 
-@extend_schema(summary='Generate JWT tokens')
+@extend_schema(summary='Generate JWT Tokens')
 class CustomTokenObtainPairView(TokenObtainPairView): ...
 
 
-@extend_schema(summary='Refresh JWT token')
+@extend_schema(summary='Refresh JWT Token')
 class CustomTokenRefreshView(TokenRefreshView): ...
 
 
-@extend_schema(summary='Verify JWT token')
+@extend_schema(summary='Verify JWT Token')
 class CustomTokenVerifyView(TokenVerifyView): ...
