@@ -66,7 +66,8 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'marketplace_api',
-    'VERSION': '0.1.0',
+    'VERSION': '1.0.0',
+    'OAS_VERSION': '3.1.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'DISABLE_ERRORS_AND_WARNINGS': True,
     'SORT_OPERATIONS': False,

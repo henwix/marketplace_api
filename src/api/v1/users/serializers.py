@@ -11,6 +11,10 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'avatar']
         extra_kwargs = {'password': {'write_only': True}}
 
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
 
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:

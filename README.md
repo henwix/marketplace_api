@@ -23,7 +23,7 @@
 - [ ] sellers
   - [x] models
   - [x] CRUD for sellers
-  - [ ] CRUD tests
+  - [x] CRUD tests
 - [ ] auth
   - [x] jwt
   - [ ] login endpoint
