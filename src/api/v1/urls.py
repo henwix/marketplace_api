@@ -20,5 +20,6 @@ urlpatterns = [
     path('ping/', ping, name='ping'),
     path('', include('src.api.v1.users.urls')),
     path('', include('src.api.v1.sellers.urls')),
+    path('', include('src.api.v1.products.urls')),
     path('', include('src.api.v1.auth.urls')),
 ]

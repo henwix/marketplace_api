@@ -1,6 +1,7 @@
 __pycache__/
 __pycache__
 .pytest_cache
+.ruff_cache
 *.pyc
 *.pyo
 .vscode
@@ -8,15 +9,16 @@ __pycache__
 .env
 .env*
 .gitignore
+.git
+.pre-commit-config.yaml
 Makefile
 README.md
 Dockerfile*
 docker-compose*
 docker_compose
 api.http
-.git
 requirements.txt
-src/tests
-.pre-commit-config.yaml
+tests
+LICENSE
 scripts
 nginx.conf

@@ -37,14 +37,14 @@ def build_detail_response_example(
     )
 
 
-permission_error_response_example = build_detail_response_example(
+permission_error_403_response_example = build_detail_response_example(
     name='Permission Error',
     value='You do not have permission to perform this action.',
     status_code=403,
 )
 
 
-unauthorized_error_response_example = build_detail_response_example(
+unauthorized_error_401_response_example = build_detail_response_example(
     name='Unauthorized Error',
     value='Authentication credentials were not provided.',
     status_code=401,
