@@ -3,8 +3,9 @@ from dataclasses import dataclass
 
 from django.db import IntegrityError
 
+from src.apps.users.converters import user_from_entity, user_to_entity
+from src.apps.users.entities import UserEntity
 from src.apps.users.exceptions.users import UserWithDataAlreadyExistsError
-from src.apps.users.models import User
 from src.apps.users.repositories.users import BaseUserRepository
 
 
@@ -13,18 +14,20 @@ class BaseUserService(ABC):
     repository: BaseUserRepository
 
     @abstractmethod
-    def create(self, data: dict) -> User: ...
+    def create(self, data: dict) -> UserEntity: ...
 
     @abstractmethod
-    def set_password(self, user: User, password: str) -> None: ...
+    def set_password(self, user: UserEntity, password: str) -> None: ...
 
 
 class UserService(BaseUserService):
-    def create(self, data: dict) -> User:
+    def create(self, data: dict) -> UserEntity:
         try:
-            return self.repository.create(data=data)
+            dto = self.repository.create(data=data)
+            return user_to_entity(dto=dto)
         except IntegrityError:
             raise UserWithDataAlreadyExistsError()
 
-    def set_password(self, user: User, password: str) -> None:
-        return self.repository.set_password(user=user, password=password)
+    def set_password(self, user: UserEntity, password: str) -> None:
+        dto = user_from_entity(entity=user)
+        return self.repository.set_password(user=dto, password=password)

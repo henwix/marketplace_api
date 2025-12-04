@@ -10,6 +10,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from src.api.v1.users.serializers import PasswordUserSerializer, UpdateUserSerializer, UserSerializer
 from src.apps.common.exceptions import ServiceException
+from src.apps.users.converters import user_to_entity
 from src.apps.users.docs.schema_decorators import extend_user_viewset_schema
 from src.apps.users.models import User
 from src.apps.users.permissions import UserPermission
@@ -63,5 +64,5 @@ class UserViewSet(
         serializer.is_valid(raise_exception=True)
         use_case: SetPasswordUserUseCase = self.container.resolve(SetPasswordUserUseCase)
 
-        result = use_case.execute(user=request.user, password=serializer.validated_data['new_password'])
+        result = use_case.execute(user=user_to_entity(request.user), password=serializer.validated_data['new_password'])
         return Response(data=result, status=status.HTTP_200_OK)

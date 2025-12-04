@@ -11,11 +11,11 @@ class BaseProductService(ABC):
     repository: BaseProductRepository
 
     @abstractmethod
-    def create(self, product_entity: ProductEntity) -> ProductEntity: ...
+    def create(self, entity: ProductEntity) -> ProductEntity: ...
 
 
 class ProductService(BaseProductService):
-    def create(self, product_entity: ProductEntity) -> ProductEntity:
-        dto = product_from_entity(product_entity=product_entity)
-        dto = self.repository.create(product_dto=dto)
+    def create(self, entity: ProductEntity) -> ProductEntity:
+        dto = product_from_entity(entity=entity)
+        dto = self.repository.create(dto=dto)
         return product_to_entity(dto=dto)

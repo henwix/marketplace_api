@@ -21,5 +21,7 @@ def test_password_updated(
     """Test that the password is updated successfully"""
     assert user.check_password(expected_password) is False
     result = set_password_user_use_case.execute(user=user, password=expected_password)
-    assert user.check_password(expected_password) is True
+
+    db_user = User.objects.get(pk=user.pk)
+    assert db_user.check_password(expected_password) is True
     assert result == {'detail': 'Success'}

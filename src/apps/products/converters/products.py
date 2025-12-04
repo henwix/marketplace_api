@@ -6,23 +6,23 @@ def data_to_product_entity(data: dict) -> ProductEntity:
     return ProductEntity(**data)
 
 
-def product_from_entity(product_entity: ProductEntity) -> Product:
+def product_from_entity(entity: ProductEntity) -> Product:
     return Product(
-        pk=product_entity.uuid,
-        slug=product_entity.slug,
-        seller_id=product_entity.seller_id,
-        title=product_entity.title,
-        description=product_entity.description,
-        short_description=product_entity.short_description,
-        is_visible=product_entity.is_visible,
-        created_at=product_entity.created_at,
-        updated_at=product_entity.updated_at,
+        pk=entity.id,
+        slug=entity.slug,
+        seller_id=entity.seller_id,
+        title=entity.title,
+        description=entity.description,
+        short_description=entity.short_description,
+        is_visible=entity.is_visible,
+        created_at=entity.created_at,
+        updated_at=entity.updated_at,
     )
 
 
 def product_to_entity(dto: Product) -> ProductEntity:
     return ProductEntity(
-        uuid=dto.uuid,
+        id=dto.pk,
         slug=dto.slug,
         seller_id=dto.seller_id,
         title=dto.title,

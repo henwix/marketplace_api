@@ -8,7 +8,7 @@ from src.apps.sellers.models import Seller
 
 
 class Product(TimedBaseModel):
-    uuid = models.UUIDField(primary_key=True, unique=True, editable=False, default=uuid7, help_text=_('Product uuid'))
+    id = models.UUIDField(primary_key=True, unique=True, editable=False, default=uuid7, help_text=_('Product uuid'))
     slug = models.SlugField(_('slug'), unique=True, max_length=300, help_text=_('Product slug'))
     seller = models.ForeignKey(to=Seller, on_delete=models.CASCADE, related_name='products')
     title = models.CharField(_('title'), max_length=255, db_index=True, help_text=_('Product title'))
@@ -27,7 +27,7 @@ class Product(TimedBaseModel):
 
 
 class ProductVariant(TimedBaseModel):
-    uuid = models.UUIDField(
+    id = models.UUIDField(
         primary_key=True, unique=True, editable=False, default=uuid7, help_text=_('Product variant uuid')
     )
     product = models.ForeignKey(

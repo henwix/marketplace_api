@@ -2,23 +2,27 @@ from src.apps.sellers.entities.sellers import SellerEntity
 from src.apps.sellers.models import Seller
 
 
-def seller_to_entity(seller: Seller) -> SellerEntity:
+def data_to_seller_entity(data: dict) -> SellerEntity:
+    return SellerEntity(**data)
+
+
+def seller_to_entity(dto: Seller) -> SellerEntity:
     return SellerEntity(
-        id=seller.id,
-        user_id=seller.user_id,
-        name=seller.name,
-        description=seller.description,
-        avatar=seller.avatar,
-        background=seller.background,
+        id=dto.pk,
+        user_id=dto.user_id,
+        name=dto.name,
+        description=dto.description,
+        avatar=dto.avatar,
+        background=dto.background,
     )
 
 
-def seller_from_entity(seller_entity: SellerEntity) -> Seller:
+def seller_from_entity(entity: SellerEntity) -> Seller:
     return Seller(
-        pk=seller_entity.id,
-        user_id=seller_entity.user_id,
-        name=seller_entity.name,
-        description=seller_entity.description,
-        avatar=seller_entity.avatar,
-        background=seller_entity.background,
+        pk=entity.id,
+        user_id=entity.user_id,
+        name=entity.name,
+        description=entity.description,
+        avatar=entity.avatar,
+        background=entity.background,
     )

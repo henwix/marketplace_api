@@ -3,13 +3,12 @@ from datetime import datetime
 from uuid import uuid7
 
 from django.utils import timezone
-
-from src.apps.common.utils import custom_slugify
+from slugify import slugify
 
 
 @dataclass
 class ProductEntity:
-    uuid: uuid7 = field(
+    id: uuid7 = field(
         default_factory=lambda: str(uuid7()),
         kw_only=True,
     )
@@ -23,4 +22,4 @@ class ProductEntity:
     updated_at: datetime = field(default_factory=timezone.now, kw_only=True)
 
     def build_slug(self):
-        self.slug = f'{custom_slugify(value=self.title)}-{self.uuid[-8:]}'
+        self.slug = f'{slugify(text=self.title)}-{self.id[-8:]}'

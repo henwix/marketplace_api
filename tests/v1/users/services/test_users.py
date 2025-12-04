@@ -1,5 +1,7 @@
 import pytest
 
+from src.apps.users.converters import user_from_entity, user_to_entity
+from src.apps.users.entities import UserEntity
 from src.apps.users.exceptions.users import UserWithDataAlreadyExistsError
 from src.apps.users.models import User
 from src.apps.users.services.users import BaseUserService
@@ -29,11 +31,12 @@ def test_user_created(
         },
     )
 
+    assert isinstance(created_user, UserEntity)
     assert created_user.first_name == expected_first_name
     assert created_user.last_name == expected_last_name
     assert created_user.email == expected_email
     assert created_user.phone == expected_phone
-    assert created_user.check_password(expected_password) is True
+    assert user_from_entity(entity=created_user).check_password(expected_password) is True
 
 
 @pytest.mark.parametrize(argnames=CREATE_USER_ARGNAMES, argvalues=CREATE_USER_ARGVALUES)
@@ -95,5 +98,7 @@ def test_password_updated(
 ):
     """Test that the password is updated successfully"""
     assert user.check_password(expected_password) is False
-    user_service.set_password(user=user, password=expected_password)
-    assert user.check_password(expected_password) is True
+    user_service.set_password(user=user_to_entity(dto=user), password=expected_password)
+
+    db_user = User.objects.get(pk=user.pk)
+    assert db_user.check_password(expected_password) is True

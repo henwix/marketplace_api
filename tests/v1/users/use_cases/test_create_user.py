@@ -1,6 +1,8 @@
 import punq
 import pytest
 
+from src.apps.users.converters import user_from_entity
+from src.apps.users.entities import UserEntity
 from src.apps.users.use_cases.create import CreateUserUseCase
 from tests.v1.users.test_data.create_user import CREATE_USER_ARGNAMES, CREATE_USER_ARGVALUES
 
@@ -31,8 +33,9 @@ def test_user_created(
         },
     )
 
+    assert isinstance(created_user, UserEntity)
     assert created_user.first_name == expected_first_name
     assert created_user.last_name == expected_last_name
     assert created_user.email == expected_email
     assert created_user.phone == expected_phone
-    assert created_user.check_password(expected_password) is True
+    assert user_from_entity(entity=created_user).check_password(expected_password) is True

@@ -13,5 +13,5 @@ class CreateProductUseCase:
         product_entity = data_to_product_entity(data={**data, 'seller_id': seller_id})
         product_entity.build_slug()
 
-        new_product = self.service.create(product_entity=product_entity)
+        new_product = self.service.create(entity=product_entity)
         return new_product

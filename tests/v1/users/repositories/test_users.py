@@ -32,6 +32,7 @@ def test_user_created(
         },
     )
 
+    assert isinstance(created_user, User)
     assert created_user.first_name == expected_first_name
     assert created_user.last_name == expected_last_name
     assert created_user.email == expected_email

@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     # third party
     'rest_framework',
+    'django.contrib.postgres',
     'rest_framework_simplejwt',
     'django_extensions',
     'drf_spectacular',

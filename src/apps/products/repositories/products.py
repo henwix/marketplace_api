@@ -5,10 +5,10 @@ from src.apps.products.models.products import Product
 
 class BaseProductRepository(ABC):
     @abstractmethod
-    def create(self, product_dto: Product) -> Product: ...
+    def create(self, dto: Product) -> Product: ...
 
 
 class ORMProductRepository(BaseProductRepository):
-    def create(self, product_dto: Product) -> Product:
-        product_dto.save()
-        return product_dto
+    def create(self, dto: Product) -> Product:
+        dto.save()
+        return dto

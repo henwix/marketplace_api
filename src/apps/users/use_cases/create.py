@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.apps.users.models import User
+from src.apps.users.entities import UserEntity
 from src.apps.users.services.users import BaseUserService
 
 
@@ -8,5 +8,5 @@ from src.apps.users.services.users import BaseUserService
 class CreateUserUseCase:
     service: BaseUserService
 
-    def execute(self, data: dict) -> User:
+    def execute(self, data: dict) -> UserEntity:
         return self.service.create(data=data)
