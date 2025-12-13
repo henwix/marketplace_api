@@ -1,55 +1,164 @@
-import django_filters
-import punq
-from rest_framework import filters, status
-from rest_framework.views import Response
-from rest_framework.viewsets import ModelViewSet
+from logging import Logger
 
-from src.api.v1.products.serializers.products import ProductSerializer
-from src.apps.products.filters import ProductFilter
+import django_filters
+import orjson
+import punq
+from django.db.models import Min
+from rest_framework import filters, status
+from rest_framework.generics import ListAPIView
+from rest_framework.views import APIView, Response
+
+from src.api.v1.products.serializers.products import (
+    ProductSerializer,
+    RetrieveProductSerializer,
+    SearchProductSerializer,
+)
+from src.apps.common.exceptions import ServiceException
+from src.apps.products.docs.products.schema_decorators import (
+    extend_create_product_view_schema,
+    extend_detail_product_view_schema,
+    extend_get_product_by_slug_view_schema,
+)
+from src.apps.products.filters import GlobalProductFilter
 from src.apps.products.models.products import Product
 from src.apps.products.pagination import ProductPagination
-from src.apps.products.permissions import ProductPermission
-from src.apps.products.use_cases.create_product import CreateProductUseCase
+from src.apps.products.use_cases.products.create import CreateProductUseCase
+from src.apps.products.use_cases.products.delete import DeleteProductUseCase
+from src.apps.products.use_cases.products.get_by_id import GetProductByIdUseCase
+from src.apps.products.use_cases.products.get_by_slug import GetProductBySlugUseCase
+from src.apps.products.use_cases.products.update import UpdateProductUseCase
+from src.apps.sellers.converters.sellers import seller_to_entity
+from src.apps.sellers.permissions import ReadOnlyOrHasSellerProfilePermission
 from src.project.containers import get_container
 
 
-class ProductViewSet(ModelViewSet):
-    serializer_class = ProductSerializer
+@extend_create_product_view_schema
+class CreateProductApiView(APIView):
+    permission_classes = [ReadOnlyOrHasSellerProfilePermission]
+
+    def post(self, request):
+        serializer = ProductSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        container: punq.Container = get_container()
+        use_case: CreateProductUseCase = container.resolve(CreateProductUseCase)
+
+        product = use_case.execute(
+            seller_id=request.user.seller_profile.id,
+            data=serializer.validated_data,
+        )
+        return Response(
+            data=ProductSerializer(product).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+
+@extend_get_product_by_slug_view_schema
+class GetProductBySlugView(APIView):
+    permission_classes = [ReadOnlyOrHasSellerProfilePermission]
+
+    def get(self, request, slug):
+        container: punq.Container = get_container()
+        logger: Logger = container.resolve(Logger)
+        use_case: GetProductBySlugUseCase = container.resolve(GetProductBySlugUseCase)
+
+        try:
+            product = use_case.execute(
+                seller=seller_to_entity(dto=getattr(request.user, 'seller_profile', None)),
+                slug=slug,
+            )
+            return Response(
+                data=RetrieveProductSerializer(product, context={'request': self.request}).data,
+                status=status.HTTP_200_OK,
+            )
+        except ServiceException as error:
+            logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            return Response(data=error.response(), status=error.status_code)
+
+
+@extend_detail_product_view_schema
+class DetailProductView(APIView):
+    permission_classes = [ReadOnlyOrHasSellerProfilePermission]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.container: punq.Container = get_container()
+        self.logger: Logger = self.container.resolve(Logger)
+
+    def get(self, request, id):
+        use_case: GetProductByIdUseCase = self.container.resolve(GetProductByIdUseCase)
+
+        try:
+            product = use_case.execute(
+                seller=seller_to_entity(dto=getattr(request.user, 'seller_profile', None)),
+                product_id=id,
+            )
+            return Response(
+                data=RetrieveProductSerializer(product, context={'request': self.request}).data,
+                status=status.HTTP_200_OK,
+            )
+        except ServiceException as error:
+            self.logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            return Response(data=error.response(), status=error.status_code)
+
+    def delete(self, request, id):
+        use_case: DeleteProductUseCase = self.container.resolve(DeleteProductUseCase)
+
+        try:
+            use_case.execute(
+                seller=seller_to_entity(dto=request.user.seller_profile),
+                product_id=id,
+            )
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except ServiceException as error:
+            self.logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            return Response(data=error.response(), status=error.status_code)
+
+    def update(self, request, id, partial: bool):
+        serializer = ProductSerializer(data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        use_case: UpdateProductUseCase = self.container.resolve(UpdateProductUseCase)
+
+        try:
+            product = use_case.execute(
+                seller=seller_to_entity(dto=request.user.seller_profile),
+                product_id=id,
+                data=serializer.validated_data,
+            )
+            return Response(
+                data=ProductSerializer(product).data,
+                status=status.HTTP_200_OK,
+            )
+        except ServiceException as error:
+            self.logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
+            return Response(data=error.response(), status=error.status_code)
+
+    def put(self, request, id):
+        return self.update(request=request, id=id, partial=False)
+
+    def patch(self, request, id):
+        return self.update(request=request, id=id, partial=True)
+
+
+# TODO: cache for searching
+# TODO: search for personal produts
+class GlobalSearchProductView(ListAPIView):
+    serializer_class = SearchProductSerializer
     pagination_class = ProductPagination
-    permission_classes = [ProductPermission]
+    filterset_class = GlobalProductFilter
     filter_backends = [
         filters.SearchFilter,
         filters.OrderingFilter,
         django_filters.rest_framework.DjangoFilterBackend,
     ]
-    filterset_class = ProductFilter
-    ordering_fields = ['created_at', 'updated_at']
     search_fields = ['title', 'description', 'short_description']
+    ordering_fields = ['created_at', 'updated_at', 'price']
     ordering = ['-created_at']
-    lookup_field = 'id'
-    lookup_url_kwarg = 'id'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container: punq.Container = get_container()
-
-    def filter_queryset(self, queryset):
-        if self.action == 'list':
-            return super().filter_queryset(queryset)
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return Product.objects.all()
-        return Product.objects.filter(seller_id=self.request.user.seller_profile.id)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        use_case: CreateProductUseCase = self.container.resolve(CreateProductUseCase)
-
-        result = use_case.execute(
-            seller_id=request.user.seller_profile.id,
-            data=serializer.validated_data,
+        return (
+            Product.objects.annotate(price=Min('variants__price'))
+            .filter(is_visible=True, variants__stock__gt=0, variants__price__gt=0, variants__is_visible=True)
+            .distinct()
         )
-        return Response(data=self.get_serializer(result).data, status=status.HTTP_201_CREATED)
+
+    def perform_authentication(self, request): ...

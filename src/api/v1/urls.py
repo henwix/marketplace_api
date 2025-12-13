@@ -9,7 +9,7 @@ app_name = 'v1'
 
 @extend_schema(
     responses=inline_serializer(name='ping', fields={'detail': serializers.CharField(default='pong')}),
-    summary='Ping API',
+    summary='Ping API GET',
 )
 @api_view(['GET'])
 def ping(request):

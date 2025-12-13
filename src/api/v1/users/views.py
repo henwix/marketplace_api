@@ -10,7 +10,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from src.api.v1.users.serializers import PasswordUserSerializer, UpdateUserSerializer, UserSerializer
 from src.apps.common.exceptions import ServiceException
-from src.apps.users.converters import user_to_entity
+from src.apps.users.converters import user_from_entity, user_to_entity
 from src.apps.users.docs.schema_decorators import extend_user_viewset_schema
 from src.apps.users.models import User
 from src.apps.users.permissions import UserPermission
@@ -52,8 +52,11 @@ class UserViewSet(
         use_case: CreateUserUseCase = self.container.resolve(CreateUserUseCase)
 
         try:
-            result = use_case.execute(data=serializer.validated_data)
-            return Response(data=self.get_serializer(result).data, status=status.HTTP_201_CREATED)
+            user = use_case.execute(data=serializer.validated_data)
+            return Response(
+                data=self.get_serializer(user_from_entity(user)).data,
+                status=status.HTTP_201_CREATED,
+            )
         except ServiceException as error:
             self.logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
             return Response(data=error.response(), status=error.status_code)

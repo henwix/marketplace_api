@@ -24,7 +24,7 @@ from src.apps.products.entities.products import ProductEntity
 )
 def test_build_entity_slug(expected_product_title: str):
     entity = ProductEntity(seller_id=0, title=expected_product_title)
-    expected_slug = f'{slugify(text=entity.title)}-{entity.id[-8:]}'
+    expected_slug = f'{slugify(text=entity.title)}-{str(entity.id)[-8:]}'
 
     entity.build_slug()
     assert expected_slug == entity.slug

@@ -31,7 +31,7 @@
   - [ ] oauth2
 - [ ] products
   - [ ] models(products, categories, reviews + review and products images: продумать как они будут сохраняться и получаться)
-  - [ ] CRUD for products
+  - [x] CRUD for products
   - [ ] Products searching, filtering, ordering. Searching by category
   - [ ] Favorites products(избранное, понравившееся, сердечко типа)
 - [ ] cart

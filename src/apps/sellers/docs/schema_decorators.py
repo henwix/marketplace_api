@@ -21,7 +21,7 @@ extend_seller_viewset_schema = extend_schema_view(
             status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response,
             status.HTTP_403_FORBIDDEN: permission_error_403_response,
         },
-        summary='Create Seller Profile',
+        summary='Create Seller Profile POST',
     ),
     retrieve=extend_schema(
         parameters=[jwt_header_request_parameter],
@@ -33,7 +33,7 @@ extend_seller_viewset_schema = extend_schema_view(
             status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response,
             status.HTTP_403_FORBIDDEN: permission_error_403_response,
         },
-        summary='Retrieve Seller Profile',
+        summary='Retrieve Seller Profile GET',
     ),
     update=extend_schema(
         parameters=[jwt_header_request_parameter],
@@ -64,6 +64,6 @@ extend_seller_viewset_schema = extend_schema_view(
             status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response,
             status.HTTP_403_FORBIDDEN: permission_error_403_response,
         },
-        summary='Delete Seller Profile',
+        summary='Delete Seller Profile DELETE',
     ),
 )

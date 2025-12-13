@@ -6,7 +6,10 @@ def data_to_seller_entity(data: dict) -> SellerEntity:
     return SellerEntity(**data)
 
 
-def seller_to_entity(dto: Seller) -> SellerEntity:
+def seller_to_entity(dto: Seller | None) -> SellerEntity | None:
+    if dto is None:
+        return None
+
     return SellerEntity(
         id=dto.pk,
         user_id=dto.user_id,

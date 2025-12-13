@@ -1,6 +1,6 @@
 [project]
 name = "marketplace-api"
-version = "0.1.0"
+version = "1.0.0"
 description = ""
 authors = [
     {name = "henwix",email = "492b675xhpd1@gmail.com"}

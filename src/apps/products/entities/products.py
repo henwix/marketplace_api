@@ -1,25 +1,32 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from uuid import uuid7
+from uuid import UUID, uuid7
 
 from django.utils import timezone
 from slugify import slugify
 
+from src.apps.products.entities.product_variants import ProductVariantEntity
+from src.apps.sellers.entities.sellers import SellerEntity
 
-@dataclass
+
+@dataclass(kw_only=True)
 class ProductEntity:
-    id: uuid7 = field(
-        default_factory=lambda: str(uuid7()),
-        kw_only=True,
-    )
-    slug: str | None = field(default=None, kw_only=True)
+    id: UUID = field(default_factory=lambda: uuid7())
+    slug: str | None = None
     seller_id: int
+    seller: SellerEntity | None = None
+    variants: list[ProductVariantEntity] | None = None
     title: str
-    description: str | None = field(default=None, kw_only=True)
-    short_description: str | None = field(default=None, kw_only=True)
-    is_visible: bool = field(default=True, kw_only=True)
-    created_at: datetime = field(default_factory=timezone.now, kw_only=True)
-    updated_at: datetime = field(default_factory=timezone.now, kw_only=True)
+    description: str | None = None
+    short_description: str | None = None
+    is_visible: bool = True
+    created_at: datetime = field(default_factory=timezone.now)
+    updated_at: datetime = field(default_factory=timezone.now)
 
     def build_slug(self):
-        self.slug = f'{slugify(text=self.title)}-{self.id[-8:]}'
+        self.slug = f'{slugify(text=self.title)}-{str(self.id)[-8:]}'
+
+    def update_from_data(self, data: dict) -> None:
+        for k, v in data.items():
+            if hasattr(self, k):
+                setattr(self, k, v)

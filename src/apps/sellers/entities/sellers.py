@@ -1,11 +1,11 @@
 from dataclasses import dataclass, field
 
 
-@dataclass
+@dataclass(kw_only=True)
 class SellerEntity:
-    id: int | None = field(default=None, kw_only=True)
+    id: int | None = field(default=None)
     user_id: int
     name: str
-    description: str | None = field(default=None, kw_only=True)
-    avatar: str | None = field(default=None, kw_only=True)
-    background: str | None = field(default=None, kw_only=True)
+    description: str | None = field(default=None)
+    avatar: str | None = field(default=None)
+    background: str | None = field(default=None)

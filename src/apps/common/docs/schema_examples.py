@@ -37,6 +37,13 @@ def build_detail_response_example(
     )
 
 
+unauthorized_error_401_response_example = build_detail_response_example(
+    name='Unauthorized Error',
+    value='Authentication credentials were not provided.',
+    status_code=401,
+)
+
+
 permission_error_403_response_example = build_detail_response_example(
     name='Permission Error',
     value='You do not have permission to perform this action.',
@@ -44,8 +51,9 @@ permission_error_403_response_example = build_detail_response_example(
 )
 
 
-unauthorized_error_401_response_example = build_detail_response_example(
-    name='Unauthorized Error',
-    value='Authentication credentials were not provided.',
-    status_code=401,
-)
+def not_found_query_error_404_response_example(object_name: str) -> OpenApiExample:
+    return build_detail_response_example(
+        name='Not Found',
+        value=f'No {object_name} matches the given query.',
+        status_code=404,
+    )

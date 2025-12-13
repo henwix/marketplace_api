@@ -63,6 +63,8 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],
+    'SEARCH_PARAM': 'q',
+    'ORDERING_PARAM': 'o',
 }
 
 SPECTACULAR_SETTINGS = {

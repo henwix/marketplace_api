@@ -25,7 +25,7 @@ extend_user_viewset_schema = extend_schema_view(
                 examples=[build_response_example_from_error(error=UserWithDataAlreadyExistsError)],
             ),
         },
-        summary='Create User',
+        summary='Create User POST',
     ),
     set_password=extend_schema(
         parameters=[jwt_header_request_parameter],
@@ -40,7 +40,7 @@ extend_user_viewset_schema = extend_schema_view(
         examples=[
             build_detail_response_example(name='Password updated', value='Success', status_code=200),
         ],
-        summary='Update User Password',
+        summary='Update User Password POST',
     ),
     retrieve=extend_schema(
         parameters=[jwt_header_request_parameter],
@@ -48,7 +48,7 @@ extend_user_viewset_schema = extend_schema_view(
             status.HTTP_200_OK: OpenApiResponse(response=UserSerializer, description='User has been retrieved'),
             status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response,
         },
-        summary='Retrieve User',
+        summary='Retrieve User GET',
     ),
     update=extend_schema(
         parameters=[jwt_header_request_parameter],
@@ -72,6 +72,6 @@ extend_user_viewset_schema = extend_schema_view(
             status.HTTP_204_NO_CONTENT: no_content_204_response,
             status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response,
         },
-        summary='Delete User',
+        summary='Delete User DELETE',
     ),
 )
