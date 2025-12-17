@@ -1,5 +1,5 @@
-import punq
 import pytest
+from punq import Container
 
 from src.apps.users.converters import user_from_entity
 from src.apps.users.entities import UserEntity
@@ -8,7 +8,7 @@ from tests.v1.users.test_data.create_user import CREATE_USER_ARGNAMES, CREATE_US
 
 
 @pytest.fixture
-def create_user_use_case(container: punq.Container) -> CreateUserUseCase:
+def create_user_use_case(container: Container) -> CreateUserUseCase:
     return container.resolve(CreateUserUseCase)
 
 

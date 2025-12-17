@@ -1,5 +1,5 @@
-import punq
 import pytest
+from punq import Container
 
 from src.apps.users.models import User
 from src.apps.users.use_cases.set_password import SetPasswordUserUseCase
@@ -7,7 +7,7 @@ from tests.v1.users.test_data.set_password_user import SET_PASSWORD_ARGNAMES, SE
 
 
 @pytest.fixture
-def set_password_user_use_case(container: punq.Container) -> SetPasswordUserUseCase:
+def set_password_user_use_case(container: Container) -> SetPasswordUserUseCase:
     return container.resolve(SetPasswordUserUseCase)
 
 

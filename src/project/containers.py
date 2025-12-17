@@ -1,7 +1,7 @@
 from functools import lru_cache
 from logging import Logger, getLogger
 
-import punq
+from punq import Container
 
 from src.apps.products.containers import init_products
 from src.apps.sellers.containers import init_sellers
@@ -9,12 +9,12 @@ from src.apps.users.containers import init_users
 
 
 @lru_cache(1)
-def get_container() -> punq.Container:
+def get_container() -> Container:
     return _initialize_container()
 
 
-def _initialize_container() -> punq.Container:
-    container = punq.Container()
+def _initialize_container() -> Container:
+    container = Container()
 
     init_users(container=container)
     init_sellers(container=container)

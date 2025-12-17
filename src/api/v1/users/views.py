@@ -1,7 +1,7 @@
 from logging import Logger
 
 import orjson
-import punq
+from punq import Container
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, RetrieveModelMixin, UpdateModelMixin
@@ -19,7 +19,7 @@ from src.apps.users.use_cases.set_password import SetPasswordUserUseCase
 from src.project.containers import get_container
 
 
-@extend_user_viewset_schema
+@extend_user_viewset_schema()
 class UserViewSet(
     CreateModelMixin,
     RetrieveModelMixin,
@@ -32,7 +32,7 @@ class UserViewSet(
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-        self.container: punq.Container = get_container()
+        self.container: Container = get_container()
         self.logger: Logger = self.container.resolve(Logger)
 
     def get_object(self):

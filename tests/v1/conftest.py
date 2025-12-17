@@ -1,12 +1,16 @@
-import punq
 import pytest
+from punq import Container
 from pytest_django.fixtures import SettingsWrapper
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from src.apps.products.converters.products import product_to_entity
+from src.apps.products.entities.products import ProductEntity
+from src.apps.products.models.products import Product
 from src.apps.sellers.models import Seller
 from src.apps.users.models import User
 from src.project.containers import get_container
+from tests.v1.products.factories import ProductModelFactory
 from tests.v1.sellers.factories import SellerModelFactory
 from tests.v1.users.factories import UserModelFactory
 
@@ -37,7 +41,17 @@ def seller() -> Seller:
 
 
 @pytest.fixture
-def container() -> punq.Container:
+def product() -> Product:
+    return ProductModelFactory.create()
+
+
+@pytest.fixture
+def product_entity() -> ProductEntity:
+    return product_to_entity(dto=ProductModelFactory.create())
+
+
+@pytest.fixture
+def container() -> Container:
     return get_container()
 
 

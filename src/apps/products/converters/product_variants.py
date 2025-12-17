@@ -16,7 +16,7 @@ def product_variant_from_entity(entity: ProductVariantEntity) -> ProductVariant:
 
 
 def product_variant_to_entity(dto: ProductVariant) -> ProductVariantEntity:
-    return ProductVariant(
+    entity = ProductVariantEntity(
         id=dto.pk,
         product_id=dto.product_id,
         title=dto.title,
@@ -26,3 +26,7 @@ def product_variant_to_entity(dto: ProductVariant) -> ProductVariantEntity:
         created_at=dto.created_at,
         updated_at=dto.created_at,
     )
+
+    if 'product' in dto._state.fields_cache:
+        entity.product_seller_id = dto.product.seller_id
+    return entity

@@ -3,9 +3,11 @@ from datetime import datetime
 
 from django.utils import timezone
 
+from src.apps.common.entities import BaseEntity
+
 
 @dataclass(kw_only=True)
-class UserEntity:
+class UserEntity(BaseEntity):
     id: int | None = field(default=None)
     first_name: str
     last_name: str

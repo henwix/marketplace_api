@@ -9,5 +9,9 @@ ALLOWED_HOSTS = [
     'localhost',
 ]
 
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:5500',
+]
+
 INSTALLED_APPS.append('silk')  # noqa
 MIDDLEWARE.append('silk.middleware.SilkyMiddleware')  # noqa

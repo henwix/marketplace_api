@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'rest_framework_simplejwt',
     'django_extensions',
+    'corsheaders',
     'drf_spectacular',
     # api apps
     'src.apps.users.apps.UsersConfig',
@@ -47,6 +48,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',

@@ -45,12 +45,11 @@ class RetrieveProductSerializer(serializers.ModelSerializer):
             'updated_at',
             'variants',
         ]
-        read_only_fields = ['id', 'slug']
 
 
 class SearchProductSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
-        view_name='v1:products:products-get-slug',
+        view_name='v1:products:products-get-by-slug',
         lookup_field='slug',
         lookup_url_kwarg='slug',
         read_only=True,

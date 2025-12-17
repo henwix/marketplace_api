@@ -2,8 +2,7 @@ from logging import Logger
 
 import django_filters
 import orjson
-import punq
-from django.db.models import Min
+from punq import Container
 from rest_framework import filters, status
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView, Response
@@ -18,28 +17,31 @@ from src.apps.products.docs.products.schema_decorators import (
     extend_create_product_view_schema,
     extend_detail_product_view_schema,
     extend_get_product_by_slug_view_schema,
+    extend_global_search_view_schema,
+    extend_personal_search_view_schema,
 )
-from src.apps.products.filters import GlobalProductFilter
+from src.apps.products.filters import GlobalProductFilter, PersonalProductFilter
 from src.apps.products.models.products import Product
 from src.apps.products.pagination import ProductPagination
+from src.apps.products.repositories.products import BaseProductRepository
 from src.apps.products.use_cases.products.create import CreateProductUseCase
 from src.apps.products.use_cases.products.delete import DeleteProductUseCase
 from src.apps.products.use_cases.products.get_by_id import GetProductByIdUseCase
 from src.apps.products.use_cases.products.get_by_slug import GetProductBySlugUseCase
 from src.apps.products.use_cases.products.update import UpdateProductUseCase
 from src.apps.sellers.converters.sellers import seller_to_entity
-from src.apps.sellers.permissions import ReadOnlyOrHasSellerProfilePermission
+from src.apps.sellers.permissions import HasSellerProfilePermission, ReadOnlyOrHasSellerProfilePermission
 from src.project.containers import get_container
 
 
-@extend_create_product_view_schema
-class CreateProductApiView(APIView):
+@extend_create_product_view_schema()
+class CreateProductView(APIView):
     permission_classes = [ReadOnlyOrHasSellerProfilePermission]
 
     def post(self, request):
         serializer = ProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        container: punq.Container = get_container()
+        container: Container = get_container()
         use_case: CreateProductUseCase = container.resolve(CreateProductUseCase)
 
         product = use_case.execute(
@@ -52,12 +54,10 @@ class CreateProductApiView(APIView):
         )
 
 
-@extend_get_product_by_slug_view_schema
+@extend_get_product_by_slug_view_schema()
 class GetProductBySlugView(APIView):
-    permission_classes = [ReadOnlyOrHasSellerProfilePermission]
-
     def get(self, request, slug):
-        container: punq.Container = get_container()
+        container: Container = get_container()
         logger: Logger = container.resolve(Logger)
         use_case: GetProductBySlugUseCase = container.resolve(GetProductBySlugUseCase)
 
@@ -75,15 +75,16 @@ class GetProductBySlugView(APIView):
             return Response(data=error.response(), status=error.status_code)
 
 
-@extend_detail_product_view_schema
+@extend_detail_product_view_schema()
 class DetailProductView(APIView):
     permission_classes = [ReadOnlyOrHasSellerProfilePermission]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.container: punq.Container = get_container()
+        self.container: Container = get_container()
         self.logger: Logger = self.container.resolve(Logger)
 
+    # FIXME: fix an issue where product author cannot see invisible variants when retrieving product
     def get(self, request, id):
         use_case: GetProductByIdUseCase = self.container.resolve(GetProductByIdUseCase)
 
@@ -140,7 +141,7 @@ class DetailProductView(APIView):
 
 
 # TODO: cache for searching
-# TODO: search for personal produts
+@extend_global_search_view_schema()
 class GlobalSearchProductView(ListAPIView):
     serializer_class = SearchProductSerializer
     pagination_class = ProductPagination
@@ -154,11 +155,23 @@ class GlobalSearchProductView(ListAPIView):
     ordering_fields = ['created_at', 'updated_at', 'price']
     ordering = ['-created_at']
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container: Container = get_container()
+        self.repository: BaseProductRepository = self.container.resolve(BaseProductRepository)
+
     def get_queryset(self):
-        return (
-            Product.objects.annotate(price=Min('variants__price'))
-            .filter(is_visible=True, variants__stock__gt=0, variants__price__gt=0, variants__is_visible=True)
-            .distinct()
-        )
+        return self.repository.get_many_for_global_search()
 
     def perform_authentication(self, request): ...
+
+
+@extend_personal_search_view_schema()
+class PersonalSearchProductView(GlobalSearchProductView):
+    filterset_class = PersonalProductFilter
+    permission_classes = [HasSellerProfilePermission]
+
+    def get_queryset(self):
+        if not self.request.user.is_authenticated:
+            return Product.objects.all()
+        return self.repository.get_many_for_personal_search(seller_id=self.request.user.seller_profile.id)

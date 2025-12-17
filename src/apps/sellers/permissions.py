@@ -29,8 +29,13 @@ class SellerViewPermission(BasePermission):
         return False
 
 
-class ReadOnlyOrHasSellerProfilePermission(BasePermission):
+class HasSellerProfilePermission(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and getattr(request.user, 'seller_profile', None) is not None
+
+
+class ReadOnlyOrHasSellerProfilePermission(HasSellerProfilePermission):
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
-        return request.user.is_authenticated and getattr(request.user, 'seller_profile', None) is not None
+        return super().has_permission(request, view)

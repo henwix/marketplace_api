@@ -1,5 +1,5 @@
-import punq
 import pytest
+from punq import Container
 
 from src.apps.sellers.entities.sellers import SellerEntity
 from src.apps.sellers.use_cases.create import CreateSellerUseCase
@@ -8,7 +8,7 @@ from tests.v1.sellers.test_data.create_seller import CREATE_SELLER_ARGNAMES, CRE
 
 
 @pytest.fixture
-def create_seller_use_case(container: punq.Container) -> CreateSellerUseCase:
+def create_seller_use_case(container: Container) -> CreateSellerUseCase:
     return container.resolve(CreateSellerUseCase)
 
 

@@ -52,7 +52,7 @@ class ProductService(BaseProductService):
     def save(self, product: ProductEntity, update: bool = False) -> ProductEntity:
         dto = product_from_entity(entity=product)
         dto = self.repository.save(product=dto, update=update)
-        return product
+        return product_to_entity(dto=dto)
 
     def select_for_update_by_id_or_404(self, id: UUID) -> ProductEntity:
         dto = self.repository.select_for_update_by_id_or_none(id=id)

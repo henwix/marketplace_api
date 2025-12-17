@@ -1,4 +1,4 @@
-import punq
+from punq import Container
 from rest_framework import status
 from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, RetrieveModelMixin, UpdateModelMixin
 from rest_framework.permissions import AllowAny
@@ -14,7 +14,7 @@ from src.apps.sellers.use_cases.create import CreateSellerUseCase
 from src.project.containers import get_container
 
 
-@extend_seller_viewset_schema
+@extend_seller_viewset_schema()
 class SellerViewSet(
     CreateModelMixin,
     RetrieveModelMixin,
@@ -43,7 +43,7 @@ class SellerViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        container: punq.Container = get_container()
+        container: Container = get_container()
         use_case: CreateSellerUseCase = container.resolve(CreateSellerUseCase)
 
         seller = use_case.execute(user_id=request.user.pk, data=serializer.validated_data)
