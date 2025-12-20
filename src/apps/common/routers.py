@@ -5,6 +5,7 @@ from rest_framework.routers import (
 )
 
 
+# TODO: remove router
 class CustomRouter(SimpleRouter):
     routes = [
         # List route.

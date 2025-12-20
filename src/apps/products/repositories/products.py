@@ -46,7 +46,16 @@ class ORMProductRepository(BaseProductRepository):
         )
 
     def _build_query_for_search(self, filters: Q) -> Iterable[Product]:
-        return Product.objects.annotate(price=Min('variants__price')).filter(filters).distinct()
+        return (
+            Product.objects.annotate(
+                price=Min(
+                    'variants__price',
+                    filter=Q(variants__is_visible=True) & Q(variants__price__gt=0) & Q(variants__stock__gt=0),
+                )
+            )
+            .filter(filters)
+            .distinct()
+        )
 
     def save(self, product: Product, update: bool) -> Product:
         product.save(force_update=update)
@@ -73,7 +82,6 @@ class ORMProductRepository(BaseProductRepository):
         return self._build_query_for_retrieve_with_relations(filters=Q(slug=slug)).first()
 
     def get_many_for_global_search(self) -> Iterable[Product]:
-        # FIXME: exclude products with price 0 because trey're showing in global search
         filters = (
             Q(is_visible=True) & Q(variants__stock__gt=0) & Q(variants__price__gt=0) & Q(variants__is_visible=True)
         )

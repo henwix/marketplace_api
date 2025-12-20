@@ -139,11 +139,7 @@ def extend_personal_search_view_schema():
             OpenApiParameter(name='max_price', description='Maximum price', type=OpenApiTypes.DECIMAL),
             OpenApiParameter(name='min_price', description='Minimum price', type=OpenApiTypes.DECIMAL),
             OpenApiParameter(name='price_range_max', description='Price range', type=OpenApiTypes.DECIMAL),
-            OpenApiParameter(
-                name='price_range_min',
-                description='Price range',
-                type=OpenApiTypes.DECIMAL,
-            ),
+            OpenApiParameter(name='price_range_min', description='Price range', type=OpenApiTypes.DECIMAL),
         ],
         request=None,
         responses={
