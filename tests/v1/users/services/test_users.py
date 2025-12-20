@@ -91,7 +91,7 @@ def test_user_create_phone_already_exists_error(
 
 @pytest.mark.parametrize(argnames=SET_PASSWORD_ARGNAMES, argvalues=SET_PASSWORD_ARGVALUES)
 @pytest.mark.django_db
-def test_password_updated(
+def test_update_user_password(
     user_service: BaseUserService,
     user: User,
     expected_password: str,
@@ -102,3 +102,33 @@ def test_password_updated(
 
     db_user = User.objects.get(pk=user.pk)
     assert db_user.check_password(expected_password) is True
+
+
+@pytest.mark.django_db
+def test_delete_user_deleted(user_service: BaseUserService, user: User):
+    assert User.objects.filter(pk=user.pk).exists()
+    user_service.delete(id=user.pk)
+    assert not User.objects.filter(pk=user.pk).exists()
+
+
+@pytest.mark.django_db
+def test_save_user_saved_for_creation(user_service: BaseUserService):
+    user = UserModelFactory.build()
+    assert not User.objects.filter(pk=user.pk).exists()
+    saved_user = user_service.save(user=user_to_entity(dto=user), update=False)
+    assert isinstance(saved_user, UserEntity)
+    db_user = User.objects.get(pk=saved_user.id)
+    assert user_to_entity(db_user) == saved_user
+
+
+@pytest.mark.django_db
+def test_save_user_saved_for_update(user_service: BaseUserService, user: User):
+    user.first_name = 'new test first name'
+    user.last_name = 'new test last name'
+    user.email = 'newtestemail@test.com'
+    user.phone = '+129125575125125'
+
+    saved_user = user_service.save(user=user_to_entity(dto=user), update=True)
+    assert isinstance(saved_user, UserEntity)
+    db_user = User.objects.get(pk=user.pk)
+    assert user_to_entity(dto=db_user) == saved_user

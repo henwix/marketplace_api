@@ -5,7 +5,7 @@ from django.db.models import Prefetch
 
 from src.apps.products.converters.products import product_from_entity, product_to_entity
 from src.apps.products.entities.products import ProductEntity
-from src.apps.products.exceptions.products import ProductNotFoundError
+from src.apps.products.exceptions.products import ProductNotFoundByIdError, ProductNotFoundBySlugError
 from src.apps.products.models.product_variants import ProductVariant
 from src.apps.products.models.products import Product
 from src.apps.products.services.products import BaseProductService
@@ -62,7 +62,7 @@ def test_product_selected_for_update_by_id(product: Product, product_service: Ba
 
 @pytest.mark.django_db
 def test_product_not_selected_for_update_by_id_and_raised_if_not_exists(product_service: BaseProductService):
-    with pytest.raises(ProductNotFoundError):
+    with pytest.raises(ProductNotFoundByIdError):
         product_service.select_for_update_by_id_or_404(id=uuid7())
 
 
@@ -74,7 +74,7 @@ def test_product_retrieved_by_id(product: Product, product_service: BaseProductS
 
 @pytest.mark.django_db
 def test_product_not_retrieved_by_id_if_not_exists(product_service: BaseProductService):
-    with pytest.raises(ProductNotFoundError):
+    with pytest.raises(ProductNotFoundByIdError):
         product_service.get_by_id_or_404(id=uuid7())
 
 
@@ -138,7 +138,7 @@ def test_product_retrieved_by_id_with_relations_and_not_visible_variants(
 
 @pytest.mark.django_db
 def test_product_not_retrieved_by_id_with_relations_if_not_exists(product_service: BaseProductService):
-    with pytest.raises(ProductNotFoundError):
+    with pytest.raises(ProductNotFoundByIdError):
         product_service.get_by_id_for_retrieve_or_404(id=uuid7())
 
 
@@ -202,7 +202,7 @@ def test_product_retrieved_by_slug_with_relations_and_not_visible_variants(
 
 @pytest.mark.django_db
 def test_product_not_retrieved_by_slug_with_relations_if_not_exists(product_service: BaseProductService):
-    with pytest.raises(ProductNotFoundError):
+    with pytest.raises(ProductNotFoundBySlugError):
         product_service.get_by_slug_for_retrieve_or_404(slug='test-slug')
 
 

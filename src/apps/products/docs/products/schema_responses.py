@@ -3,20 +3,12 @@ from drf_spectacular.utils import OpenApiResponse
 from src.api.v1.common.serializers import DetailOutSerializer
 from src.apps.common.docs.schema_examples import (
     build_response_example_from_error,
-    permission_error_403_response_example,
 )
-from src.apps.products.exceptions.products import ProductAuthorPermissionError, ProductNotFoundError
-
-
-def product_extended_permission_error_403_response() -> OpenApiResponse:
-    return OpenApiResponse(
-        response=DetailOutSerializer,
-        description='Permission error',
-        examples=[
-            build_response_example_from_error(ProductAuthorPermissionError),
-            permission_error_403_response_example(),
-        ],
-    )
+from src.apps.products.exceptions.products import (
+    ProductAuthorPermissionError,
+    ProductNotFoundByIdError,
+    ProductNotFoundBySlugError,
+)
 
 
 def product_permission_error_403_response() -> OpenApiResponse:
@@ -29,11 +21,21 @@ def product_permission_error_403_response() -> OpenApiResponse:
     )
 
 
-def product_not_found_error_404_response() -> OpenApiResponse:
+def product_not_found_by_id_error_404_response() -> OpenApiResponse:
     return OpenApiResponse(
         response=DetailOutSerializer,
-        description='Product not found error',
+        description='Product not found by id error',
         examples=[
-            build_response_example_from_error(ProductNotFoundError),
+            build_response_example_from_error(ProductNotFoundByIdError),
+        ],
+    )
+
+
+def product_not_found_by_slug_error_404_response() -> OpenApiResponse:
+    return OpenApiResponse(
+        response=DetailOutSerializer,
+        description='Product not found by slug error',
+        examples=[
+            build_response_example_from_error(ProductNotFoundBySlugError),
         ],
     )

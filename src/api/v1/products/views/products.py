@@ -21,7 +21,6 @@ from src.apps.products.docs.products.schema_decorators import (
     extend_personal_search_view_schema,
 )
 from src.apps.products.filters import GlobalProductFilter, PersonalProductFilter
-from src.apps.products.models.products import Product
 from src.apps.products.pagination import ProductPagination
 from src.apps.products.repositories.products import BaseProductRepository
 from src.apps.products.use_cases.products.create import CreateProductUseCase
@@ -84,7 +83,6 @@ class DetailProductView(APIView):
         self.container: Container = get_container()
         self.logger: Logger = self.container.resolve(Logger)
 
-    # FIXME: fix an issue where product author cannot see invisible variants when retrieving product
     def get(self, request, id):
         use_case: GetProductByIdUseCase = self.container.resolve(GetProductByIdUseCase)
 
@@ -172,6 +170,4 @@ class PersonalSearchProductView(GlobalSearchProductView):
     permission_classes = [HasSellerProfilePermission]
 
     def get_queryset(self):
-        if not self.request.user.is_authenticated:
-            return Product.objects.all()
         return self.repository.get_many_for_personal_search(seller_id=self.request.user.seller_profile.id)

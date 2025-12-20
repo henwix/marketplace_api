@@ -6,7 +6,7 @@ from punq import Container
 
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity
-from src.apps.products.exceptions.products import ProductAuthorPermissionError, ProductNotFoundError
+from src.apps.products.exceptions.products import ProductAuthorPermissionError, ProductNotFoundByIdError
 from src.apps.products.models.product_variants import ProductVariant
 from src.apps.products.models.products import Product
 from src.apps.products.use_cases.products.get_by_id import GetProductByIdUseCase
@@ -145,5 +145,5 @@ def test_product_retrieved_with_relations_and_not_visible_variants(
 
 @pytest.mark.django_db
 def test_product_not_retrieved_if_not_exists(get_product_by_id_use_case: GetProductByIdUseCase):
-    with pytest.raises(ProductNotFoundError):
+    with pytest.raises(ProductNotFoundByIdError):
         get_product_by_id_use_case.execute(seller=None, product_id=uuid7())

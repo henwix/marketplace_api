@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from uuid import UUID
 
-from django.db.models import Min, Prefetch, Q
+from django.db.models import Count, Min, Prefetch, Q
 
 from src.apps.products.models.product_variants import ProductVariant
 from src.apps.products.models.products import Product
@@ -20,6 +20,9 @@ class BaseProductRepository(ABC):
 
     @abstractmethod
     def get_by_id_for_retrieve_or_none(self, id: UUID) -> Product | None: ...
+
+    @abstractmethod
+    def get_by_id_with_loaded_variants_or_none(self, id: UUID) -> Product | None: ...
 
     @abstractmethod
     def get_by_slug_for_retrieve_or_none(self, slug: str) -> Product | None: ...
@@ -58,10 +61,19 @@ class ORMProductRepository(BaseProductRepository):
     def get_by_id_for_retrieve_or_none(self, id: UUID) -> Product | None:
         return self._build_query_for_retrieve_with_relations(filters=Q(pk=id)).first()
 
+    def get_by_id_with_loaded_variants_or_none(self, id: UUID) -> Product | None:
+        return (
+            Product.objects.annotate(variants_count=Count('variants'))
+            .filter(pk=id)
+            .prefetch_related('variants')
+            .first()
+        )
+
     def get_by_slug_for_retrieve_or_none(self, slug: str) -> Product | None:
         return self._build_query_for_retrieve_with_relations(filters=Q(slug=slug)).first()
 
     def get_many_for_global_search(self) -> Iterable[Product]:
+        # FIXME: exclude products with price 0 because trey're showing in global search
         filters = (
             Q(is_visible=True) & Q(variants__stock__gt=0) & Q(variants__price__gt=0) & Q(variants__is_visible=True)
         )

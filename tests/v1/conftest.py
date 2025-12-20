@@ -6,11 +6,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity
+from src.apps.products.models.product_variants import ProductVariant
 from src.apps.products.models.products import Product
 from src.apps.sellers.models import Seller
 from src.apps.users.models import User
 from src.project.containers import get_container
-from tests.v1.products.factories import ProductModelFactory
+from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory
 from tests.v1.sellers.factories import SellerModelFactory
 from tests.v1.users.factories import UserModelFactory
 
@@ -43,6 +44,11 @@ def seller() -> Seller:
 @pytest.fixture
 def product() -> Product:
     return ProductModelFactory.create()
+
+
+@pytest.fixture
+def product_variant() -> ProductVariant:
+    return ProductVariantModelFactory.create()
 
 
 @pytest.fixture

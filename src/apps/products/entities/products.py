@@ -16,6 +16,7 @@ class ProductEntity(BaseEntity):
     seller_id: int
     seller: SellerEntity | None = None
     variants: list[ProductVariantEntity] | None = None
+    variants_count: int | None = None
     title: str
     description: str | None = None
     short_description: str | None = None

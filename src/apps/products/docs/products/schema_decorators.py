@@ -1,4 +1,5 @@
-from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view
 from rest_framework import status
 
 from src.api.v1.products.serializers.products import (
@@ -6,13 +7,19 @@ from src.api.v1.products.serializers.products import (
     RetrieveProductSerializer,
     SearchProductSerializer,
 )
-from src.apps.common.docs.schema_parameters import jwt_header_request_parameter
-from src.apps.common.docs.schema_responses import permission_error_403_response, unauthorized_error_401_response
+from src.apps.common.docs.schema_parameters import build_enum_query_param, jwt_header_request_parameter
+from src.apps.common.docs.schema_responses import (
+    extended_permission_error_403_response,
+    permission_error_403_response,
+    unauthorized_error_401_response,
+)
+from src.apps.products.docs.products.enums import ProductsSearchOrderingEnum
 from src.apps.products.docs.products.schema_responses import (
-    product_extended_permission_error_403_response,
-    product_not_found_error_404_response,
+    product_not_found_by_id_error_404_response,
+    product_not_found_by_slug_error_404_response,
     product_permission_error_403_response,
 )
+from src.apps.products.exceptions.products import ProductAuthorPermissionError
 
 
 def extend_create_product_view_schema():
@@ -44,7 +51,7 @@ def extend_get_product_by_slug_view_schema():
                     description='Product has been retrieved by slug',
                 ),
                 status.HTTP_403_FORBIDDEN: product_permission_error_403_response(),
-                status.HTTP_404_NOT_FOUND: product_not_found_error_404_response(),
+                status.HTTP_404_NOT_FOUND: product_not_found_by_slug_error_404_response(),
             },
             summary='Retrieve Product By Slug GET',
         )
@@ -56,10 +63,13 @@ def _update_product_extend_schema(method: str):
         parameters=[jwt_header_request_parameter()],
         request=ProductSerializer,
         responses={
-            status.HTTP_200_OK: ProductSerializer,
+            status.HTTP_200_OK: OpenApiResponse(
+                response=ProductSerializer,
+                description='Product has been updated',
+            ),
             status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
-            status.HTTP_403_FORBIDDEN: product_extended_permission_error_403_response(),
-            status.HTTP_404_NOT_FOUND: product_not_found_error_404_response(),
+            status.HTTP_403_FORBIDDEN: extended_permission_error_403_response(error=ProductAuthorPermissionError),
+            status.HTTP_404_NOT_FOUND: product_not_found_by_id_error_404_response(),
         },
         summary=f'Update Product {method}',
     )
@@ -76,7 +86,7 @@ def extend_detail_product_view_schema():
                     description='Product has been retrieved by id',
                 ),
                 status.HTTP_403_FORBIDDEN: product_permission_error_403_response(),
-                status.HTTP_404_NOT_FOUND: product_not_found_error_404_response(),
+                status.HTTP_404_NOT_FOUND: product_not_found_by_id_error_404_response(),
             },
             summary='Retrieve Product By Id GET',
         ),
@@ -86,8 +96,8 @@ def extend_detail_product_view_schema():
             responses={
                 status.HTTP_204_NO_CONTENT: None,
                 status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
-                status.HTTP_403_FORBIDDEN: product_extended_permission_error_403_response(),
-                status.HTTP_404_NOT_FOUND: product_not_found_error_404_response(),
+                status.HTTP_403_FORBIDDEN: extended_permission_error_403_response(error=ProductAuthorPermissionError),
+                status.HTTP_404_NOT_FOUND: product_not_found_by_id_error_404_response(),
             },
             summary='Delete Product DELETE',
         ),
@@ -98,6 +108,15 @@ def extend_detail_product_view_schema():
 
 def extend_global_search_view_schema():
     return extend_schema(
+        parameters=[
+            build_enum_query_param(
+                name='o', enum=ProductsSearchOrderingEnum, description='Which field to use when ordering the results.'
+            ),
+            OpenApiParameter(name='max_price', description='Maximum price', type=OpenApiTypes.DECIMAL),
+            OpenApiParameter(name='min_price', description='Minimum price', type=OpenApiTypes.DECIMAL),
+            OpenApiParameter(name='price_range_max', description='Price range', type=OpenApiTypes.DECIMAL),
+            OpenApiParameter(name='price_range_min', description='Price range', type=OpenApiTypes.DECIMAL),
+        ],
         request=None,
         responses={
             status.HTTP_200_OK: OpenApiResponse(
@@ -111,7 +130,21 @@ def extend_global_search_view_schema():
 
 def extend_personal_search_view_schema():
     return extend_schema(
-        parameters=[jwt_header_request_parameter()],
+        parameters=[
+            jwt_header_request_parameter(),
+            build_enum_query_param(
+                name='o', enum=ProductsSearchOrderingEnum, description='Which field to use when ordering the results.'
+            ),
+            OpenApiParameter(name='is_visible', description='Is visible', type=OpenApiTypes.BOOL),
+            OpenApiParameter(name='max_price', description='Maximum price', type=OpenApiTypes.DECIMAL),
+            OpenApiParameter(name='min_price', description='Minimum price', type=OpenApiTypes.DECIMAL),
+            OpenApiParameter(name='price_range_max', description='Price range', type=OpenApiTypes.DECIMAL),
+            OpenApiParameter(
+                name='price_range_min',
+                description='Price range',
+                type=OpenApiTypes.DECIMAL,
+            ),
+        ],
         request=None,
         responses={
             status.HTTP_200_OK: OpenApiResponse(

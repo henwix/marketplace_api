@@ -49,7 +49,7 @@ class RetrieveProductSerializer(serializers.ModelSerializer):
 
 class SearchProductSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
-        view_name='v1:products:products-get-by-slug',
+        view_name='v1:products:products-slug',
         lookup_field='slug',
         lookup_url_kwarg='slug',
         read_only=True,

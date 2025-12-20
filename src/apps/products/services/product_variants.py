@@ -5,10 +5,12 @@ from uuid import UUID
 from src.apps.products.constants import PRODUCT_VARIANTS_LIMIT
 from src.apps.products.converters.product_variants import product_variant_from_entity, product_variant_to_entity
 from src.apps.products.entities.product_variants import ProductVariantEntity
+from src.apps.products.entities.products import ProductEntity
 from src.apps.products.exceptions.product_variants import (
     ProductVariantAuthorPermissionError,
     ProductVariantNotFoundError,
     ProductVariantsLimitError,
+    ProductVariantsNotFoundError,
 )
 from src.apps.products.repositories.product_variants import BaseProductVariantRepository
 from src.apps.sellers.entities.sellers import SellerEntity
@@ -40,6 +42,17 @@ class ProductVariantLimitValidatorService(BaseProductVariantLimitValidatorServic
         variants_count = self.repository.get_variants_count(product_id=product_id)
         if variants_count >= PRODUCT_VARIANTS_LIMIT:
             raise ProductVariantsLimitError(variants_count=variants_count, variants_limit=PRODUCT_VARIANTS_LIMIT)
+
+
+class BaseProductVariantsQuantityValidatorService(ABC):
+    @abstractmethod
+    def validate(self, product: ProductEntity) -> None: ...
+
+
+class ProductVariantsQuantityValidatorService(BaseProductVariantsQuantityValidatorService):
+    def validate(self, product: ProductEntity) -> None:
+        if product.variants_count is not None and product.variants_count == 0:
+            raise ProductVariantsNotFoundError(product_id=product.id)
 
 
 @dataclass

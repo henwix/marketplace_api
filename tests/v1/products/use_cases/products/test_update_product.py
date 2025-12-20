@@ -5,7 +5,7 @@ from punq import Container
 
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity
-from src.apps.products.exceptions.products import ProductAuthorPermissionError, ProductNotFoundError
+from src.apps.products.exceptions.products import ProductAuthorPermissionError, ProductNotFoundByIdError
 from src.apps.products.models.products import Product
 from src.apps.products.use_cases.products.update import UpdateProductUseCase
 from src.apps.sellers.converters.sellers import seller_to_entity
@@ -60,5 +60,5 @@ def test_product_not_updated_if_seller_is_not_author(
 
 @pytest.mark.django_db
 def test_product_not_updated_if_not_exists(seller: Seller, update_product_use_case: UpdateProductUseCase):
-    with pytest.raises(ProductNotFoundError):
+    with pytest.raises(ProductNotFoundByIdError):
         update_product_use_case.execute(seller=seller_to_entity(dto=seller), product_id=uuid7(), data={})

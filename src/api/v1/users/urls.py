@@ -1,15 +1,11 @@
-from django.urls import include, path
+from django.urls import path
 
-from src.api.v1.users.views import UserViewSet
-from src.apps.common.routers import CustomRouter
+from src.api.v1.users.views import SetPasswordUserView, UserView
 
 app_name = 'users'
 
 
-user_router = CustomRouter()
-user_router.register(prefix='users', viewset=UserViewSet, basename='users')
-
-
 urlpatterns = [
-    path('', include(user_router.urls)),
+    path('users/', UserView.as_view(), name='users'),
+    path('users/set_password/', SetPasswordUserView.as_view(), name='users-set-password'),
 ]

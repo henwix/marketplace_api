@@ -1,25 +1,8 @@
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import IsAuthenticated
 
 
-class UserPermission(BasePermission):
-    AUTH_REQUIRED_ACTIONS = [
-        'update',
-        'partial_update',
-        'retrieve',
-        'set_password',
-        'destroy',
-    ]
-    AUTH_NOT_REQUIRED_ACTIONS = [
-        'create',
-    ]
-
+class CreateOrIsAuthenticated(IsAuthenticated):
     def has_permission(self, request, view):
-        action = getattr(view, 'action', None)
-
-        if action in self.AUTH_NOT_REQUIRED_ACTIONS:
+        if request.method == 'POST':
             return True
-
-        if action in self.AUTH_REQUIRED_ACTIONS and request.user.is_authenticated:
-            return True
-
-        return False
+        return super().has_permission(request, view)

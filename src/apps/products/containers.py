@@ -6,9 +6,11 @@ from src.apps.products.services.product_variants import (
     BaseProductVariantAuthorValidatorService,
     BaseProductVariantLimitValidatorService,
     BaseProductVariantService,
+    BaseProductVariantsQuantityValidatorService,
     ProductVariantAuthorValidatorService,
     ProductVariantLimitValidatorService,
     ProductVariantService,
+    ProductVariantsQuantityValidatorService,
 )
 from src.apps.products.services.products import (
     BaseProductAuthorValidatorService,
@@ -18,6 +20,7 @@ from src.apps.products.services.products import (
 )
 from src.apps.products.use_cases.product_variants.create import CreateProductVariantUseCase
 from src.apps.products.use_cases.product_variants.delete import DeleteProductVariantUseCase
+from src.apps.products.use_cases.product_variants.get import GetProductVariantsUseCase
 from src.apps.products.use_cases.product_variants.update import UpdateProductVariantUseCase
 from src.apps.products.use_cases.products.create import CreateProductUseCase
 from src.apps.products.use_cases.products.delete import DeleteProductUseCase
@@ -33,10 +36,11 @@ def init_products(container: Container) -> None:
     container.register(GetProductBySlugUseCase)
     container.register(UpdateProductUseCase)
     container.register(DeleteProductUseCase)
-    container.register(CreateProductVariantUseCase)
 
-    container.register(DeleteProductVariantUseCase)
+    container.register(CreateProductVariantUseCase)
+    container.register(GetProductVariantsUseCase)
     container.register(UpdateProductVariantUseCase)
+    container.register(DeleteProductVariantUseCase)
 
     # services
     container.register(BaseProductService, ProductService)
@@ -45,6 +49,7 @@ def init_products(container: Container) -> None:
     container.register(BaseProductAuthorValidatorService, ProductAuthorValidatorService)
 
     container.register(BaseProductVariantAuthorValidatorService, ProductVariantAuthorValidatorService)
+    container.register(BaseProductVariantsQuantityValidatorService, ProductVariantsQuantityValidatorService)
 
     # repositories
     container.register(BaseProductRepository, ORMProductRepository)

@@ -27,6 +27,7 @@ def product_to_entity(dto: Product) -> ProductEntity:
         id=dto.pk,
         slug=dto.slug,
         seller_id=dto.seller_id,
+        variants_count=getattr(dto, 'variants_count', None),
         title=dto.title,
         description=dto.description,
         short_description=dto.short_description,

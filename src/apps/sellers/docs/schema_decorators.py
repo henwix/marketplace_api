@@ -4,7 +4,6 @@ from rest_framework import status
 from src.api.v1.sellers.serializers import SellerSerializer
 from src.apps.common.docs.schema_parameters import jwt_header_request_parameter
 from src.apps.common.docs.schema_responses import (
-    no_content_204_response,
     permission_error_403_response,
     unauthorized_error_401_response,
 )
@@ -62,7 +61,7 @@ def extend_seller_viewset_schema():
         destroy=extend_schema(
             parameters=[jwt_header_request_parameter()],
             responses={
-                status.HTTP_204_NO_CONTENT: no_content_204_response(),
+                status.HTTP_204_NO_CONTENT: None,
                 status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
                 status.HTTP_403_FORBIDDEN: permission_error_403_response(),
             },

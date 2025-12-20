@@ -8,13 +8,33 @@ from src.apps.common.docs.schema_examples import (
     build_response_example_from_error,
 )
 from src.apps.common.docs.schema_parameters import jwt_header_request_parameter
-from src.apps.common.docs.schema_responses import no_content_204_response, unauthorized_error_401_response
+from src.apps.common.docs.schema_responses import unauthorized_error_401_response
 from src.apps.users.exceptions.users import UserWithDataAlreadyExistsError
 
 
-def extend_user_viewset_schema():
+def _update_user_extend_schema(method: str):
+    return extend_schema(
+        parameters=[jwt_header_request_parameter()],
+        request=UpdateUserSerializer,
+        responses={
+            status.HTTP_200_OK: OpenApiResponse(
+                response=UpdateUserSerializer,
+                description='User has been updated',
+            ),
+            status.HTTP_400_BAD_REQUEST: OpenApiResponse(
+                response=DetailOutSerializer,
+                description='User with the provided data already exists or the provided value is invalid',
+                examples=[build_response_example_from_error(error=UserWithDataAlreadyExistsError)],
+            ),
+            status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
+        },
+        summary=f'Update User {method}',
+    )
+
+
+def extend_user_view_schema():
     return extend_schema_view(
-        create=extend_schema(
+        post=extend_schema(
             request=UserSerializer,
             responses={
                 status.HTTP_201_CREATED: OpenApiResponse(
@@ -29,7 +49,35 @@ def extend_user_viewset_schema():
             },
             summary='Create User POST',
         ),
-        set_password=extend_schema(
+        get=extend_schema(
+            parameters=[jwt_header_request_parameter()],
+            request=None,
+            responses={
+                status.HTTP_200_OK: OpenApiResponse(
+                    response=UserSerializer,
+                    description='User has been retrieved',
+                ),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
+            },
+            summary='Retrieve User GET',
+        ),
+        put=_update_user_extend_schema(method='PUT'),
+        patch=_update_user_extend_schema(method='PATCH'),
+        delete=extend_schema(
+            parameters=[jwt_header_request_parameter()],
+            request=None,
+            responses={
+                status.HTTP_204_NO_CONTENT: None,
+                status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
+            },
+            summary='Delete User DELETE',
+        ),
+    )
+
+
+def extend_set_password_user_view_schema():
+    return extend_schema_view(
+        post=extend_schema(
             parameters=[jwt_header_request_parameter()],
             request=PasswordUserSerializer,
             responses={
@@ -43,37 +91,5 @@ def extend_user_viewset_schema():
                 build_detail_response_example(name='Password updated', value='Success', status_code=200),
             ],
             summary='Update User Password POST',
-        ),
-        retrieve=extend_schema(
-            parameters=[jwt_header_request_parameter()],
-            responses={
-                status.HTTP_200_OK: OpenApiResponse(response=UserSerializer, description='User has been retrieved'),
-                status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
-            },
-            summary='Retrieve User GET',
-        ),
-        update=extend_schema(
-            parameters=[jwt_header_request_parameter()],
-            responses={
-                status.HTTP_200_OK: OpenApiResponse(response=UpdateUserSerializer, description='User has been updated'),
-                status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
-            },
-            summary='Update User PUT',
-        ),
-        partial_update=extend_schema(
-            parameters=[jwt_header_request_parameter()],
-            responses={
-                status.HTTP_200_OK: OpenApiResponse(response=UpdateUserSerializer, description='User has been updated'),
-                status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
-            },
-            summary='Update User PATCH',
-        ),
-        destroy=extend_schema(
-            parameters=[jwt_header_request_parameter()],
-            responses={
-                status.HTTP_204_NO_CONTENT: no_content_204_response(),
-                status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
-            },
-            summary='Delete User DELETE',
-        ),
+        )
     )
