@@ -14,7 +14,7 @@ from tests.v1.users.test_data.set_password_user import SET_PASSWORD_ARGNAMES, SE
 
 @pytest.mark.parametrize(argnames=CREATE_USER_ARGNAMES, argvalues=CREATE_USER_ARGVALUES)
 @pytest.mark.django_db
-def test_user_created(
+def test_create_user_created(
     user_repository: BaseUserRepository,
     expected_first_name: str,
     expected_last_name: str,
@@ -42,7 +42,7 @@ def test_user_created(
 
 
 @pytest.mark.parametrize(argnames=CREATE_USER_ARGNAMES, argvalues=CREATE_USER_WITH_NONE_ARGVALUES)
-def test_user_create_validation_error_raised(
+def test_create_user_validation_error_raised(
     user_repository: BaseUserRepository,
     expected_first_name: str | None,
     expected_last_name: str | None,

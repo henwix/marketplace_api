@@ -83,7 +83,7 @@ def test_seller_not_updated_and_returns_401_if_unauthorized_patch(
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_not_updated_and_returns_403_if_does_not_exist_put(
+def test_seller_not_updated_and_returns_404_if_does_not_exist_put(
     user: User,
     expected_name: str,
     expected_description: str,
@@ -92,12 +92,12 @@ def test_seller_not_updated_and_returns_403_if_does_not_exist_put(
     expected_seller_data = {'name': expected_name, 'description': expected_description}
 
     response = client.put(path='/v1/sellers/', data=expected_seller_data)
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_not_updated_and_returns_403_if_does_not_exist_patch(
+def test_seller_not_updated_and_returns_404_if_does_not_exist_patch(
     user: User,
     expected_name: str,
     expected_description: str,
@@ -106,4 +106,4 @@ def test_seller_not_updated_and_returns_403_if_does_not_exist_patch(
     expected_seller_data = {'name': expected_name, 'description': expected_description}
 
     response = client.patch(path='/v1/sellers/', data=expected_seller_data)
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_404_NOT_FOUND

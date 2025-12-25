@@ -1,56 +1,64 @@
 from punq import Container
 from rest_framework import status
-from rest_framework.mixins import CreateModelMixin, DestroyModelMixin, RetrieveModelMixin, UpdateModelMixin
-from rest_framework.permissions import AllowAny
-from rest_framework.views import Response
-from rest_framework.viewsets import GenericViewSet
+from rest_framework.request import Request
+from rest_framework.views import APIView, Response
 
 from src.api.v1.sellers.serializers import SellerSerializer
-from src.apps.sellers.converters.sellers import seller_from_entity
-from src.apps.sellers.docs.schema_decorators import extend_seller_viewset_schema
-from src.apps.sellers.models import Seller
-from src.apps.sellers.permissions import SellerViewPermission
+from src.apps.sellers.docs.schema_decorators import (
+    extend_detail_seller_view_schema,
+    extend_seller_view_schema,
+)
 from src.apps.sellers.use_cases.create import CreateSellerUseCase
+from src.apps.sellers.use_cases.delete import DeleteSellerUseCase
+from src.apps.sellers.use_cases.get import GetSellerUseCase
+from src.apps.sellers.use_cases.get_by_id import GetSellerByIdUseCase
+from src.apps.sellers.use_cases.update import UpdateSellerUseCase
 from src.project.containers import get_container
 
 
-@extend_seller_viewset_schema()
-class SellerViewSet(
-    CreateModelMixin,
-    RetrieveModelMixin,
-    UpdateModelMixin,
-    DestroyModelMixin,
-    GenericViewSet,
-):
-    queryset = Seller.objects.all()
-    lookup_field = 'id'
-    lookup_url_kwarg = 'id'
-    serializer_class = SellerSerializer
+@extend_seller_view_schema()
+class SellerView(APIView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.container: Container = get_container()
 
-    def get_object(self):
-        if self.action == 'get_by_id':
-            return super().get_object()
-        return self.request.user.seller_profile
+    def post(self, request: Request) -> Response:
+        serializer = SellerSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        use_case: CreateSellerUseCase = self.container.resolve(CreateSellerUseCase)
+        seller = use_case.execute(user_id=request.user.id, data=serializer.validated_data)
+        return Response(data=SellerSerializer(seller).data, status=status.HTTP_201_CREATED)
 
-    def get_permissions(self):
-        if self.action == 'get_by_id':
-            return [AllowAny()]
-        return [SellerViewPermission()]
+    def get(self, request: Request) -> Response:
+        use_case: GetSellerUseCase = self.container.resolve(GetSellerUseCase)
+        seller = use_case.execute(user_id=request.user.id)
+        return Response(data=SellerSerializer(seller).data, status=status.HTTP_200_OK)
+
+    def update(self, request: Request, partial: bool) -> Response:
+        serializer = SellerSerializer(data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        use_case: UpdateSellerUseCase = self.container.resolve(UpdateSellerUseCase)
+        seller = use_case.execute(user_id=request.user.id, data=serializer.validated_data)
+        return Response(data=SellerSerializer(seller).data, status=status.HTTP_200_OK)
+
+    def put(self, request: Request) -> Response:
+        return self.update(request=request, partial=False)
+
+    def patch(self, request: Request) -> Response:
+        return self.update(request=request, partial=True)
+
+    def delete(self, request: Request) -> Response:
+        use_case: DeleteSellerUseCase = self.container.resolve(DeleteSellerUseCase)
+        use_case.execute(user_id=request.user.id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@extend_detail_seller_view_schema()
+class DetailSellerView(APIView):
+    def get(self, request: Request, id: int) -> Response:
+        container: Container = get_container()
+        use_case: GetSellerByIdUseCase = container.resolve(GetSellerByIdUseCase)
+        seller = use_case.execute(seller_id=id)
+        return Response(data=SellerSerializer(seller).data, status=status.HTTP_200_OK)
 
     def perform_authentication(self, request): ...
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        container: Container = get_container()
-        use_case: CreateSellerUseCase = container.resolve(CreateSellerUseCase)
-
-        seller = use_case.execute(user_id=request.user.pk, data=serializer.validated_data)
-        return Response(
-            data=self.get_serializer(seller_from_entity(seller)).data,
-            status=status.HTTP_201_CREATED,
-        )
-
-    def get_by_id(self, request, *args, **kwargs):
-        return self.retrieve(request, *args, **kwargs)

@@ -4,14 +4,21 @@ import pytest
 from punq import Container
 
 from src.apps.products.exceptions.product_variants import (
-    ProductVariantAuthorPermissionError,
+    ProductVariantAccessForbiddenError,
     ProductVariantNotFoundError,
 )
 from src.apps.products.models.product_variants import ProductVariant
 from src.apps.products.use_cases.product_variants.delete import DeleteProductVariantUseCase
-from src.apps.sellers.converters.sellers import seller_to_entity
+from src.apps.sellers.exceptions import SellerNotFoundError
 from src.apps.sellers.models import Seller
+from src.apps.users.exceptions.users import (
+    UserAuthCredentialsNotProvidedError,
+    UserAuthNotActiveError,
+    UserAuthNotFoundError,
+)
+from src.apps.users.models import User
 from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory
+from tests.v1.users.factories import UserModelFactory
 
 
 @pytest.fixture
@@ -29,27 +36,53 @@ def test_delete_variant_deleted(
 
     assert ProductVariant.objects.filter(product_id=product.pk).count() == 1
     delete_product_variant_use_case.execute(
-        seller=seller_to_entity(dto=seller),
+        user_id=seller.user_id,
         product_variant_id=product_variant.pk,
     )
     assert ProductVariant.objects.filter(product_id=product.pk).count() == 0
 
 
 @pytest.mark.django_db
-def test_delete_variant_product_not_found_exception_raised(
+def test_delete_variant_product_variant_not_found_error_raised(
     delete_product_variant_use_case: DeleteProductVariantUseCase, seller: Seller
 ):
     with pytest.raises(ProductVariantNotFoundError):
-        delete_product_variant_use_case.execute(seller=seller_to_entity(dto=seller), product_variant_id=uuid7())
+        delete_product_variant_use_case.execute(user_id=seller.user_id, product_variant_id=uuid7())
     assert ProductVariant.objects.all().count() == 0
 
 
 @pytest.mark.django_db
-def test_delete_variant_product_author_exception_raised(
+def test_delete_variant_product_access_forbidden_error_raised(
     delete_product_variant_use_case: DeleteProductVariantUseCase, seller: Seller, product_variant: ProductVariant
 ):
-    with pytest.raises(ProductVariantAuthorPermissionError):
-        delete_product_variant_use_case.execute(
-            seller=seller_to_entity(dto=seller), product_variant_id=product_variant.pk
-        )
+    with pytest.raises(ProductVariantAccessForbiddenError):
+        delete_product_variant_use_case.execute(user_id=seller.user_id, product_variant_id=product_variant.pk)
     assert ProductVariant.objects.all().count() == 1
+
+
+@pytest.mark.django_db
+def test_delete_variant_seller_not_found_error_raised(
+    delete_product_variant_use_case: DeleteProductVariantUseCase,
+    user: User,
+):
+    with pytest.raises(SellerNotFoundError):
+        delete_product_variant_use_case.execute(user_id=user.pk, product_variant_id=uuid7())
+
+
+@pytest.mark.django_db
+def test_delete_variant_user_credentials_error_raised(delete_product_variant_use_case: DeleteProductVariantUseCase):
+    with pytest.raises(UserAuthCredentialsNotProvidedError):
+        delete_product_variant_use_case.execute(user_id=None, product_variant_id=uuid7())
+
+
+@pytest.mark.django_db
+def test_delete_variant_user_not_found_error_raised(delete_product_variant_use_case: DeleteProductVariantUseCase):
+    with pytest.raises(UserAuthNotFoundError):
+        delete_product_variant_use_case.execute(user_id=1, product_variant_id=uuid7())
+
+
+@pytest.mark.django_db
+def test_delete_variant_user_not_active_error_raised(delete_product_variant_use_case: DeleteProductVariantUseCase):
+    user = UserModelFactory.create(is_active=False)
+    with pytest.raises(UserAuthNotActiveError):
+        delete_product_variant_use_case.execute(user_id=user.pk, product_variant_id=uuid7())

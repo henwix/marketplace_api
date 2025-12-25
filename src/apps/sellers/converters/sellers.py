@@ -17,6 +17,8 @@ def seller_to_entity(dto: Seller | None) -> SellerEntity | None:
         description=dto.description,
         avatar=dto.avatar,
         background=dto.background,
+        created_at=dto.created_at,
+        updated_at=dto.updated_at,
     )
 
 
@@ -28,4 +30,6 @@ def seller_from_entity(entity: SellerEntity) -> Seller:
         description=entity.description,
         avatar=entity.avatar,
         background=entity.background,
+        created_at=entity.created_at,
+        updated_at=entity.updated_at,
     )

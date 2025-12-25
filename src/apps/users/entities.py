@@ -1,20 +1,20 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 
-from django.utils import timezone
-
 from src.apps.common.entities import BaseEntity
+from src.apps.sellers.entities.sellers import SellerEntity
 
 
 @dataclass(kw_only=True)
 class UserEntity(BaseEntity):
-    id: int | None = field(default=None)
+    id: int | None = None
+    seller_profile: SellerEntity | None = None
     first_name: str
     last_name: str
     email: str
     phone: str
-    password: str | None = field(default=None)
-    avatar: str | None = field(default=None)
-    is_staff: bool = field(default=False)
-    is_active: bool = field(default=True)
-    date_joined: datetime = field(default_factory=timezone.now)
+    password: str | None = None
+    avatar: str | None = None
+    is_staff: bool = False
+    is_active: bool = True
+    date_joined: datetime | None = None

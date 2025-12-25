@@ -21,7 +21,7 @@ class ProductVariantsNotFoundError(ServiceException):
 
 
 @dataclass
-class ProductVariantAuthorPermissionError(ServiceException):
+class ProductVariantAccessForbiddenError(ServiceException):
     status_code = status.HTTP_403_FORBIDDEN
     message = 'Product variant access forbidden'
     seller_id: int | None

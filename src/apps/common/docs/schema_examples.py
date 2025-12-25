@@ -26,7 +26,6 @@ def build_detail_response_example(
     description: str = '',
 ) -> OpenApiExample:
     """Return response example with custom 'detail' value."""
-
     return OpenApiExample(
         name=name,
         value={'detail': value},

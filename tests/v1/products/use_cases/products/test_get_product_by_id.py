@@ -6,13 +6,16 @@ from punq import Container
 
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity
-from src.apps.products.exceptions.products import ProductAuthorPermissionError, ProductNotFoundByIdError
+from src.apps.products.exceptions.products import ProductAccessForbiddenError, ProductNotFoundByIdError
 from src.apps.products.models.product_variants import ProductVariant
 from src.apps.products.models.products import Product
 from src.apps.products.use_cases.products.get_by_id import GetProductByIdUseCase
 from src.apps.sellers.converters.sellers import seller_to_entity
 from src.apps.sellers.models import Seller
+from src.apps.users.exceptions.users import UserAuthNotActiveError, UserAuthNotFoundError
+from src.apps.users.models import User
 from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory
+from tests.v1.users.factories import UserModelFactory
 
 
 @pytest.fixture
@@ -21,10 +24,10 @@ def get_product_by_id_use_case(container: Container) -> GetProductByIdUseCase:
 
 
 @pytest.mark.django_db
-def test_visible_product_retrieved_by_anonymous_user(
+def test_get_visible_product_retrieved_by_anonymous_user(
     product: Product, get_product_by_id_use_case: GetProductByIdUseCase
 ):
-    retrieved_product = get_product_by_id_use_case.execute(seller=None, product_id=product.pk)
+    retrieved_product = get_product_by_id_use_case.execute(user_id=None, product_id=product.pk)
     db_product = (
         Product.objects.filter(pk=product.pk)
         .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
@@ -37,10 +40,10 @@ def test_visible_product_retrieved_by_anonymous_user(
 
 
 @pytest.mark.django_db
-def test_visible_product_retrieved_by_authorized_user_with_seller_profile(
+def test_get_visible_product_retrieved_by_authorized_user_with_seller_profile(
     seller: Seller, product: Product, get_product_by_id_use_case: GetProductByIdUseCase
 ):
-    retrieved_product = get_product_by_id_use_case.execute(seller=seller_to_entity(dto=seller), product_id=product.pk)
+    retrieved_product = get_product_by_id_use_case.execute(user_id=seller.user_id, product_id=product.pk)
     db_product = (
         Product.objects.filter(pk=product.pk)
         .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
@@ -53,23 +56,36 @@ def test_visible_product_retrieved_by_authorized_user_with_seller_profile(
 
 
 @pytest.mark.django_db
-def test_not_visible_product_not_retrieved_by_anonymous_user(get_product_by_id_use_case: GetProductByIdUseCase):
+def test_get_invisible_product_not_retrieved_by_anonymous_user_and_access_error_raised(
+    get_product_by_id_use_case: GetProductByIdUseCase,
+):
     product = ProductModelFactory.create(is_visible=False)
-    with pytest.raises(ProductAuthorPermissionError):
-        get_product_by_id_use_case.execute(seller=None, product_id=product.pk)
+    with pytest.raises(ProductAccessForbiddenError):
+        get_product_by_id_use_case.execute(user_id=None, product_id=product.pk)
 
 
 @pytest.mark.django_db
-def test_not_visible_product_not_retrieved(seller: Seller, get_product_by_id_use_case: GetProductByIdUseCase):
+def test_get_invisible_product_not_retrieved_by_authorized_user_and_access_error_raised(
+    seller: Seller, get_product_by_id_use_case: GetProductByIdUseCase
+):
     product = ProductModelFactory.create(is_visible=False)
-    with pytest.raises(ProductAuthorPermissionError):
-        get_product_by_id_use_case.execute(seller=seller_to_entity(dto=seller), product_id=product.pk)
+    with pytest.raises(ProductAccessForbiddenError):
+        get_product_by_id_use_case.execute(user_id=seller.user_id, product_id=product.pk)
 
 
 @pytest.mark.django_db
-def test_not_visible_product_retrieved_by_author(seller: Seller, get_product_by_id_use_case: GetProductByIdUseCase):
+def test_get_invisible_product_not_retrieved_by_user_without_seller_profile_and_access_error_raised(
+    user: User, get_product_by_id_use_case: GetProductByIdUseCase
+):
+    product = ProductModelFactory.create(is_visible=False)
+    with pytest.raises(ProductAccessForbiddenError):
+        get_product_by_id_use_case.execute(user_id=user.pk, product_id=product.pk)
+
+
+@pytest.mark.django_db
+def test_get_invisible_product_retrieved_by_author(seller: Seller, get_product_by_id_use_case: GetProductByIdUseCase):
     product = ProductModelFactory.create(is_visible=False, seller=seller)
-    retrieved_product = get_product_by_id_use_case.execute(seller=seller_to_entity(dto=seller), product_id=product.pk)
+    retrieved_product = get_product_by_id_use_case.execute(user_id=seller.user_id, product_id=product.pk)
     db_product = (
         Product.objects.filter(pk=product.pk)
         .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
@@ -82,10 +98,12 @@ def test_not_visible_product_retrieved_by_author(seller: Seller, get_product_by_
 
 
 @pytest.mark.django_db
-def test_product_retrieved_with_relations(product: Product, get_product_by_id_use_case: GetProductByIdUseCase):
+def test_get_invisible_product_retrieved_with_correct_relations(
+    product: Product, get_product_by_id_use_case: GetProductByIdUseCase
+):
     expected_variants = 7
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
-    retrieved_product = get_product_by_id_use_case.execute(seller=None, product_id=product.pk)
+    retrieved_product = get_product_by_id_use_case.execute(user_id=None, product_id=product.pk)
     db_product = (
         Product.objects.filter(pk=product.pk)
         .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
@@ -100,14 +118,14 @@ def test_product_retrieved_with_relations(product: Product, get_product_by_id_us
 
 
 @pytest.mark.django_db
-def test_product_retrieved_with_relations_and_zero_price(
+def test_get_invisible_product_retrieved_with_correct_relations_and_zero_prices_are_excluded(
     product: Product, get_product_by_id_use_case: GetProductByIdUseCase
 ):
     expected_variants = 7
     expected_variants_with_zero_price = 2
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
     ProductVariantModelFactory.create_batch(size=expected_variants_with_zero_price, product=product, price=0)
-    retrieved_product = get_product_by_id_use_case.execute(seller=None, product_id=product.pk)
+    retrieved_product = get_product_by_id_use_case.execute(user_id=None, product_id=product.pk)
     db_product = (
         Product.objects.filter(pk=product.pk)
         .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
@@ -122,14 +140,14 @@ def test_product_retrieved_with_relations_and_zero_price(
 
 
 @pytest.mark.django_db
-def test_product_retrieved_with_relations_and_not_visible_variants(
+def test_get_invisible_product_retrieved_with_correct_relations_and_invisible_variants_are_excluded(
     product: Product, get_product_by_id_use_case: GetProductByIdUseCase
 ):
     expected_variants = 2
     expected_not_visible_variants = 6
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
     ProductVariantModelFactory.create_batch(size=expected_not_visible_variants, product=product, is_visible=False)
-    retrieved_product = get_product_by_id_use_case.execute(seller=None, product_id=product.pk)
+    retrieved_product = get_product_by_id_use_case.execute(user_id=None, product_id=product.pk)
     db_product = (
         Product.objects.filter(pk=product.pk)
         .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
@@ -144,6 +162,21 @@ def test_product_retrieved_with_relations_and_not_visible_variants(
 
 
 @pytest.mark.django_db
-def test_product_not_retrieved_if_not_exists(get_product_by_id_use_case: GetProductByIdUseCase):
+def test_get_product_not_found_by_id_error_raised(get_product_by_id_use_case: GetProductByIdUseCase):
     with pytest.raises(ProductNotFoundByIdError):
-        get_product_by_id_use_case.execute(seller=None, product_id=uuid7())
+        get_product_by_id_use_case.execute(user_id=None, product_id=uuid7())
+
+
+@pytest.mark.django_db
+def test_get_product_user_not_found_error_raised(get_product_by_id_use_case: GetProductByIdUseCase):
+    product = ProductModelFactory.create(is_visible=False)
+    with pytest.raises(UserAuthNotFoundError):
+        get_product_by_id_use_case.execute(user_id=1, product_id=product.pk)
+
+
+@pytest.mark.django_db
+def test_get_product_user_not_active_error_raised(get_product_by_id_use_case: GetProductByIdUseCase):
+    user = UserModelFactory.create(is_active=False)
+    product = ProductModelFactory.create(is_visible=False)
+    with pytest.raises(UserAuthNotActiveError):
+        get_product_by_id_use_case.execute(user_id=user.pk, product_id=product.pk)

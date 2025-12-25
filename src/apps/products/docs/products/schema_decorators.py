@@ -1,5 +1,5 @@
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema, extend_schema_view
+from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
 from rest_framework import status
 
 from src.api.v1.products.serializers.products import (
@@ -9,17 +9,20 @@ from src.api.v1.products.serializers.products import (
 )
 from src.apps.common.docs.schema_parameters import build_enum_query_param, jwt_header_request_parameter
 from src.apps.common.docs.schema_responses import (
-    extended_permission_error_403_response,
+    forbidden_error_response,
+    not_found_error_response,
     permission_error_403_response,
+    successful_response,
     unauthorized_error_401_response,
 )
 from src.apps.products.docs.products.enums import ProductsSearchOrderingEnum
-from src.apps.products.docs.products.schema_responses import (
-    product_not_found_by_id_error_404_response,
-    product_not_found_by_slug_error_404_response,
-    product_permission_error_403_response,
+from src.apps.products.exceptions.products import (
+    ProductAccessForbiddenError,
+    ProductNotFoundByIdError,
+    ProductNotFoundBySlugError,
 )
-from src.apps.products.exceptions.products import ProductAuthorPermissionError
+from src.apps.sellers.exceptions import SellerNotFoundError
+from src.apps.users.docs.schema_responses import unauthorized_user_response
 
 
 def extend_create_product_view_schema():
@@ -28,12 +31,9 @@ def extend_create_product_view_schema():
             parameters=[jwt_header_request_parameter()],
             request=ProductSerializer,
             responses={
-                status.HTTP_201_CREATED: OpenApiResponse(
-                    response=ProductSerializer,
-                    description='Product has been created',
-                ),
-                status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
-                status.HTTP_403_FORBIDDEN: permission_error_403_response(),
+                status.HTTP_201_CREATED: successful_response(response=ProductSerializer),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_404_NOT_FOUND: not_found_error_response(SellerNotFoundError),
             },
             summary='Create Product POST',
         )
@@ -46,12 +46,10 @@ def extend_get_product_by_slug_view_schema():
             parameters=[jwt_header_request_parameter()],
             request=None,
             responses={
-                status.HTTP_200_OK: OpenApiResponse(
-                    response=RetrieveProductSerializer,
-                    description='Product has been retrieved by slug',
-                ),
-                status.HTTP_403_FORBIDDEN: product_permission_error_403_response(),
-                status.HTTP_404_NOT_FOUND: product_not_found_by_slug_error_404_response(),
+                status.HTTP_200_OK: successful_response(response=RetrieveProductSerializer),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(include_credentials_error=False),
+                status.HTTP_403_FORBIDDEN: forbidden_error_response(ProductAccessForbiddenError),
+                status.HTTP_404_NOT_FOUND: not_found_error_response(ProductNotFoundBySlugError),
             },
             summary='Retrieve Product By Slug GET',
         )
@@ -63,13 +61,10 @@ def _update_product_extend_schema(method: str):
         parameters=[jwt_header_request_parameter()],
         request=ProductSerializer,
         responses={
-            status.HTTP_200_OK: OpenApiResponse(
-                response=ProductSerializer,
-                description='Product has been updated',
-            ),
-            status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
-            status.HTTP_403_FORBIDDEN: extended_permission_error_403_response(error=ProductAuthorPermissionError),
-            status.HTTP_404_NOT_FOUND: product_not_found_by_id_error_404_response(),
+            status.HTTP_200_OK: successful_response(response=ProductSerializer),
+            status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+            status.HTTP_403_FORBIDDEN: forbidden_error_response(ProductAccessForbiddenError),
+            status.HTTP_404_NOT_FOUND: not_found_error_response(SellerNotFoundError, ProductNotFoundByIdError),
         },
         summary=f'Update Product {method}',
     )
@@ -81,12 +76,10 @@ def extend_detail_product_view_schema():
             parameters=[jwt_header_request_parameter()],
             request=None,
             responses={
-                status.HTTP_200_OK: OpenApiResponse(
-                    response=RetrieveProductSerializer,
-                    description='Product has been retrieved by id',
-                ),
-                status.HTTP_403_FORBIDDEN: product_permission_error_403_response(),
-                status.HTTP_404_NOT_FOUND: product_not_found_by_id_error_404_response(),
+                status.HTTP_200_OK: successful_response(response=RetrieveProductSerializer),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(include_credentials_error=False),
+                status.HTTP_403_FORBIDDEN: forbidden_error_response(ProductAccessForbiddenError),
+                status.HTTP_404_NOT_FOUND: not_found_error_response(ProductNotFoundByIdError),
             },
             summary='Retrieve Product By Id GET',
         ),
@@ -95,9 +88,9 @@ def extend_detail_product_view_schema():
             request=None,
             responses={
                 status.HTTP_204_NO_CONTENT: None,
-                status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
-                status.HTTP_403_FORBIDDEN: extended_permission_error_403_response(error=ProductAuthorPermissionError),
-                status.HTTP_404_NOT_FOUND: product_not_found_by_id_error_404_response(),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_error_response(ProductAccessForbiddenError),
+                status.HTTP_404_NOT_FOUND: not_found_error_response(SellerNotFoundError, ProductNotFoundByIdError),
             },
             summary='Delete Product DELETE',
         ),
@@ -119,10 +112,7 @@ def extend_global_search_view_schema():
         ],
         request=None,
         responses={
-            status.HTTP_200_OK: OpenApiResponse(
-                response=SearchProductSerializer,
-                description='Global products were found',
-            ),
+            status.HTTP_200_OK: successful_response(response=SearchProductSerializer),
         },
         summary='Search Global Products GET',
     )
@@ -143,10 +133,7 @@ def extend_personal_search_view_schema():
         ],
         request=None,
         responses={
-            status.HTTP_200_OK: OpenApiResponse(
-                response=SearchProductSerializer,
-                description='Personal products were found',
-            ),
+            status.HTTP_200_OK: successful_response(response=SearchProductSerializer),
             status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
             status.HTTP_403_FORBIDDEN: permission_error_403_response(),
         },

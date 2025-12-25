@@ -1,12 +1,11 @@
-from logging import Logger
+from urllib.request import Request
+from uuid import UUID
 
-import orjson
 from punq import Container
 from rest_framework import status
 from rest_framework.views import APIView, Response
 
 from src.api.v1.products.serializers.product_variants import ProductVariantSerializer
-from src.apps.common.exceptions import ServiceException
 from src.apps.products.docs.product_variants.schema_decorators import (
     extend_detail_product_variant_view_schema,
     extend_product_variant_view_schema,
@@ -15,103 +14,59 @@ from src.apps.products.use_cases.product_variants.create import CreateProductVar
 from src.apps.products.use_cases.product_variants.delete import DeleteProductVariantUseCase
 from src.apps.products.use_cases.product_variants.get import GetProductVariantsUseCase
 from src.apps.products.use_cases.product_variants.update import UpdateProductVariantUseCase
-from src.apps.sellers.converters.sellers import seller_to_entity
-from src.apps.sellers.permissions import HasSellerProfilePermission
 from src.project.containers import get_container
 
 
 @extend_product_variant_view_schema()
 class ProductVariantView(APIView):
-    permission_classes = [HasSellerProfilePermission]
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container: Container = get_container()
-        self.logger: Logger = self.container.resolve(Logger)
 
-    def post(self, request, id):
+    def post(self, request: Request, id: UUID) -> Response:
         serializer = ProductVariantSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
         use_case: CreateProductVariantUseCase = self.container.resolve(CreateProductVariantUseCase)
+        variant = use_case.execute(user_id=request.user.id, data=serializer.validated_data, product_id=id)
+        return Response(data=ProductVariantSerializer(variant).data, status=status.HTTP_201_CREATED)
 
-        try:
-            variant = use_case.execute(
-                seller=seller_to_entity(request.user.seller_profile),
-                data=serializer.validated_data,
-                product_id=id,
-            )
-            return Response(
-                data=ProductVariantSerializer(variant).data,
-                status=status.HTTP_201_CREATED,
-            )
-        except ServiceException as error:
-            self.logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            return Response(data=error.response(), status=error.status_code)
-
-    def get(self, request, id):
+    # TODO: tests
+    def get(self, request: Request, id: UUID) -> Response:
         use_case: GetProductVariantsUseCase = self.container.resolve(GetProductVariantsUseCase)
-
-        try:
-            variants_count, variants = use_case.execute(
-                seller=seller_to_entity(request.user.seller_profile),
-                product_id=id,
-            )
-            return Response(
-                data={
-                    'count': variants_count,
-                    'results': ProductVariantSerializer(variants, many=True).data,
-                },
-                status=status.HTTP_200_OK,
-            )
-        except ServiceException as error:
-            self.logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            return Response(data=error.response(), status=error.status_code)
+        variants_count, variants = use_case.execute(user_id=request.user.id, product_id=id)
+        return Response(
+            data={
+                'count': variants_count,
+                'results': ProductVariantSerializer(variants, many=True).data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
 
 @extend_detail_product_variant_view_schema()
 class DetailProductVariantView(APIView):
-    permission_classes = [HasSellerProfilePermission]
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.container: Container = get_container()
-        self.logger: Logger = self.container.resolve(Logger)
 
-    def delete(self, request, id):
+    def delete(self, request: Request, id: UUID) -> Response:
         use_case: DeleteProductVariantUseCase = self.container.resolve(DeleteProductVariantUseCase)
+        use_case.execute(user_id=request.user.id, product_variant_id=id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-        try:
-            use_case.execute(
-                seller=seller_to_entity(request.user.seller_profile),
-                product_variant_id=id,
-            )
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except ServiceException as error:
-            self.logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            return Response(data=error.response(), status=error.status_code)
-
-    def update(self, request, id, partial: bool):
+    def update(self, request: Request, id: UUID, partial: bool) -> Response:
         serializer = ProductVariantSerializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         use_case: UpdateProductVariantUseCase = self.container.resolve(UpdateProductVariantUseCase)
+        product_variant = use_case.execute(
+            user_id=request.user.id,
+            product_variant_id=id,
+            data=serializer.validated_data,
+        )
+        return Response(data=ProductVariantSerializer(product_variant).data, status=status.HTTP_200_OK)
 
-        try:
-            product_variant = use_case.execute(
-                seller=seller_to_entity(dto=request.user.seller_profile),
-                product_variant_id=id,
-                data=serializer.validated_data,
-            )
-            return Response(
-                data=ProductVariantSerializer(product_variant).data,
-                status=status.HTTP_200_OK,
-            )
-        except ServiceException as error:
-            self.logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            return Response(data=error.response(), status=error.status_code)
-
-    def put(self, request, id):
+    def put(self, request: Request, id: UUID) -> Response:
         return self.update(request=request, id=id, partial=False)
 
-    def patch(self, request, id):
+    def patch(self, request: Request, id: UUID) -> Response:
         return self.update(request=request, id=id, partial=True)

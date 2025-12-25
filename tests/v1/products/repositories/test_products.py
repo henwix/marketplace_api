@@ -7,7 +7,11 @@ from src.apps.products.models.products import Product
 from src.apps.products.repositories.products import BaseProductRepository
 from src.apps.sellers.models import Seller
 from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory
-from tests.v1.products.test_data.new_product_data import PRODUCT_ARGNAMES, PRODUCT_ARGVALUES
+from tests.v1.products.test_data.product_data import PRODUCT_ARGNAMES, PRODUCT_ARGVALUES
+from tests.v1.products.test_data.product_variants_data import (
+    PRODUCT_VARIANTS_PRICES_ARGNAMES,
+    PRODUCT_VARIANTS_PRICES_ARGVALUES,
+)
 from tests.v1.products.utils import create_test_products_with_variant
 from tests.v1.sellers.factories import SellerModelFactory
 
@@ -309,24 +313,66 @@ def test_products_for_global_search_retrieved_with_mixed_visible_products(produc
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    'expected_min_price',
-    [Decimal('13'), Decimal('4'), Decimal('8'), Decimal('14'), Decimal('19'), Decimal('125'), Decimal('118')],
-)
-def test_products_for_global_search_retrieved_with_correct_price(
+@pytest.mark.parametrize(argnames=PRODUCT_VARIANTS_PRICES_ARGNAMES, argvalues=PRODUCT_VARIANTS_PRICES_ARGVALUES)
+def test_products_for_global_search_retrieved_with_correct_min_price_if_all_variants_are_visible(
     product_repository: BaseProductRepository,
     expected_min_price: Decimal,
+    expected_first_price: Decimal,
+    expected_second_price: Decimal,
 ):
     product = ProductModelFactory.create()
     ProductVariantModelFactory.create(product=product, price=expected_min_price)
-    ProductVariantModelFactory.create(product=product, price=Decimal('150'))
-    ProductVariantModelFactory.create(product=product, price=Decimal('420'))
+    ProductVariantModelFactory.create(product=product, price=expected_first_price)
+    ProductVariantModelFactory.create(product=product, price=expected_second_price)
     retrieved_products = product_repository.get_many_for_global_search()
     assert retrieved_products[0].price == expected_min_price
 
 
 @pytest.mark.django_db
-def test_products_for_personal_search_retrived_with_not_owned_products(
+def test_products_for_global_search_retrieved_with_correct_min_price_with_invisible_variants(
+    product_repository: BaseProductRepository,
+):
+    expected_price = Decimal('136')
+    product = ProductModelFactory.create()
+    ProductVariantModelFactory.create(product=product, price=expected_price)
+    ProductVariantModelFactory.create(product=product, price=Decimal('84'), is_visible=False)
+    ProductVariantModelFactory.create(product=product, price=Decimal('54'), is_visible=False)
+    ProductVariantModelFactory.create(product=product, price=Decimal('31'), is_visible=False)
+    ProductVariantModelFactory.create(product=product, price=Decimal('153'))
+    retrieved_products = product_repository.get_many_for_global_search()
+    assert retrieved_products[0].price == expected_price
+
+
+@pytest.mark.django_db
+def test_products_for_global_search_retrieved_with_correct_min_price_with_zero_stock(
+    product_repository: BaseProductRepository,
+):
+    expected_price = Decimal('122')
+    product = ProductModelFactory.create()
+    ProductVariantModelFactory.create(product=product, price=expected_price)
+    ProductVariantModelFactory.create(product=product, price=Decimal('84'), stock=0)
+    ProductVariantModelFactory.create(product=product, price=Decimal('12'), stock=0)
+    ProductVariantModelFactory.create(product=product, price=Decimal('298'))
+    retrieved_products = product_repository.get_many_for_global_search()
+    assert retrieved_products[0].price == expected_price
+
+
+@pytest.mark.django_db
+def test_products_for_global_search_retrieved_with_correct_min_price_with_zero_prices(
+    product_repository: BaseProductRepository,
+):
+    expected_price = Decimal('75')
+    product = ProductModelFactory.create()
+    ProductVariantModelFactory.create(product=product, price=expected_price)
+    ProductVariantModelFactory.create(product=product, price=Decimal('0'))
+    ProductVariantModelFactory.create(product=product, price=Decimal('0'))
+    ProductVariantModelFactory.create(product=product, price=Decimal('99'))
+    retrieved_products = product_repository.get_many_for_global_search()
+    assert retrieved_products[0].price == expected_price
+
+
+@pytest.mark.django_db
+def test_products_for_personal_search_retrived_only_owned_products(
     seller: Seller, product_repository: BaseProductRepository
 ):
     expected_owned_products = 8
@@ -360,18 +406,76 @@ def test_products_for_personal_search_retrived_if_not_visible(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    'expected_min_price',
-    [Decimal('13'), Decimal('72'), Decimal('3'), Decimal('38'), Decimal('84'), Decimal('125'), Decimal('118')],
-)
-def test_products_for_personal_search_retrieved_with_correct_price(
+@pytest.mark.parametrize(argnames=PRODUCT_VARIANTS_PRICES_ARGNAMES, argvalues=PRODUCT_VARIANTS_PRICES_ARGVALUES)
+def test_products_for_personal_search_retrieved_with_correct_min_price_if_all_variants_are_visible(
     seller: Seller,
     product_repository: BaseProductRepository,
     expected_min_price: Decimal,
+    expected_first_price: Decimal,
+    expected_second_price: Decimal,
 ):
     product = ProductModelFactory.create(seller=seller)
     ProductVariantModelFactory.create(product=product, price=expected_min_price)
-    ProductVariantModelFactory.create(product=product, price=Decimal('150'))
-    ProductVariantModelFactory.create(product=product, price=Decimal('420'))
-    retrieved_products = product_repository.get_many_for_personal_search(seller_id=seller.id)
+    ProductVariantModelFactory.create(product=product, price=expected_first_price)
+    ProductVariantModelFactory.create(product=product, price=expected_second_price)
+    retrieved_products = product_repository.get_many_for_personal_search(seller_id=seller.pk)
     assert retrieved_products[0].price == expected_min_price
+
+
+@pytest.mark.django_db
+def test_products_for_personal_search_retrieved_with_correct_min_price_with_invisible_variants(
+    seller: Seller,
+    product_repository: BaseProductRepository,
+):
+    expected_price = Decimal('136')
+    product = ProductModelFactory.create(seller=seller)
+    ProductVariantModelFactory.create(product=product, price=expected_price)
+    ProductVariantModelFactory.create(product=product, price=Decimal('84'), is_visible=False)
+    ProductVariantModelFactory.create(product=product, price=Decimal('54'), is_visible=False)
+    ProductVariantModelFactory.create(product=product, price=Decimal('31'), is_visible=False)
+    ProductVariantModelFactory.create(product=product, price=Decimal('153'))
+    retrieved_products = product_repository.get_many_for_personal_search(seller_id=seller.pk)
+    assert retrieved_products[0].price == expected_price
+
+
+@pytest.mark.django_db
+def test_products_for_personal_search_retrieved_with_correct_min_price_with_zero_stock(
+    seller: Seller,
+    product_repository: BaseProductRepository,
+):
+    expected_price = Decimal('122')
+    product = ProductModelFactory.create(seller=seller)
+    ProductVariantModelFactory.create(product=product, price=expected_price)
+    ProductVariantModelFactory.create(product=product, price=Decimal('84'), stock=0)
+    ProductVariantModelFactory.create(product=product, price=Decimal('12'), stock=0)
+    ProductVariantModelFactory.create(product=product, price=Decimal('298'))
+    retrieved_products = product_repository.get_many_for_personal_search(seller_id=seller.pk)
+    assert retrieved_products[0].price == expected_price
+
+
+@pytest.mark.django_db
+def test_products_for_personal_search_retrieved_with_correct_min_price_with_zero_prices(
+    seller: Seller,
+    product_repository: BaseProductRepository,
+):
+    expected_price = Decimal('75')
+    product = ProductModelFactory.create(seller=seller)
+    ProductVariantModelFactory.create(product=product, price=expected_price)
+    ProductVariantModelFactory.create(product=product, price=Decimal('0'))
+    ProductVariantModelFactory.create(product=product, price=Decimal('0'))
+    ProductVariantModelFactory.create(product=product, price=Decimal('99'))
+    retrieved_products = product_repository.get_many_for_personal_search(seller_id=seller.pk)
+    assert retrieved_products[0].price == expected_price
+
+
+@pytest.mark.django_db
+def test_products_for_global_search_retrieved_with_none_price_if_all_variants_are_invisible(
+    seller: Seller,
+    product_repository: BaseProductRepository,
+):
+    product = ProductModelFactory.create(seller=seller)
+    ProductVariantModelFactory.create(product=product, price=Decimal('84'), is_visible=False)
+    ProductVariantModelFactory.create(product=product, price=Decimal('111'), is_visible=False)
+    ProductVariantModelFactory.create(product=product, price=Decimal('3'), is_visible=False)
+    retrieved_products = product_repository.get_many_for_personal_search(seller_id=seller.pk)
+    assert retrieved_products[0].price is None

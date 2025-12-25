@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from src.api.v1.products.serializers.product_variants import ProductVariantSerializer
@@ -21,7 +22,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class RetrieveProductSerializer(serializers.ModelSerializer):
-    variants = ProductVariantSerializer(many=True, read_only=True)
+    variants = ProductVariantSerializer(many=True, read_only=True, help_text=_('Product variants'))
     seller_url = serializers.HyperlinkedRelatedField(
         view_name='v1:sellers:sellers-detail',
         lookup_field='id',
@@ -29,6 +30,7 @@ class RetrieveProductSerializer(serializers.ModelSerializer):
         source='seller',
         many=False,
         read_only=True,
+        help_text=_('Seller url'),
     )
 
     class Meta:
@@ -53,9 +55,12 @@ class SearchProductSerializer(serializers.ModelSerializer):
         lookup_field='slug',
         lookup_url_kwarg='slug',
         read_only=True,
+        help_text=_('Product url'),
     )
-    variants_count = serializers.IntegerField(read_only=True)
-    price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    variants_count = serializers.IntegerField(read_only=True, help_text=_('Product variants count'))
+    price = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True, help_text=_('Product minimal price')
+    )
 
     class Meta:
         model = Product

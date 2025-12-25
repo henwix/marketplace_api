@@ -11,7 +11,7 @@ from src.apps.products.models.products import Product
 from src.apps.products.services.products import BaseProductService
 from src.apps.sellers.converters.sellers import seller_to_entity
 from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory
-from tests.v1.products.test_data.new_product_data import PRODUCT_ARGNAMES, PRODUCT_ARGVALUES
+from tests.v1.products.test_data.product_data import PRODUCT_ARGNAMES, PRODUCT_ARGVALUES
 from tests.v1.sellers.factories import SellerModelFactory
 
 

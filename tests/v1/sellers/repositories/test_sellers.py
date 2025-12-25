@@ -21,7 +21,9 @@ def test_seller_created(
         'description': expected_description,
     }
 
-    seller = seller_repository.create(dto=seller_from_entity(data_to_seller_entity(data=expected_seller_data)))
+    seller = seller_repository.save(
+        seller=seller_from_entity(data_to_seller_entity(data=expected_seller_data)), update=False
+    )
     assert isinstance(seller, Seller)
     assert seller.user_id == user.pk
     assert seller.name == expected_name

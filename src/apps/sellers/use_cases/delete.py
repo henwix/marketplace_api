@@ -1,25 +1,18 @@
 from dataclasses import dataclass
 
-from src.apps.products.converters.products import data_to_product_entity
-from src.apps.products.entities.products import ProductEntity
-from src.apps.products.services.products import BaseProductService
 from src.apps.sellers.services.sellers import BaseSellerDoesNotExistValidatorService, BaseSellerService
 from src.apps.users.services.users import BaseUserAuthValidatorService, BaseUserService
 
 
 @dataclass
-class CreateProductUseCase:
+class DeleteSellerUseCase:
     auth_validator_service: BaseUserAuthValidatorService
     user_service: BaseUserService
     seller_service: BaseSellerService
     seller_validator_service: BaseSellerDoesNotExistValidatorService
-    product_service: BaseProductService
 
-    def execute(self, user_id: int | None, data: dict) -> ProductEntity:
+    def execute(self, user_id: int | None) -> None:
         self.auth_validator_service.validate(user_id=user_id)
         user = self.user_service.get_by_id_with_seller_or_401(id=user_id)
         self.seller_validator_service.validate(seller=user.seller_profile, user_id=user_id)
-        product_entity = data_to_product_entity(data={**data, 'seller_id': user.seller_profile.id})
-        product_entity.build_slug()
-        new_product = self.product_service.save(product=product_entity, update=False)
-        return new_product
+        self.seller_service.delete(id=user.seller_profile.id)

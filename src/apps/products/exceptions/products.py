@@ -21,8 +21,8 @@ class ProductNotFoundBySlugError(ServiceException):
 
 
 @dataclass
-class ProductAuthorPermissionError(ServiceException):
+class ProductAccessForbiddenError(ServiceException):
     status_code = status.HTTP_403_FORBIDDEN
     message = 'Product access forbidden'
-    seller_id: int | None
     product_id: UUID
+    seller_id: int | None = None

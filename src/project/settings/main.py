@@ -59,8 +59,9 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
+    'EXCEPTION_HANDLER': 'src.project.exception_handler.api_exception_handler',
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework_simplejwt.authentication.JWTStatelessUserAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -78,7 +79,7 @@ SPECTACULAR_SETTINGS = {
     'SORT_OPERATIONS': False,
     'SCHEMA_PATH_PREFIX': r'/v[1-2]/',
     'SWAGGER_UI_SETTINGS': {'deepLinking': True, 'persistAuthorization': True},
-    'AUTHENTICATION_WHITELIST': ['rest_framework_simplejwt.authentication.JWTAuthentication'],
+    'AUTHENTICATION_WHITELIST': ['rest_framework_simplejwt.authentication.JWTStatelessUserAuthentication'],
 }
 
 SIMPLE_JWT = {

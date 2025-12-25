@@ -25,8 +25,8 @@ def test_seller_not_deleted_and_returns_401_if_unauthorized():
 
 
 @pytest.mark.django_db
-def test_seller_not_deleted_and_returns_403_if_does_not_exist(user: User):
+def test_seller_not_deleted_and_returns_404_if_does_not_exist(user: User):
     client = get_client(user=user, jwt=True)
     response = client.delete(path='/v1/sellers/')
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_404_NOT_FOUND
     assert not Seller.objects.filter(user_id=user.pk).exists()

@@ -8,9 +8,6 @@ from src.apps.products.models.product_variants import ProductVariant
 @dataclass
 class BaseProductVariantRepository(ABC):
     @abstractmethod
-    def create(self, data: dict) -> ProductVariant: ...
-
-    @abstractmethod
     def save(self, product_variant: ProductVariant, update: bool) -> ProductVariant: ...
 
     @abstractmethod
@@ -24,9 +21,6 @@ class BaseProductVariantRepository(ABC):
 
 
 class ORMProductVariantRepository(BaseProductVariantRepository):
-    def create(self, data: dict) -> ProductVariant:
-        return ProductVariant.objects.create(**data)
-
     def save(self, product_variant: ProductVariant, update: bool) -> ProductVariant:
         product_variant.save(force_update=update)
         return product_variant

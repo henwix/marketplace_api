@@ -1,9 +1,13 @@
 import pytest
 from punq import Container
 
-from src.apps.users.converters import user_to_entity
 from src.apps.users.entities import UserEntity
-from src.apps.users.exceptions.users import UserWithDataAlreadyExistsError
+from src.apps.users.exceptions.users import (
+    UserAuthCredentialsNotProvidedError,
+    UserAuthNotActiveError,
+    UserAuthNotFoundError,
+    UserWithDataAlreadyExistsError,
+)
 from src.apps.users.models import User
 from src.apps.users.use_cases.update import UpdateUserUseCase
 from tests.v1.users.factories import UserModelFactory
@@ -22,7 +26,7 @@ def update_user_use_case(container: Container) -> UpdateUserUseCase:
         ('NewTestFirstName', 'NewTestLastName', 'ajsh1924c9h1casf@test.com', '+192715125124'),
     ],
 )
-def test_update_user(
+def test_update_user_updated(
     update_user_use_case: UpdateUserUseCase,
     user: User,
     expected_first_name: str,
@@ -36,25 +40,52 @@ def test_update_user(
         'email': expected_email,
         'phone': expected_phone,
     }
-    updated_user = update_user_use_case.execute(user=user_to_entity(dto=user), data=expected_data)
-    assert isinstance(updated_user, UserEntity)
+    updated_user = update_user_use_case.execute(user_id=user.pk, data=expected_data)
     db_user = User.objects.get(pk=user.pk)
-    assert user_to_entity(dto=db_user) == updated_user
+    assert isinstance(updated_user, UserEntity)
+    assert db_user.pk == updated_user.id
+    assert db_user.first_name == updated_user.first_name
+    assert db_user.last_name == updated_user.last_name
+    assert db_user.email == updated_user.email
+    assert db_user.phone == updated_user.phone
+    assert db_user.avatar == updated_user.avatar
+    assert db_user.is_staff == updated_user.is_staff
+    assert db_user.is_active == updated_user.is_active
+    assert db_user.date_joined == updated_user.date_joined
 
 
 @pytest.mark.django_db
-def test_update_user_phone_already_exists_exception_raised(update_user_use_case: UpdateUserUseCase, user: User):
+def test_update_user_phone_already_exists_error_raised(update_user_use_case: UpdateUserUseCase, user: User):
     expected_phone = '+592692652134'
     UserModelFactory.create(phone=expected_phone)
 
     with pytest.raises(UserWithDataAlreadyExistsError):
-        update_user_use_case.execute(user=user_to_entity(dto=user), data={'phone': expected_phone})
+        update_user_use_case.execute(user_id=user.pk, data={'phone': expected_phone})
 
 
 @pytest.mark.django_db
-def test_update_user_email_already_exists_exception_raised(update_user_use_case: UpdateUserUseCase, user: User):
+def test_update_user_email_already_exists_error_raised(update_user_use_case: UpdateUserUseCase, user: User):
     expected_email = 'sdjghksdhgsg@example.com'
     UserModelFactory.create(email=expected_email)
 
     with pytest.raises(UserWithDataAlreadyExistsError):
-        update_user_use_case.execute(user=user_to_entity(dto=user), data={'email': expected_email})
+        update_user_use_case.execute(user_id=user.pk, data={'email': expected_email})
+
+
+@pytest.mark.django_db
+def test_update_user_user_credentials_error_raised(update_user_use_case: UpdateUserUseCase):
+    with pytest.raises(UserAuthCredentialsNotProvidedError):
+        update_user_use_case.execute(user_id=None, data={})
+
+
+@pytest.mark.django_db
+def test_update_user_user_not_found_error_raised(update_user_use_case: UpdateUserUseCase):
+    with pytest.raises(UserAuthNotFoundError):
+        update_user_use_case.execute(user_id=1, data={})
+
+
+@pytest.mark.django_db
+def test_update_user_user_not_active_error_raised(update_user_use_case: UpdateUserUseCase):
+    user = UserModelFactory.create(is_active=False)
+    with pytest.raises(UserAuthNotActiveError):
+        update_user_use_case.execute(user_id=user.pk, data={})

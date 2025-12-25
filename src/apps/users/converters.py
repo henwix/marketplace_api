@@ -1,3 +1,4 @@
+from src.apps.sellers.converters.sellers import seller_to_entity
 from src.apps.users.entities import UserEntity
 from src.apps.users.models import User
 
@@ -7,7 +8,7 @@ def data_to_user_entity(data: dict) -> UserEntity:
 
 
 def user_to_entity(dto: User) -> UserEntity:
-    return UserEntity(
+    entity = UserEntity(
         id=dto.pk,
         first_name=dto.first_name,
         last_name=dto.last_name,
@@ -19,6 +20,11 @@ def user_to_entity(dto: User) -> UserEntity:
         is_active=dto.is_active,
         date_joined=dto.date_joined,
     )
+
+    if 'seller_profile' in dto._state.fields_cache:
+        entity.seller_profile = seller_to_entity(dto=getattr(dto, 'seller_profile', None))
+
+    return entity
 
 
 def user_from_entity(entity: UserEntity) -> User:

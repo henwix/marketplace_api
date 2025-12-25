@@ -1,14 +1,11 @@
-from django.urls import include, path
+from django.urls import path
 
-from src.api.v1.sellers.views import SellerViewSet
-from src.apps.sellers.routers import CustomSellersRouter
+from src.api.v1.sellers.views import DetailSellerView, SellerView
 
 app_name = 'sellers'
 
-seller_router = CustomSellersRouter()
-seller_router.register(prefix='sellers', viewset=SellerViewSet, basename='sellers')
-
 
 urlpatterns = [
-    path('', include(seller_router.urls)),
+    path('sellers/', SellerView.as_view(), name='sellers'),
+    path('sellers/<int:id>/', DetailSellerView.as_view(), name='sellers-detail'),
 ]

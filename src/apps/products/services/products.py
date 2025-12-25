@@ -5,7 +5,7 @@ from uuid import UUID
 from src.apps.products.converters.products import product_from_entity, product_to_entity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.exceptions.products import (
-    ProductAuthorPermissionError,
+    ProductAccessForbiddenError,
     ProductNotFoundByIdError,
     ProductNotFoundBySlugError,
 )
@@ -22,7 +22,7 @@ class BaseProductAuthorValidatorService(ABC):
 class ProductAuthorValidatorService(BaseProductAuthorValidatorService):
     def validate(self, seller: SellerEntity | None, product: ProductEntity) -> None:
         if seller is None or seller.id != product.seller_id:
-            raise ProductAuthorPermissionError(seller_id=getattr(seller, 'id', None), product_id=product.id)
+            raise ProductAccessForbiddenError(seller_id=getattr(seller, 'id', None), product_id=product.id)
 
 
 @dataclass

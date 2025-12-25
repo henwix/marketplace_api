@@ -45,7 +45,7 @@ def test_seller_not_created_and_returns_401_if_unauthorized(
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_not_created_and_returns_403_if_already_exists(
+def test_seller_not_created_and_returns_400_if_already_exists(
     seller: Seller,
     expected_name: str,
     expected_description: str,
@@ -54,4 +54,4 @@ def test_seller_not_created_and_returns_403_if_already_exists(
     expected_seller_data = {'name': expected_name, 'description': expected_description}
 
     response = client.post(path='/v1/sellers/', data=expected_seller_data)
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_400_BAD_REQUEST

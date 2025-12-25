@@ -5,13 +5,20 @@ from punq import Container
 
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity
-from src.apps.products.exceptions.products import ProductAuthorPermissionError, ProductNotFoundByIdError
+from src.apps.products.exceptions.products import ProductAccessForbiddenError, ProductNotFoundByIdError
 from src.apps.products.models.products import Product
 from src.apps.products.use_cases.products.update import UpdateProductUseCase
-from src.apps.sellers.converters.sellers import seller_to_entity
+from src.apps.sellers.exceptions import SellerNotFoundError
 from src.apps.sellers.models import Seller
+from src.apps.users.exceptions.users import (
+    UserAuthCredentialsNotProvidedError,
+    UserAuthNotActiveError,
+    UserAuthNotFoundError,
+)
+from src.apps.users.models import User
 from tests.v1.products.factories import ProductModelFactory
-from tests.v1.products.test_data.new_product_data import PRODUCT_ARGNAMES, PRODUCT_ARGVALUES
+from tests.v1.products.test_data.product_data import PRODUCT_ARGNAMES, PRODUCT_ARGVALUES
+from tests.v1.users.factories import UserModelFactory
 
 
 @pytest.fixture
@@ -21,7 +28,7 @@ def update_product_use_case(container: Container) -> UpdateProductUseCase:
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(argnames=PRODUCT_ARGNAMES, argvalues=PRODUCT_ARGVALUES)
-def test_product_updated_by_author(
+def test_update_product_updated_by_author(
     seller: Seller,
     update_product_use_case: UpdateProductUseCase,
     expected_title: str,
@@ -39,26 +46,58 @@ def test_product_updated_by_author(
         'short_description': expected_short_desc,
         'is_visible': expected_is_visible,
     }
-    updated_product = update_product_use_case.execute(
-        seller=seller_to_entity(dto=seller), product_id=product.pk, data=expected_data
-    )
+    updated_product = update_product_use_case.execute(user_id=seller.user_id, product_id=product.pk, data=expected_data)
 
     assert isinstance(updated_product, ProductEntity)
-    db_product = Product.objects.get(pk=product.pk)
+    db_product = Product.objects.get(
+        pk=product.pk,
+        title=expected_title,
+        description=expected_desc,
+        short_description=expected_short_desc,
+        is_visible=expected_is_visible,
+    )
     assert updated_product == product_to_entity(dto=db_product)
 
 
 @pytest.mark.django_db
-def test_product_not_updated_if_seller_is_not_author(
+def test_update_product_not_updated_product_access_error_raised(
     product: Product, seller: Seller, update_product_use_case: UpdateProductUseCase
 ):
-    with pytest.raises(ProductAuthorPermissionError):
-        update_product_use_case.execute(seller=seller_to_entity(dto=seller), product_id=product.pk, data={})
+    with pytest.raises(ProductAccessForbiddenError):
+        update_product_use_case.execute(user_id=seller.user_id, product_id=product.pk, data={})
     db_product = Product.objects.get(pk=product.pk)
     assert db_product == product
 
 
 @pytest.mark.django_db
-def test_product_not_updated_if_not_exists(seller: Seller, update_product_use_case: UpdateProductUseCase):
+def test_update_product_not_found_by_id_error_raised(seller: Seller, update_product_use_case: UpdateProductUseCase):
     with pytest.raises(ProductNotFoundByIdError):
-        update_product_use_case.execute(seller=seller_to_entity(dto=seller), product_id=uuid7(), data={})
+        update_product_use_case.execute(user_id=seller.user_id, product_id=uuid7(), data={})
+
+
+@pytest.mark.django_db
+def test_update_product_seller_not_found_error_raised(
+    update_product_use_case: UpdateProductUseCase,
+    user: User,
+):
+    with pytest.raises(SellerNotFoundError):
+        update_product_use_case.execute(user_id=user.pk, product_id=uuid7(), data={})
+
+
+@pytest.mark.django_db
+def test_update_product_user_credentials_error_raised(update_product_use_case: UpdateProductUseCase):
+    with pytest.raises(UserAuthCredentialsNotProvidedError):
+        update_product_use_case.execute(user_id=None, product_id=uuid7(), data={})
+
+
+@pytest.mark.django_db
+def test_update_product_user_not_found_error_raised(update_product_use_case: UpdateProductUseCase):
+    with pytest.raises(UserAuthNotFoundError):
+        update_product_use_case.execute(user_id=1, product_id=uuid7(), data={})
+
+
+@pytest.mark.django_db
+def test_update_product_user_not_active_error_raised(update_product_use_case: UpdateProductUseCase):
+    user = UserModelFactory.create(is_active=False)
+    with pytest.raises(UserAuthNotActiveError):
+        update_product_use_case.execute(user_id=user.pk, product_id=uuid7(), data={})

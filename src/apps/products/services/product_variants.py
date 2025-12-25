@@ -7,7 +7,7 @@ from src.apps.products.converters.product_variants import product_variant_from_e
 from src.apps.products.entities.product_variants import ProductVariantEntity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.exceptions.product_variants import (
-    ProductVariantAuthorPermissionError,
+    ProductVariantAccessForbiddenError,
     ProductVariantNotFoundError,
     ProductVariantsLimitError,
     ProductVariantsNotFoundError,
@@ -24,7 +24,7 @@ class BaseProductVariantAuthorValidatorService(ABC):
 class ProductVariantAuthorValidatorService(BaseProductVariantAuthorValidatorService):
     def validate(self, seller: SellerEntity | None, product_variant: ProductVariantEntity) -> None:
         if seller is None or seller.id != product_variant.product_seller_id:
-            raise ProductVariantAuthorPermissionError(
+            raise ProductVariantAccessForbiddenError(
                 seller_id=getattr(seller, 'id', None), product_variant_id=product_variant.id
             )
 
@@ -60,9 +60,6 @@ class BaseProductVariantService(ABC):
     repository: BaseProductVariantRepository
 
     @abstractmethod
-    def create(self, data: dict) -> ProductVariantEntity: ...
-
-    @abstractmethod
     def save(self, product_variant: ProductVariantEntity, update: bool = False) -> ProductVariantEntity: ...
 
     @abstractmethod
@@ -73,10 +70,6 @@ class BaseProductVariantService(ABC):
 
 
 class ProductVariantService(BaseProductVariantService):
-    def create(self, data: dict) -> ProductVariantEntity:
-        dto = self.repository.create(data=data)
-        return product_variant_to_entity(dto=dto)
-
     def save(self, product_variant: ProductVariantEntity, update: bool = False) -> ProductVariantEntity:
         dto = product_variant_from_entity(entity=product_variant)
         dto = self.repository.save(product_variant=dto, update=update)

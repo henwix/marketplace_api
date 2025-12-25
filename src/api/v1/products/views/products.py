@@ -1,10 +1,10 @@
-from logging import Logger
+from uuid import UUID
 
 import django_filters
-import orjson
 from punq import Container
 from rest_framework import filters, status
 from rest_framework.generics import ListAPIView
+from rest_framework.request import Request
 from rest_framework.views import APIView, Response
 
 from src.api.v1.products.serializers.products import (
@@ -12,7 +12,6 @@ from src.api.v1.products.serializers.products import (
     RetrieveProductSerializer,
     SearchProductSerializer,
 )
-from src.apps.common.exceptions import ServiceException
 from src.apps.products.docs.products.schema_decorators import (
     extend_create_product_view_schema,
     extend_detail_product_view_schema,
@@ -28,113 +27,63 @@ from src.apps.products.use_cases.products.delete import DeleteProductUseCase
 from src.apps.products.use_cases.products.get_by_id import GetProductByIdUseCase
 from src.apps.products.use_cases.products.get_by_slug import GetProductBySlugUseCase
 from src.apps.products.use_cases.products.update import UpdateProductUseCase
-from src.apps.sellers.converters.sellers import seller_to_entity
-from src.apps.sellers.permissions import HasSellerProfilePermission, ReadOnlyOrHasSellerProfilePermission
+from src.apps.sellers.permissions import HasSellerProfilePermission
 from src.project.containers import get_container
 
 
 @extend_create_product_view_schema()
 class CreateProductView(APIView):
-    permission_classes = [ReadOnlyOrHasSellerProfilePermission]
-
-    def post(self, request):
+    def post(self, request: Request) -> Response:
         serializer = ProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         container: Container = get_container()
         use_case: CreateProductUseCase = container.resolve(CreateProductUseCase)
-
-        product = use_case.execute(
-            seller_id=request.user.seller_profile.id,
-            data=serializer.validated_data,
-        )
-        return Response(
-            data=ProductSerializer(product).data,
-            status=status.HTTP_201_CREATED,
-        )
+        product = use_case.execute(user_id=request.user.id, data=serializer.validated_data)
+        return Response(data=ProductSerializer(product).data, status=status.HTTP_201_CREATED)
 
 
 @extend_get_product_by_slug_view_schema()
 class GetProductBySlugView(APIView):
-    def get(self, request, slug):
+    def get(self, request: Request, slug: str) -> Response:
         container: Container = get_container()
-        logger: Logger = container.resolve(Logger)
         use_case: GetProductBySlugUseCase = container.resolve(GetProductBySlugUseCase)
-
-        try:
-            product = use_case.execute(
-                seller=seller_to_entity(dto=getattr(request.user, 'seller_profile', None)),
-                slug=slug,
-            )
-            return Response(
-                data=RetrieveProductSerializer(product, context={'request': self.request}).data,
-                status=status.HTTP_200_OK,
-            )
-        except ServiceException as error:
-            logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            return Response(data=error.response(), status=error.status_code)
+        product = use_case.execute(user_id=request.user.id, slug=slug)
+        return Response(
+            data=RetrieveProductSerializer(product, context={'request': self.request}).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 @extend_detail_product_view_schema()
 class DetailProductView(APIView):
-    permission_classes = [ReadOnlyOrHasSellerProfilePermission]
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.container: Container = get_container()
-        self.logger: Logger = self.container.resolve(Logger)
 
-    def get(self, request, id):
+    def get(self, request: Request, id: UUID) -> Response:
         use_case: GetProductByIdUseCase = self.container.resolve(GetProductByIdUseCase)
+        product = use_case.execute(user_id=request.user.id, product_id=id)
+        return Response(
+            data=RetrieveProductSerializer(product, context={'request': self.request}).data,
+            status=status.HTTP_200_OK,
+        )
 
-        try:
-            product = use_case.execute(
-                seller=seller_to_entity(dto=getattr(request.user, 'seller_profile', None)),
-                product_id=id,
-            )
-            return Response(
-                data=RetrieveProductSerializer(product, context={'request': self.request}).data,
-                status=status.HTTP_200_OK,
-            )
-        except ServiceException as error:
-            self.logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            return Response(data=error.response(), status=error.status_code)
-
-    def delete(self, request, id):
+    def delete(self, request: Request, id: UUID) -> Response:
         use_case: DeleteProductUseCase = self.container.resolve(DeleteProductUseCase)
+        use_case.execute(user_id=request.user.id, product_id=id)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
-        try:
-            use_case.execute(
-                seller=seller_to_entity(dto=request.user.seller_profile),
-                product_id=id,
-            )
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except ServiceException as error:
-            self.logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            return Response(data=error.response(), status=error.status_code)
-
-    def update(self, request, id, partial: bool):
+    def update(self, request: Request, id: UUID, partial: bool) -> Response:
         serializer = ProductSerializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         use_case: UpdateProductUseCase = self.container.resolve(UpdateProductUseCase)
+        product = use_case.execute(user_id=request.user.id, product_id=id, data=serializer.validated_data)
+        return Response(data=ProductSerializer(product).data, status=status.HTTP_200_OK)
 
-        try:
-            product = use_case.execute(
-                seller=seller_to_entity(dto=request.user.seller_profile),
-                product_id=id,
-                data=serializer.validated_data,
-            )
-            return Response(
-                data=ProductSerializer(product).data,
-                status=status.HTTP_200_OK,
-            )
-        except ServiceException as error:
-            self.logger.error(msg=error.message, extra={'log_meta': orjson.dumps(error).decode()})
-            return Response(data=error.response(), status=error.status_code)
-
-    def put(self, request, id):
+    def put(self, request: Request, id: UUID) -> Response:
         return self.update(request=request, id=id, partial=False)
 
-    def patch(self, request, id):
+    def patch(self, request: Request, id: UUID) -> Response:
         return self.update(request=request, id=id, partial=True)
 
 
