@@ -3,20 +3,20 @@ from punq import Container
 from src.apps.products.repositories.product_variants import BaseProductVariantRepository, ORMProductVariantRepository
 from src.apps.products.repositories.products import BaseProductRepository, ORMProductRepository
 from src.apps.products.services.product_variants import (
-    BaseProductVariantAuthorValidatorService,
-    BaseProductVariantLimitValidatorService,
+    BaseProductVariantAccessValidatorService,
     BaseProductVariantService,
-    BaseProductVariantsQuantityValidatorService,
-    ProductVariantAuthorValidatorService,
-    ProductVariantLimitValidatorService,
+    ProductVariantAccessValidatorService,
     ProductVariantService,
-    ProductVariantsQuantityValidatorService,
 )
 from src.apps.products.services.products import (
-    BaseProductAuthorValidatorService,
+    BaseProductAccessValidatorService,
+    BaseProductHasVariantsValidatorService,
     BaseProductService,
-    ProductAuthorValidatorService,
+    BaseProductVariantsLimitValidatorService,
+    ProductAccessValidatorService,
+    ProductHasVariantsValidatorService,
     ProductService,
+    ProductVariantsLimitValidatorService,
 )
 from src.apps.products.use_cases.product_variants.create import CreateProductVariantUseCase
 from src.apps.products.use_cases.product_variants.delete import DeleteProductVariantUseCase
@@ -44,12 +44,11 @@ def init_products(container: Container) -> None:
 
     # services
     container.register(BaseProductService, ProductService)
+    container.register(BaseProductAccessValidatorService, ProductAccessValidatorService)
+    container.register(BaseProductHasVariantsValidatorService, ProductHasVariantsValidatorService)
+    container.register(BaseProductVariantsLimitValidatorService, ProductVariantsLimitValidatorService)
     container.register(BaseProductVariantService, ProductVariantService)
-    container.register(BaseProductVariantLimitValidatorService, ProductVariantLimitValidatorService)
-    container.register(BaseProductAuthorValidatorService, ProductAuthorValidatorService)
-
-    container.register(BaseProductVariantAuthorValidatorService, ProductVariantAuthorValidatorService)
-    container.register(BaseProductVariantsQuantityValidatorService, ProductVariantsQuantityValidatorService)
+    container.register(BaseProductVariantAccessValidatorService, ProductVariantAccessValidatorService)
 
     # repositories
     container.register(BaseProductRepository, ORMProductRepository)

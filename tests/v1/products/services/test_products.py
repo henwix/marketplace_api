@@ -55,7 +55,7 @@ def test_product_saved_for_update(
 
 @pytest.mark.django_db
 def test_product_selected_for_update_by_id(product: Product, product_service: BaseProductService):
-    retrieved_product = product_service.select_for_update_by_id_or_404(id=product.id)
+    retrieved_product = product_service.try_get_for_update_by_id(id=product.id)
     assert isinstance(retrieved_product, ProductEntity)
     assert product_to_entity(Product.objects.get(pk=product.id)) == retrieved_product
 
@@ -63,26 +63,26 @@ def test_product_selected_for_update_by_id(product: Product, product_service: Ba
 @pytest.mark.django_db
 def test_product_not_selected_for_update_by_id_and_raised_if_not_exists(product_service: BaseProductService):
     with pytest.raises(ProductNotFoundByIdError):
-        product_service.select_for_update_by_id_or_404(id=uuid7())
+        product_service.try_get_for_update_by_id(id=uuid7())
 
 
 @pytest.mark.django_db
 def test_product_retrieved_by_id(product: Product, product_service: BaseProductService):
-    retrieved_product = product_service.get_by_id_or_404(id=product.id)
+    retrieved_product = product_service.try_get_by_id(id=product.id)
     assert product_to_entity(Product.objects.get(pk=product.id)) == retrieved_product
 
 
 @pytest.mark.django_db
 def test_product_not_retrieved_by_id_if_not_exists(product_service: BaseProductService):
     with pytest.raises(ProductNotFoundByIdError):
-        product_service.get_by_id_or_404(id=uuid7())
+        product_service.try_get_by_id(id=uuid7())
 
 
 @pytest.mark.django_db
 def test_product_retrieved_by_id_with_relations(product: Product, product_service: BaseProductService):
     expected_variants = 9
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
-    retrieved_product = product_service.get_by_id_for_retrieve_or_404(id=product.pk)
+    retrieved_product = product_service.try_get_by_id_for_retrieve(id=product.pk)
     db_product = (
         Product.objects.filter(pk=product.pk)
         .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
@@ -102,7 +102,7 @@ def test_product_retrieved_by_id_with_relations_and_zero_price(product: Product,
     expected_variants_with_zero_price = 2
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
     ProductVariantModelFactory.create_batch(size=expected_variants_with_zero_price, product=product, price=0)
-    retrieved_product = product_service.get_by_id_for_retrieve_or_404(id=product.pk)
+    retrieved_product = product_service.try_get_by_id_for_retrieve(id=product.pk)
     db_product = (
         Product.objects.filter(pk=product.pk)
         .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
@@ -123,7 +123,7 @@ def test_product_retrieved_by_id_with_relations_and_not_visible_variants(
     expected_not_visible_variants = 6
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
     ProductVariantModelFactory.create_batch(size=expected_not_visible_variants, product=product, is_visible=False)
-    retrieved_product = product_service.get_by_id_for_retrieve_or_404(id=product.pk)
+    retrieved_product = product_service.try_get_by_id_for_retrieve(id=product.pk)
     db_product = (
         Product.objects.filter(pk=product.pk)
         .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
@@ -139,14 +139,14 @@ def test_product_retrieved_by_id_with_relations_and_not_visible_variants(
 @pytest.mark.django_db
 def test_product_not_retrieved_by_id_with_relations_if_not_exists(product_service: BaseProductService):
     with pytest.raises(ProductNotFoundByIdError):
-        product_service.get_by_id_for_retrieve_or_404(id=uuid7())
+        product_service.try_get_by_id_for_retrieve(id=uuid7())
 
 
 @pytest.mark.django_db
 def test_product_retrieved_by_slug_with_relations(product: Product, product_service: BaseProductService):
     expected_variants = 2
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
-    retrieved_product = product_service.get_by_slug_for_retrieve_or_404(slug=product.slug)
+    retrieved_product = product_service.try_get_by_slug_for_retrieve(slug=product.slug)
     db_product = (
         Product.objects.filter(pk=product.pk)
         .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
@@ -166,7 +166,7 @@ def test_product_retrieved_by_slug_with_relations_and_zero_price(product: Produc
     expected_variants_with_zero_price = 7
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
     ProductVariantModelFactory.create_batch(size=expected_variants_with_zero_price, product=product, price=0)
-    retrieved_product = product_service.get_by_slug_for_retrieve_or_404(slug=product.slug)
+    retrieved_product = product_service.try_get_by_slug_for_retrieve(slug=product.slug)
     db_product = (
         Product.objects.filter(pk=product.pk)
         .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
@@ -187,7 +187,7 @@ def test_product_retrieved_by_slug_with_relations_and_not_visible_variants(
     expected_not_visible_variants = 4
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
     ProductVariantModelFactory.create_batch(size=expected_not_visible_variants, product=product, is_visible=False)
-    retrieved_product = product_service.get_by_slug_for_retrieve_or_404(slug=product.slug)
+    retrieved_product = product_service.try_get_by_slug_for_retrieve(slug=product.slug)
     db_product = (
         Product.objects.filter(pk=product.pk)
         .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
@@ -203,7 +203,7 @@ def test_product_retrieved_by_slug_with_relations_and_not_visible_variants(
 @pytest.mark.django_db
 def test_product_not_retrieved_by_slug_with_relations_if_not_exists(product_service: BaseProductService):
     with pytest.raises(ProductNotFoundBySlugError):
-        product_service.get_by_slug_for_retrieve_or_404(slug='test-slug')
+        product_service.try_get_by_slug_for_retrieve(slug='test-slug')
 
 
 @pytest.mark.django_db

@@ -3,6 +3,7 @@ from uuid import uuid7
 import pytest
 from punq import Container
 
+from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.exceptions.products import ProductAccessForbiddenError, ProductNotFoundByIdError
@@ -11,9 +12,8 @@ from src.apps.products.use_cases.products.update import UpdateProductUseCase
 from src.apps.sellers.exceptions import SellerNotFoundError
 from src.apps.sellers.models import Seller
 from src.apps.users.exceptions.users import (
-    UserAuthCredentialsNotProvidedError,
-    UserAuthNotActiveError,
-    UserAuthNotFoundError,
+    UserNotActiveError,
+    UserNotFoundError,
 )
 from src.apps.users.models import User
 from tests.v1.products.factories import ProductModelFactory
@@ -86,18 +86,18 @@ def test_update_product_seller_not_found_error_raised(
 
 @pytest.mark.django_db
 def test_update_product_user_credentials_error_raised(update_product_use_case: UpdateProductUseCase):
-    with pytest.raises(UserAuthCredentialsNotProvidedError):
+    with pytest.raises(AuthCredentialsNotProvidedError):
         update_product_use_case.execute(user_id=None, product_id=uuid7(), data={})
 
 
 @pytest.mark.django_db
 def test_update_product_user_not_found_error_raised(update_product_use_case: UpdateProductUseCase):
-    with pytest.raises(UserAuthNotFoundError):
+    with pytest.raises(UserNotFoundError):
         update_product_use_case.execute(user_id=1, product_id=uuid7(), data={})
 
 
 @pytest.mark.django_db
 def test_update_product_user_not_active_error_raised(update_product_use_case: UpdateProductUseCase):
     user = UserModelFactory.create(is_active=False)
-    with pytest.raises(UserAuthNotActiveError):
+    with pytest.raises(UserNotActiveError):
         update_product_use_case.execute(user_id=user.pk, product_id=uuid7(), data={})

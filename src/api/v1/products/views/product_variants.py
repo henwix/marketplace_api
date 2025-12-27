@@ -19,20 +19,18 @@ from src.project.containers import get_container
 
 @extend_product_variant_view_schema()
 class ProductVariantView(APIView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container: Container = get_container()
-
     def post(self, request: Request, id: UUID) -> Response:
         serializer = ProductVariantSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        use_case: CreateProductVariantUseCase = self.container.resolve(CreateProductVariantUseCase)
+        container: Container = get_container()
+        use_case: CreateProductVariantUseCase = container.resolve(CreateProductVariantUseCase)
         variant = use_case.execute(user_id=request.user.id, data=serializer.validated_data, product_id=id)
         return Response(data=ProductVariantSerializer(variant).data, status=status.HTTP_201_CREATED)
 
     # TODO: tests
     def get(self, request: Request, id: UUID) -> Response:
-        use_case: GetProductVariantsUseCase = self.container.resolve(GetProductVariantsUseCase)
+        container: Container = get_container()
+        use_case: GetProductVariantsUseCase = container.resolve(GetProductVariantsUseCase)
         variants_count, variants = use_case.execute(user_id=request.user.id, product_id=id)
         return Response(
             data={
@@ -45,19 +43,17 @@ class ProductVariantView(APIView):
 
 @extend_detail_product_variant_view_schema()
 class DetailProductVariantView(APIView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container: Container = get_container()
-
     def delete(self, request: Request, id: UUID) -> Response:
-        use_case: DeleteProductVariantUseCase = self.container.resolve(DeleteProductVariantUseCase)
+        container: Container = get_container()
+        use_case: DeleteProductVariantUseCase = container.resolve(DeleteProductVariantUseCase)
         use_case.execute(user_id=request.user.id, product_variant_id=id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def update(self, request: Request, id: UUID, partial: bool) -> Response:
         serializer = ProductVariantSerializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        use_case: UpdateProductVariantUseCase = self.container.resolve(UpdateProductVariantUseCase)
+        container: Container = get_container()
+        use_case: UpdateProductVariantUseCase = container.resolve(UpdateProductVariantUseCase)
         product_variant = use_case.execute(
             user_id=request.user.id,
             product_variant_id=id,

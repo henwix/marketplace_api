@@ -50,27 +50,27 @@ def test_product_saved_for_update(
 
 @pytest.mark.django_db
 def test_product_selected_for_update_by_id(product: Product, product_repository: BaseProductRepository):
-    retrieved_product = product_repository.select_for_update_by_id_or_none(id=product.pk)
+    retrieved_product = product_repository.get_for_update_by_id(id=product.pk)
     assert isinstance(retrieved_product, Product)
     assert product == retrieved_product
 
 
 @pytest.mark.django_db
 def test_product_not_selected_for_update_by_id_if_not_exists(product_repository: BaseProductRepository):
-    retrieved_product = product_repository.select_for_update_by_id_or_none(id=uuid7())
+    retrieved_product = product_repository.get_for_update_by_id(id=uuid7())
     assert retrieved_product is None
 
 
 @pytest.mark.django_db
 def test_product_retrieved_by_id(product: Product, product_repository: BaseProductRepository):
-    retrieved_product = product_repository.get_by_id_or_none(id=product.pk)
+    retrieved_product = product_repository.get_by_id(id=product.pk)
     assert isinstance(retrieved_product, Product)
     assert product == retrieved_product
 
 
 @pytest.mark.django_db
 def test_product_not_retrieved_by_id_if_not_exists(product_repository: BaseProductRepository):
-    retrieved_product = product_repository.get_by_id_or_none(id=uuid7())
+    retrieved_product = product_repository.get_by_id(id=uuid7())
     assert retrieved_product is None
 
 
@@ -78,7 +78,7 @@ def test_product_not_retrieved_by_id_if_not_exists(product_repository: BaseProdu
 def test_product_retrieved_by_id_with_relations(product: Product, product_repository: BaseProductRepository):
     expected_variants = 7
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
-    retrieved_product = product_repository.get_by_id_for_retrieve_or_none(id=product.pk)
+    retrieved_product = product_repository.get_by_id_for_retrieve(id=product.pk)
 
     assert isinstance(retrieved_product, Product)
     assert retrieved_product == product
@@ -94,7 +94,7 @@ def test_product_retrieved_by_id_with_relations_and_zero_price(
     expected_variants_with_zero_price = 2
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
     ProductVariantModelFactory.create_batch(size=expected_variants_with_zero_price, product=product, price=0)
-    retrieved_product = product_repository.get_by_id_for_retrieve_or_none(id=product.pk)
+    retrieved_product = product_repository.get_by_id_for_retrieve(id=product.pk)
 
     assert isinstance(retrieved_product, Product)
     assert retrieved_product == product
@@ -109,7 +109,7 @@ def test_product_retrieved_by_id_with_relations_and_not_visible_variants(
     expected_not_visible_variants = 6
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
     ProductVariantModelFactory.create_batch(size=expected_not_visible_variants, product=product, is_visible=False)
-    retrieved_product = product_repository.get_by_id_for_retrieve_or_none(id=product.pk)
+    retrieved_product = product_repository.get_by_id_for_retrieve(id=product.pk)
 
     assert isinstance(retrieved_product, Product)
     assert retrieved_product == product
@@ -118,7 +118,7 @@ def test_product_retrieved_by_id_with_relations_and_not_visible_variants(
 
 @pytest.mark.django_db
 def test_product_not_retrieved_by_id_with_relations_if_not_exists(product_repository: BaseProductRepository):
-    retrieved_product = product_repository.get_by_id_for_retrieve_or_none(id=uuid7())
+    retrieved_product = product_repository.get_by_id_for_retrieve(id=uuid7())
     assert retrieved_product is None
 
 
@@ -126,7 +126,7 @@ def test_product_not_retrieved_by_id_with_relations_if_not_exists(product_reposi
 def test_product_retrieved_by_slug_with_relations(product: Product, product_repository: BaseProductRepository):
     expected_variants = 2
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
-    retrieved_product = product_repository.get_by_slug_for_retrieve_or_none(slug=product.slug)
+    retrieved_product = product_repository.get_by_slug_for_retrieve(slug=product.slug)
 
     assert isinstance(retrieved_product, Product)
     assert retrieved_product == product
@@ -142,7 +142,7 @@ def test_product_retrieved_by_slug_with_relations_and_zero_price(
     expected_variants_with_zero_price = 3
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
     ProductVariantModelFactory.create_batch(size=expected_variants_with_zero_price, product=product, price=0)
-    retrieved_product = product_repository.get_by_slug_for_retrieve_or_none(slug=product.slug)
+    retrieved_product = product_repository.get_by_slug_for_retrieve(slug=product.slug)
 
     assert isinstance(retrieved_product, Product)
     assert retrieved_product == product
@@ -157,7 +157,7 @@ def test_product_retrieved_by_slug_with_relations_and_not_visible_variants(
     expected_not_visible_variants = 1
     ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
     ProductVariantModelFactory.create_batch(size=expected_not_visible_variants, product=product, is_visible=False)
-    retrieved_product = product_repository.get_by_slug_for_retrieve_or_none(slug=product.slug)
+    retrieved_product = product_repository.get_by_slug_for_retrieve(slug=product.slug)
 
     assert isinstance(retrieved_product, Product)
     assert retrieved_product == product
@@ -166,7 +166,7 @@ def test_product_retrieved_by_slug_with_relations_and_not_visible_variants(
 
 @pytest.mark.django_db
 def test_product_not_retrieved_by_slug_with_relations_if_not_exists(product_repository: BaseProductRepository):
-    retrieved_product = product_repository.get_by_slug_for_retrieve_or_none(slug='test-slug')
+    retrieved_product = product_repository.get_by_slug_for_retrieve(slug='test-slug')
     assert retrieved_product is None
 
 

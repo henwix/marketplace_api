@@ -20,9 +20,9 @@ def _build_token_error_401_response_example(action: str) -> OpenApiExample:
     )
 
 
-def unauthorized_token_invalid_error_401_response_example() -> OpenApiExample:
+def unauthorized_token_invalid_response_example() -> OpenApiExample:
     return _build_token_error_401_response_example(action='invalid')
 
 
-def unauthorized_token_expired_error_401_response_example() -> OpenApiExample:
+def unauthorized_token_expired_response_example() -> OpenApiExample:
     return _build_token_error_401_response_example(action='expired')

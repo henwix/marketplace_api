@@ -2,11 +2,11 @@ from punq import Container
 
 from src.apps.sellers.repositories.sellers import BaseSellerRepository, ORMSellerRepository
 from src.apps.sellers.services.sellers import (
-    BaseSellerAlreadyExistsValidatorService,
-    BaseSellerDoesNotExistValidatorService,
+    BaseSellerMustExistValidatorService,
+    BaseSellerMustNotExistValidatorService,
     BaseSellerService,
-    SellerAlreadyExistsValidatorService,
-    SellerDoesNotExistValidatorService,
+    SellerMustExistValidatorService,
+    SellerMustNotExistValidatorService,
     SellerService,
 )
 from src.apps.sellers.use_cases.create import CreateSellerUseCase
@@ -26,8 +26,8 @@ def init_sellers(container: Container) -> None:
 
     # services
     container.register(BaseSellerService, SellerService)
-    container.register(BaseSellerAlreadyExistsValidatorService, SellerAlreadyExistsValidatorService)
-    container.register(BaseSellerDoesNotExistValidatorService, SellerDoesNotExistValidatorService)
+    container.register(BaseSellerMustNotExistValidatorService, SellerMustNotExistValidatorService)
+    container.register(BaseSellerMustExistValidatorService, SellerMustExistValidatorService)
 
     # repositories
     container.register(BaseSellerRepository, ORMSellerRepository)

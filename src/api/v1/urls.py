@@ -2,6 +2,7 @@ from django.urls import include, path
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers
 from rest_framework.decorators import api_view
+from rest_framework.request import Request
 from rest_framework.views import Response
 
 app_name = 'v1'
@@ -12,7 +13,7 @@ app_name = 'v1'
     summary='Ping API GET',
 )
 @api_view(['GET'])
-def ping(request):
+def ping(request: Request) -> Response:
     return Response({'detail': 'pong'})
 
 
@@ -21,5 +22,5 @@ urlpatterns = [
     path('', include('src.api.v1.users.urls')),
     path('', include('src.api.v1.sellers.urls')),
     path('', include('src.api.v1.products.urls')),
-    path('', include('src.api.v1.auth.urls')),
+    path('', include('src.api.v1.authentication.urls')),
 ]

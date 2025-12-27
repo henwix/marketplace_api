@@ -7,23 +7,23 @@ from src.apps.sellers.exceptions import SellerAlreadyExistsError, SellerNotFound
 from src.apps.sellers.repositories.sellers import BaseSellerRepository
 
 
-class BaseSellerAlreadyExistsValidatorService(ABC):
+class BaseSellerMustNotExistValidatorService(ABC):
     @abstractmethod
     def validate(self, seller: SellerEntity | None, user_id: int) -> None: ...
 
 
-class SellerAlreadyExistsValidatorService(BaseSellerAlreadyExistsValidatorService):
+class SellerMustNotExistValidatorService(BaseSellerMustNotExistValidatorService):
     def validate(self, seller: SellerEntity | None, user_id: int) -> None:
         if seller is not None:
             raise SellerAlreadyExistsError(user_id=user_id)
 
 
-class BaseSellerDoesNotExistValidatorService(ABC):
+class BaseSellerMustExistValidatorService(ABC):
     @abstractmethod
     def validate(self, seller: SellerEntity | None, user_id: int) -> None: ...
 
 
-class SellerDoesNotExistValidatorService(BaseSellerDoesNotExistValidatorService):
+class SellerMustExistValidatorService(BaseSellerMustExistValidatorService):
     def validate(self, seller: SellerEntity | None, user_id: int) -> None:
         if seller is None:
             raise SellerNotFoundError(user_id=user_id)
@@ -37,13 +37,7 @@ class BaseSellerService(ABC):
     def save(self, seller: SellerEntity, update: bool = False) -> SellerEntity: ...
 
     @abstractmethod
-    def get_by_user_id_or_none(self, user_id: int) -> SellerEntity | None: ...
-
-    @abstractmethod
-    def get_by_user_id_or_404(self, user_id: int) -> SellerEntity: ...
-
-    @abstractmethod
-    def get_by_id_or_404(self, id: int) -> SellerEntity: ...
+    def try_get_by_id(self, id: int) -> SellerEntity: ...
 
     @abstractmethod
     def delete(self, id: int) -> None: ...
@@ -55,18 +49,8 @@ class SellerService(BaseSellerService):
         dto = self.repository.save(seller=dto, update=update)
         return seller_to_entity(dto=dto)
 
-    def get_by_user_id_or_none(self, user_id: int) -> SellerEntity | None:
-        dto = self.repository.get_by_user_id_or_none(user_id=user_id)
-        return dto if dto is None else seller_to_entity(dto=dto)
-
-    def get_by_user_id_or_404(self, user_id: int) -> SellerEntity:
-        dto = self.repository.get_by_user_id_or_none(user_id=user_id)
-        if dto is None:
-            raise SellerNotFoundError(user_id=user_id)
-        return seller_to_entity(dto=dto)
-
-    def get_by_id_or_404(self, id: int) -> SellerEntity:
-        dto = self.repository.get_by_id_or_none(id=id)
+    def try_get_by_id(self, id: int) -> SellerEntity:
+        dto = self.repository.get_by_id(id=id)
         if dto is None:
             raise SellerNotFoundByIdError(id=id)
         return seller_to_entity(dto=dto)

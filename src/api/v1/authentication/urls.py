@@ -1,6 +1,6 @@
 from django.urls import path
 
-from src.api.v1.auth.views import CustomTokenObtainPairView, CustomTokenRefreshView, CustomTokenVerifyView
+from src.api.v1.authentication.views import CustomTokenObtainPairView, CustomTokenRefreshView, CustomTokenVerifyView
 
 app_name = 'auth'
 

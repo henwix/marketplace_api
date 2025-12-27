@@ -2,27 +2,60 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from uuid import UUID
 
+from src.apps.products.constants import PRODUCT_VARIANTS_LIMIT
 from src.apps.products.converters.products import product_from_entity, product_to_entity
 from src.apps.products.entities.products import ProductEntity
+from src.apps.products.exceptions.product_variants import ProductVariantsLimitError, ProductVariantsNotFoundError
 from src.apps.products.exceptions.products import (
     ProductAccessForbiddenError,
     ProductNotFoundByIdError,
     ProductNotFoundBySlugError,
 )
 from src.apps.products.models.products import Product
+from src.apps.products.repositories.product_variants import BaseProductVariantRepository
 from src.apps.products.repositories.products import BaseProductRepository
 from src.apps.sellers.entities.sellers import SellerEntity
 
 
-class BaseProductAuthorValidatorService(ABC):
+class BaseProductAccessValidatorService(ABC):
     @abstractmethod
     def validate(self, seller: SellerEntity | None, product: ProductEntity) -> None: ...
 
 
-class ProductAuthorValidatorService(BaseProductAuthorValidatorService):
+class ProductAccessValidatorService(BaseProductAccessValidatorService):
     def validate(self, seller: SellerEntity | None, product: ProductEntity) -> None:
         if seller is None or seller.id != product.seller_id:
             raise ProductAccessForbiddenError(seller_id=getattr(seller, 'id', None), product_id=product.id)
+
+
+class BaseProductVariantsLimitValidatorService(ABC):
+    @abstractmethod
+    def validate(self, product: ProductEntity) -> None: ...
+
+
+@dataclass
+class ProductVariantsLimitValidatorService(BaseProductVariantsLimitValidatorService):
+    product_variant_repository: BaseProductVariantRepository
+
+    def validate(self, product: ProductEntity) -> None:
+        variants_count = self.product_variant_repository.get_variants_count(product_id=product.id)
+        if variants_count is not None and variants_count >= PRODUCT_VARIANTS_LIMIT:
+            raise ProductVariantsLimitError(
+                product_id=product.id,
+                variants_count=variants_count,
+                variants_limit=PRODUCT_VARIANTS_LIMIT,
+            )
+
+
+class BaseProductHasVariantsValidatorService(ABC):
+    @abstractmethod
+    def validate(self, product: ProductEntity) -> None: ...
+
+
+class ProductHasVariantsValidatorService(BaseProductHasVariantsValidatorService):
+    def validate(self, product: ProductEntity) -> None:
+        if product.variants_count is not None and product.variants_count == 0:
+            raise ProductVariantsNotFoundError(product_id=product.id)
 
 
 @dataclass
@@ -33,19 +66,19 @@ class BaseProductService(ABC):
     def save(self, product: ProductEntity, update: bool = False) -> ProductEntity: ...
 
     @abstractmethod
-    def select_for_update_by_id_or_404(self, id: UUID) -> ProductEntity: ...
+    def try_get_for_update_by_id(self, id: UUID) -> ProductEntity: ...
 
     @abstractmethod
-    def get_by_id_or_404(self, id: UUID) -> ProductEntity: ...
+    def try_get_by_id(self, id: UUID) -> ProductEntity: ...
 
     @abstractmethod
-    def get_by_id_for_retrieve_or_404(self, id: UUID) -> ProductEntity: ...
+    def try_get_by_id_for_retrieve(self, id: UUID) -> ProductEntity: ...
 
     @abstractmethod
-    def get_by_id_with_loaded_variants_or_404(self, id: UUID) -> ProductEntity: ...
+    def try_get_by_id_with_loaded_variants(self, id: UUID) -> ProductEntity: ...
 
     @abstractmethod
-    def get_by_slug_for_retrieve_or_404(self, slug: str) -> ProductEntity: ...
+    def try_get_by_slug_for_retrieve(self, slug: str) -> ProductEntity: ...
 
     @abstractmethod
     def delete(self, id: UUID) -> None: ...
@@ -61,28 +94,28 @@ class ProductService(BaseProductService):
         dto = self.repository.save(product=dto, update=update)
         return product_to_entity(dto=dto)
 
-    def select_for_update_by_id_or_404(self, id: UUID) -> ProductEntity:
-        dto = self.repository.select_for_update_by_id_or_none(id=id)
+    def try_get_for_update_by_id(self, id: UUID) -> ProductEntity:
+        dto = self.repository.get_for_update_by_id(id=id)
         self._validate_dto(dto=dto, id=id)
         return product_to_entity(dto=dto)
 
-    def get_by_id_or_404(self, id: UUID) -> ProductEntity:
-        dto = self.repository.get_by_id_or_none(id=id)
+    def try_get_by_id(self, id: UUID) -> ProductEntity:
+        dto = self.repository.get_by_id(id=id)
         self._validate_dto(dto=dto, id=id)
         return product_to_entity(dto=dto)
 
-    def get_by_id_for_retrieve_or_404(self, id: UUID) -> ProductEntity:
-        dto = self.repository.get_by_id_for_retrieve_or_none(id=id)
+    def try_get_by_id_for_retrieve(self, id: UUID) -> ProductEntity:
+        dto = self.repository.get_by_id_for_retrieve(id=id)
         self._validate_dto(dto=dto, id=id)
         return product_to_entity(dto=dto)
 
-    def get_by_id_with_loaded_variants_or_404(self, id: UUID) -> ProductEntity:
-        dto = self.repository.get_by_id_with_loaded_variants_or_none(id=id)
+    def try_get_by_id_with_loaded_variants(self, id: UUID) -> ProductEntity:
+        dto = self.repository.get_by_id_with_loaded_variants(id=id)
         self._validate_dto(dto=dto, id=id)
         return product_to_entity(dto=dto)
 
-    def get_by_slug_for_retrieve_or_404(self, slug: str) -> ProductEntity:
-        dto = self.repository.get_by_slug_for_retrieve_or_none(slug=slug)
+    def try_get_by_slug_for_retrieve(self, slug: str) -> ProductEntity:
+        dto = self.repository.get_by_slug_for_retrieve(slug=slug)
         if dto is None:
             raise ProductNotFoundBySlugError(slug=slug)
         return product_to_entity(dto=dto)

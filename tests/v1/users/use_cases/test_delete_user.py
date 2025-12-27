@@ -1,10 +1,10 @@
 import pytest
 from punq import Container
 
+from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
 from src.apps.users.exceptions.users import (
-    UserAuthCredentialsNotProvidedError,
-    UserAuthNotActiveError,
-    UserAuthNotFoundError,
+    UserNotActiveError,
+    UserNotFoundError,
 )
 from src.apps.users.models import User
 from src.apps.users.use_cases.delete import DeleteUserUseCase
@@ -25,18 +25,18 @@ def test_delete_user_deleted(delete_user_use_case: DeleteUserUseCase, user: User
 
 @pytest.mark.django_db
 def test_delete_user_user_credentials_error_raised(delete_user_use_case: DeleteUserUseCase):
-    with pytest.raises(UserAuthCredentialsNotProvidedError):
+    with pytest.raises(AuthCredentialsNotProvidedError):
         delete_user_use_case.execute(user_id=None)
 
 
 @pytest.mark.django_db
 def test_delete_user_user_not_found_error_raised(delete_user_use_case: DeleteUserUseCase):
-    with pytest.raises(UserAuthNotFoundError):
+    with pytest.raises(UserNotFoundError):
         delete_user_use_case.execute(user_id=1)
 
 
 @pytest.mark.django_db
 def test_delete_user_user_not_active_error_raised(delete_user_use_case: DeleteUserUseCase):
     user = UserModelFactory.create(is_active=False)
-    with pytest.raises(UserAuthNotActiveError):
+    with pytest.raises(UserNotActiveError):
         delete_user_use_case.execute(user_id=user.pk)

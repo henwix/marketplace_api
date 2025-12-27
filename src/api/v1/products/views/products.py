@@ -13,11 +13,11 @@ from src.api.v1.products.serializers.products import (
     SearchProductSerializer,
 )
 from src.apps.products.docs.products.schema_decorators import (
-    extend_create_product_view_schema,
     extend_detail_product_view_schema,
-    extend_get_product_by_slug_view_schema,
+    extend_detail_slug_product_view_schema,
     extend_global_search_view_schema,
     extend_personal_search_view_schema,
+    extend_product_view_schema,
 )
 from src.apps.products.filters import GlobalProductFilter, PersonalProductFilter
 from src.apps.products.pagination import ProductPagination
@@ -31,8 +31,8 @@ from src.apps.sellers.permissions import HasSellerProfilePermission
 from src.project.containers import get_container
 
 
-@extend_create_product_view_schema()
-class CreateProductView(APIView):
+@extend_product_view_schema()
+class ProductView(APIView):
     def post(self, request: Request) -> Response:
         serializer = ProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -42,8 +42,8 @@ class CreateProductView(APIView):
         return Response(data=ProductSerializer(product).data, status=status.HTTP_201_CREATED)
 
 
-@extend_get_product_by_slug_view_schema()
-class GetProductBySlugView(APIView):
+@extend_detail_slug_product_view_schema()
+class DetailSlugProductView(APIView):
     def get(self, request: Request, slug: str) -> Response:
         container: Container = get_container()
         use_case: GetProductBySlugUseCase = container.resolve(GetProductBySlugUseCase)
@@ -56,12 +56,9 @@ class GetProductBySlugView(APIView):
 
 @extend_detail_product_view_schema()
 class DetailProductView(APIView):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.container: Container = get_container()
-
     def get(self, request: Request, id: UUID) -> Response:
-        use_case: GetProductByIdUseCase = self.container.resolve(GetProductByIdUseCase)
+        container: Container = get_container()
+        use_case: GetProductByIdUseCase = container.resolve(GetProductByIdUseCase)
         product = use_case.execute(user_id=request.user.id, product_id=id)
         return Response(
             data=RetrieveProductSerializer(product, context={'request': self.request}).data,
@@ -69,14 +66,16 @@ class DetailProductView(APIView):
         )
 
     def delete(self, request: Request, id: UUID) -> Response:
-        use_case: DeleteProductUseCase = self.container.resolve(DeleteProductUseCase)
+        container: Container = get_container()
+        use_case: DeleteProductUseCase = container.resolve(DeleteProductUseCase)
         use_case.execute(user_id=request.user.id, product_id=id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def update(self, request: Request, id: UUID, partial: bool) -> Response:
         serializer = ProductSerializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        use_case: UpdateProductUseCase = self.container.resolve(UpdateProductUseCase)
+        container: Container = get_container()
+        use_case: UpdateProductUseCase = container.resolve(UpdateProductUseCase)
         product = use_case.execute(user_id=request.user.id, product_id=id, data=serializer.validated_data)
         return Response(data=ProductSerializer(product).data, status=status.HTTP_200_OK)
 

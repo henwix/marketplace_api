@@ -1,15 +1,15 @@
 import pytest
 from punq import Container
 
+from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
 from src.apps.sellers.converters.sellers import seller_to_entity
 from src.apps.sellers.entities.sellers import SellerEntity
 from src.apps.sellers.exceptions import SellerAlreadyExistsError
 from src.apps.sellers.models import Seller
 from src.apps.sellers.use_cases.create import CreateSellerUseCase
 from src.apps.users.exceptions.users import (
-    UserAuthCredentialsNotProvidedError,
-    UserAuthNotActiveError,
-    UserAuthNotFoundError,
+    UserNotActiveError,
+    UserNotFoundError,
 )
 from src.apps.users.models import User
 from tests.v1.sellers.test_data.create_seller import CREATE_SELLER_ARGNAMES, CREATE_SELLER_ARGVALUES
@@ -56,18 +56,18 @@ def test_create_seller_already_exists_error_raised(
 
 @pytest.mark.django_db
 def test_create_seller_user_credentials_error_raised(create_seller_use_case: CreateSellerUseCase):
-    with pytest.raises(UserAuthCredentialsNotProvidedError):
+    with pytest.raises(AuthCredentialsNotProvidedError):
         create_seller_use_case.execute(user_id=None, data={})
 
 
 @pytest.mark.django_db
 def test_create_seller_user_not_found_error_raised(create_seller_use_case: CreateSellerUseCase):
-    with pytest.raises(UserAuthNotFoundError):
+    with pytest.raises(UserNotFoundError):
         create_seller_use_case.execute(user_id=1, data={})
 
 
 @pytest.mark.django_db
 def test_create_seller_user_not_active_error_raised(create_seller_use_case: CreateSellerUseCase):
     user = UserModelFactory.create(is_active=False)
-    with pytest.raises(UserAuthNotActiveError):
+    with pytest.raises(UserNotActiveError):
         create_seller_use_case.execute(user_id=user.pk, data={})

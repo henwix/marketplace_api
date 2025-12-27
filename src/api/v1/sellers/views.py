@@ -18,26 +18,25 @@ from src.project.containers import get_container
 
 @extend_seller_view_schema()
 class SellerView(APIView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container: Container = get_container()
-
     def post(self, request: Request) -> Response:
         serializer = SellerSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        use_case: CreateSellerUseCase = self.container.resolve(CreateSellerUseCase)
+        container: Container = get_container()
+        use_case: CreateSellerUseCase = container.resolve(CreateSellerUseCase)
         seller = use_case.execute(user_id=request.user.id, data=serializer.validated_data)
         return Response(data=SellerSerializer(seller).data, status=status.HTTP_201_CREATED)
 
     def get(self, request: Request) -> Response:
-        use_case: GetSellerUseCase = self.container.resolve(GetSellerUseCase)
+        container: Container = get_container()
+        use_case: GetSellerUseCase = container.resolve(GetSellerUseCase)
         seller = use_case.execute(user_id=request.user.id)
         return Response(data=SellerSerializer(seller).data, status=status.HTTP_200_OK)
 
     def update(self, request: Request, partial: bool) -> Response:
         serializer = SellerSerializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        use_case: UpdateSellerUseCase = self.container.resolve(UpdateSellerUseCase)
+        container: Container = get_container()
+        use_case: UpdateSellerUseCase = container.resolve(UpdateSellerUseCase)
         seller = use_case.execute(user_id=request.user.id, data=serializer.validated_data)
         return Response(data=SellerSerializer(seller).data, status=status.HTTP_200_OK)
 
@@ -48,7 +47,8 @@ class SellerView(APIView):
         return self.update(request=request, partial=True)
 
     def delete(self, request: Request) -> Response:
-        use_case: DeleteSellerUseCase = self.container.resolve(DeleteSellerUseCase)
+        container: Container = get_container()
+        use_case: DeleteSellerUseCase = container.resolve(DeleteSellerUseCase)
         use_case.execute(user_id=request.user.id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

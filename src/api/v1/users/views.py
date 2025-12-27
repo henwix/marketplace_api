@@ -18,26 +18,25 @@ from src.project.containers import get_container
 
 @extend_user_view_schema()
 class UserView(APIView):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.container: Container = get_container()
-
     def post(self, request: Request) -> Response:
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        use_case: CreateUserUseCase = self.container.resolve(CreateUserUseCase)
+        container: Container = get_container()
+        use_case: CreateUserUseCase = container.resolve(CreateUserUseCase)
         user = use_case.execute(data=serializer.validated_data)
         return Response(data=UserSerializer(user).data, status=status.HTTP_201_CREATED)
 
     def get(self, request: Request) -> Response:
-        use_case: GetUserUseCase = self.container.resolve(GetUserUseCase)
+        container: Container = get_container()
+        use_case: GetUserUseCase = container.resolve(GetUserUseCase)
         user = use_case.execute(user_id=request.user.id)
         return Response(data=UserSerializer(user).data, status=status.HTTP_200_OK)
 
     def update(self, request: Request, partial: bool) -> Response:
         serializer = UpdateUserSerializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
-        use_case: UpdateUserUseCase = self.container.resolve(UpdateUserUseCase)
+        container: Container = get_container()
+        use_case: UpdateUserUseCase = container.resolve(UpdateUserUseCase)
         user = use_case.execute(user_id=request.user.id, data=serializer.validated_data)
         return Response(data=UpdateUserSerializer(user).data, status=status.HTTP_200_OK)
 
@@ -48,7 +47,8 @@ class UserView(APIView):
         return self.update(request=request, partial=True)
 
     def delete(self, request: Request) -> Response:
-        use_case: DeleteUserUseCase = self.container.resolve(DeleteUserUseCase)
+        container: Container = get_container()
+        use_case: DeleteUserUseCase = container.resolve(DeleteUserUseCase)
         use_case.execute(user_id=request.user.id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

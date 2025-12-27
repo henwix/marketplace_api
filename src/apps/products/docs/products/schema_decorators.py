@@ -7,10 +7,11 @@ from src.api.v1.products.serializers.products import (
     RetrieveProductSerializer,
     SearchProductSerializer,
 )
+from src.apps.authentication.docs.schema_responses import unauthorized_user_response
 from src.apps.common.docs.schema_parameters import build_enum_query_param, jwt_header_request_parameter
 from src.apps.common.docs.schema_responses import (
-    forbidden_error_response,
-    not_found_error_response,
+    forbidden_response,
+    not_found_response,
     permission_error_403_response,
     successful_response,
     unauthorized_error_401_response,
@@ -22,10 +23,10 @@ from src.apps.products.exceptions.products import (
     ProductNotFoundBySlugError,
 )
 from src.apps.sellers.exceptions import SellerNotFoundError
-from src.apps.users.docs.schema_responses import unauthorized_user_response
+from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError
 
 
-def extend_create_product_view_schema():
+def extend_product_view_schema():
     return extend_schema_view(
         post=extend_schema(
             parameters=[jwt_header_request_parameter()],
@@ -33,14 +34,15 @@ def extend_create_product_view_schema():
             responses={
                 status.HTTP_201_CREATED: successful_response(response=ProductSerializer),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
-                status.HTTP_404_NOT_FOUND: not_found_error_response(SellerNotFoundError),
+                status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(SellerNotFoundError, UserNotFoundError),
             },
             summary='Create Product POST',
         )
     )
 
 
-def extend_get_product_by_slug_view_schema():
+def extend_detail_slug_product_view_schema():
     return extend_schema_view(
         get=extend_schema(
             parameters=[jwt_header_request_parameter()],
@@ -48,29 +50,30 @@ def extend_get_product_by_slug_view_schema():
             responses={
                 status.HTTP_200_OK: successful_response(response=RetrieveProductSerializer),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(include_credentials_error=False),
-                status.HTTP_403_FORBIDDEN: forbidden_error_response(ProductAccessForbiddenError),
-                status.HTTP_404_NOT_FOUND: not_found_error_response(ProductNotFoundBySlugError),
+                status.HTTP_403_FORBIDDEN: forbidden_response(ProductAccessForbiddenError, UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(ProductNotFoundBySlugError, UserNotFoundError),
             },
             summary='Retrieve Product By Slug GET',
         )
     )
 
 
-def _update_product_extend_schema(method: str):
-    return extend_schema(
-        parameters=[jwt_header_request_parameter()],
-        request=ProductSerializer,
-        responses={
-            status.HTTP_200_OK: successful_response(response=ProductSerializer),
-            status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
-            status.HTTP_403_FORBIDDEN: forbidden_error_response(ProductAccessForbiddenError),
-            status.HTTP_404_NOT_FOUND: not_found_error_response(SellerNotFoundError, ProductNotFoundByIdError),
-        },
-        summary=f'Update Product {method}',
-    )
-
-
 def extend_detail_product_view_schema():
+    def _update_product_extend_schema(method: str):
+        return extend_schema(
+            parameters=[jwt_header_request_parameter()],
+            request=ProductSerializer,
+            responses={
+                status.HTTP_200_OK: successful_response(response=ProductSerializer),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(ProductAccessForbiddenError, UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(
+                    SellerNotFoundError, ProductNotFoundByIdError, UserNotFoundError
+                ),
+            },
+            summary=f'Update Product {method}',
+        )
+
     return extend_schema_view(
         get=extend_schema(
             parameters=[jwt_header_request_parameter()],
@@ -78,8 +81,8 @@ def extend_detail_product_view_schema():
             responses={
                 status.HTTP_200_OK: successful_response(response=RetrieveProductSerializer),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(include_credentials_error=False),
-                status.HTTP_403_FORBIDDEN: forbidden_error_response(ProductAccessForbiddenError),
-                status.HTTP_404_NOT_FOUND: not_found_error_response(ProductNotFoundByIdError),
+                status.HTTP_403_FORBIDDEN: forbidden_response(ProductAccessForbiddenError, UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(ProductNotFoundByIdError, UserNotFoundError),
             },
             summary='Retrieve Product By Id GET',
         ),
@@ -89,8 +92,10 @@ def extend_detail_product_view_schema():
             responses={
                 status.HTTP_204_NO_CONTENT: None,
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
-                status.HTTP_403_FORBIDDEN: forbidden_error_response(ProductAccessForbiddenError),
-                status.HTTP_404_NOT_FOUND: not_found_error_response(SellerNotFoundError, ProductNotFoundByIdError),
+                status.HTTP_403_FORBIDDEN: forbidden_response(ProductAccessForbiddenError, UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(
+                    SellerNotFoundError, ProductNotFoundByIdError, UserNotFoundError
+                ),
             },
             summary='Delete Product DELETE',
         ),

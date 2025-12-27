@@ -1,10 +1,10 @@
 import pytest
 from punq import Container
 
+from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
 from src.apps.users.exceptions.users import (
-    UserAuthCredentialsNotProvidedError,
-    UserAuthNotActiveError,
-    UserAuthNotFoundError,
+    UserNotActiveError,
+    UserNotFoundError,
 )
 from src.apps.users.models import User
 from src.apps.users.use_cases.set_password import SetPasswordUserUseCase
@@ -34,18 +34,18 @@ def test_update_password_updated(
 
 @pytest.mark.django_db
 def test_update_password_user_credentials_error_raised(set_password_user_use_case: SetPasswordUserUseCase):
-    with pytest.raises(UserAuthCredentialsNotProvidedError):
+    with pytest.raises(AuthCredentialsNotProvidedError):
         set_password_user_use_case.execute(user_id=None, password='123')
 
 
 @pytest.mark.django_db
 def test_update_password_user_not_found_error_raised(set_password_user_use_case: SetPasswordUserUseCase):
-    with pytest.raises(UserAuthNotFoundError):
+    with pytest.raises(UserNotFoundError):
         set_password_user_use_case.execute(user_id=1, password='123')
 
 
 @pytest.mark.django_db
 def test_update_password_user_not_active_error_raised(set_password_user_use_case: SetPasswordUserUseCase):
     user = UserModelFactory.create(is_active=False)
-    with pytest.raises(UserAuthNotActiveError):
+    with pytest.raises(UserNotActiveError):
         set_password_user_use_case.execute(user_id=user.pk, password='123')

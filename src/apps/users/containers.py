@@ -2,9 +2,7 @@ from punq import Container
 
 from src.apps.users.repositories.users import BaseUserRepository, ORMUserRepository
 from src.apps.users.services.users import (
-    BaseUserAuthValidatorService,
     BaseUserService,
-    UserAuthValidatorService,
     UserService,
 )
 from src.apps.users.use_cases.create import CreateUserUseCase
@@ -24,7 +22,6 @@ def init_users(container: Container) -> None:
 
     # services
     container.register(BaseUserService, UserService)
-    container.register(BaseUserAuthValidatorService, UserAuthValidatorService)
 
     # repositories
     container.register(BaseUserRepository, ORMUserRepository)

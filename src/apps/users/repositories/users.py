@@ -14,10 +14,10 @@ class BaseUserRepository(ABC):
     def set_password(self, user: User, password: str) -> None: ...
 
     @abstractmethod
-    def get_by_id_with_seller_or_none(self, id: int) -> User | None: ...
+    def get_by_id_with_loaded_seller(self, id: int) -> User | None: ...
 
     @abstractmethod
-    def get_by_id_or_none(self, id: int) -> User | None: ...
+    def get_by_id(self, id: int) -> User | None: ...
 
     @abstractmethod
     def delete(self, id: int) -> None: ...
@@ -35,10 +35,10 @@ class ORMUserRepository(BaseUserRepository):
         user.set_password(password)
         user.save()
 
-    def get_by_id_with_seller_or_none(self, id: int) -> User | None:
+    def get_by_id_with_loaded_seller(self, id: int) -> User | None:
         return User.objects.select_related('seller_profile').filter(pk=id).first()
 
-    def get_by_id_or_none(self, id: int) -> User | None:
+    def get_by_id(self, id: int) -> User | None:
         return User.objects.filter(pk=id).first()
 
     def delete(self, id: int) -> None:

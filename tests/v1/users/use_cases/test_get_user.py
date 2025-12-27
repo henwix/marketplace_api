@@ -1,11 +1,11 @@
 import pytest
 from punq import Container
 
+from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
 from src.apps.users.entities import UserEntity
 from src.apps.users.exceptions.users import (
-    UserAuthCredentialsNotProvidedError,
-    UserAuthNotActiveError,
-    UserAuthNotFoundError,
+    UserNotActiveError,
+    UserNotFoundError,
 )
 from src.apps.users.models import User
 from src.apps.users.use_cases.get import GetUserUseCase
@@ -34,18 +34,18 @@ def test_retrieve_user_retrieved(get_user_use_case: GetUserUseCase, user: User):
 
 @pytest.mark.django_db
 def test_retrieve_user_user_credentials_error_raised(get_user_use_case: GetUserUseCase):
-    with pytest.raises(UserAuthCredentialsNotProvidedError):
+    with pytest.raises(AuthCredentialsNotProvidedError):
         get_user_use_case.execute(user_id=None)
 
 
 @pytest.mark.django_db
 def test_retrieve_user_user_not_found_error_raised(get_user_use_case: GetUserUseCase):
-    with pytest.raises(UserAuthNotFoundError):
+    with pytest.raises(UserNotFoundError):
         get_user_use_case.execute(user_id=1)
 
 
 @pytest.mark.django_db
 def test_retrieve_user_user_not_active_error_raised(get_user_use_case: GetUserUseCase):
     user = UserModelFactory.create(is_active=False)
-    with pytest.raises(UserAuthNotActiveError):
+    with pytest.raises(UserNotActiveError):
         get_user_use_case.execute(user_id=user.pk)

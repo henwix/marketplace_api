@@ -24,13 +24,14 @@ class ProductVariantsNotFoundError(ServiceException):
 class ProductVariantAccessForbiddenError(ServiceException):
     status_code = status.HTTP_403_FORBIDDEN
     message = 'Product variant access forbidden'
-    seller_id: int | None
     product_variant_id: UUID
+    seller_id: int | None = None
 
 
 @dataclass
 class ProductVariantsLimitError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
     message = 'Product variants limit has been reached'
+    product_id: UUID
     variants_count: int
     variants_limit: int

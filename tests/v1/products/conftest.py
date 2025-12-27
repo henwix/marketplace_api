@@ -2,7 +2,7 @@ import pytest
 from punq import Container
 
 from src.apps.products.repositories.products import BaseProductRepository
-from src.apps.products.services.products import BaseProductAuthorValidatorService, BaseProductService
+from src.apps.products.services.products import BaseProductAccessValidatorService, BaseProductService
 
 
 @pytest.fixture
@@ -16,5 +16,5 @@ def product_service(container: Container) -> BaseProductService:
 
 
 @pytest.fixture
-def product_author_validator_service(container: Container) -> BaseProductAuthorValidatorService:
-    return container.resolve(BaseProductAuthorValidatorService)
+def product_access_validator_service(container: Container) -> BaseProductAccessValidatorService:
+    return container.resolve(BaseProductAccessValidatorService)

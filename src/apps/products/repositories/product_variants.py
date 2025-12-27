@@ -14,7 +14,7 @@ class BaseProductVariantRepository(ABC):
     def get_variants_count(self, product_id: UUID) -> int: ...
 
     @abstractmethod
-    def get_by_id_with_related_product_or_none(self, id: UUID) -> ProductVariant | None: ...
+    def get_by_id_with_loaded_product(self, id: UUID) -> ProductVariant | None: ...
 
     @abstractmethod
     def delete(self, id) -> None: ...
@@ -28,7 +28,7 @@ class ORMProductVariantRepository(BaseProductVariantRepository):
     def get_variants_count(self, product_id: UUID) -> int:
         return ProductVariant.objects.filter(product_id=product_id).count()
 
-    def get_by_id_with_related_product_or_none(self, id: UUID) -> ProductVariant | None:
+    def get_by_id_with_loaded_product(self, id: UUID) -> ProductVariant | None:
         return ProductVariant.objects.select_related('product').filter(pk=id).first()
 
     def delete(self, id) -> None:

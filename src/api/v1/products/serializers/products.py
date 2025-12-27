@@ -51,17 +51,16 @@ class RetrieveProductSerializer(serializers.ModelSerializer):
 
 class SearchProductSerializer(serializers.ModelSerializer):
     url = serializers.HyperlinkedIdentityField(
-        view_name='v1:products:products-slug',
+        view_name='v1:products:products-slug-detail',
         lookup_field='slug',
         lookup_url_kwarg='slug',
         read_only=True,
         help_text=_('Product url'),
     )
-    variants_count = serializers.IntegerField(read_only=True, help_text=_('Product variants count'))
     price = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True, help_text=_('Product minimal price')
     )
 
     class Meta:
         model = Product
-        fields = ['id', 'url', 'title', 'is_visible', 'variants_count', 'price']
+        fields = ['id', 'url', 'title', 'is_visible', 'price']

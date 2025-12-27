@@ -12,7 +12,7 @@ from src.apps.products.models.products import Product
 from src.apps.products.use_cases.products.get_by_id import GetProductByIdUseCase
 from src.apps.sellers.converters.sellers import seller_to_entity
 from src.apps.sellers.models import Seller
-from src.apps.users.exceptions.users import UserAuthNotActiveError, UserAuthNotFoundError
+from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError
 from src.apps.users.models import User
 from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory
 from tests.v1.users.factories import UserModelFactory
@@ -170,7 +170,7 @@ def test_get_product_not_found_by_id_error_raised(get_product_by_id_use_case: Ge
 @pytest.mark.django_db
 def test_get_product_user_not_found_error_raised(get_product_by_id_use_case: GetProductByIdUseCase):
     product = ProductModelFactory.create(is_visible=False)
-    with pytest.raises(UserAuthNotFoundError):
+    with pytest.raises(UserNotFoundError):
         get_product_by_id_use_case.execute(user_id=1, product_id=product.pk)
 
 
@@ -178,5 +178,5 @@ def test_get_product_user_not_found_error_raised(get_product_by_id_use_case: Get
 def test_get_product_user_not_active_error_raised(get_product_by_id_use_case: GetProductByIdUseCase):
     user = UserModelFactory.create(is_active=False)
     product = ProductModelFactory.create(is_visible=False)
-    with pytest.raises(UserAuthNotActiveError):
+    with pytest.raises(UserNotActiveError):
         get_product_by_id_use_case.execute(user_id=user.pk, product_id=product.pk)

@@ -41,17 +41,17 @@ def successful_response(*examples, response: Serializer) -> OpenApiResponse:
     )
 
 
-def bad_request_error_response(*errors: Exception) -> OpenApiResponse:
+def bad_request_response(*errors: Exception) -> OpenApiResponse:
     return _build_openapi_response(*errors, description='Bad Request Error')
 
 
-def unauthorized_error_response(*errors: Exception) -> OpenApiResponse:
+def unauthorized_response(*errors: Exception) -> OpenApiResponse:
     return _build_openapi_response(*errors, description='Unauthorized Error')
 
 
-def forbidden_error_response(*errors: Exception) -> OpenApiResponse:
+def forbidden_response(*errors: Exception) -> OpenApiResponse:
     return _build_openapi_response(*errors, description='Forbidden Error')
 
 
-def not_found_error_response(*errors: Exception) -> OpenApiResponse:
+def not_found_response(*errors: Exception) -> OpenApiResponse:
     return _build_openapi_response(*errors, description='Not Found Error')

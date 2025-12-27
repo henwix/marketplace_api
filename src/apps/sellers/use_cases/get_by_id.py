@@ -9,5 +9,5 @@ class GetSellerByIdUseCase:
     seller_service: BaseSellerService
 
     def execute(self, seller_id: int) -> SellerEntity:
-        seller = self.seller_service.get_by_id_or_404(id=seller_id)
+        seller = self.seller_service.try_get_by_id(id=seller_id)
         return seller

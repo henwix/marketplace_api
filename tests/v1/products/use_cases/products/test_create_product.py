@@ -1,6 +1,7 @@
 import pytest
 from punq import Container
 
+from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.models.products import Product
@@ -8,9 +9,8 @@ from src.apps.products.use_cases.products.create import CreateProductUseCase
 from src.apps.sellers.exceptions import SellerNotFoundError
 from src.apps.sellers.models import Seller
 from src.apps.users.exceptions.users import (
-    UserAuthCredentialsNotProvidedError,
-    UserAuthNotActiveError,
-    UserAuthNotFoundError,
+    UserNotActiveError,
+    UserNotFoundError,
 )
 from src.apps.users.models import User
 from tests.v1.products.test_data.product_data import PRODUCT_ARGNAMES, PRODUCT_ARGVALUES
@@ -63,18 +63,18 @@ def test_create_product_seller_not_found_error_raised(
 
 @pytest.mark.django_db
 def test_create_product_user_credentials_error_raised(create_product_use_case: CreateProductUseCase):
-    with pytest.raises(UserAuthCredentialsNotProvidedError):
+    with pytest.raises(AuthCredentialsNotProvidedError):
         create_product_use_case.execute(user_id=None, data={})
 
 
 @pytest.mark.django_db
 def test_create_product_user_not_found_error_raised(create_product_use_case: CreateProductUseCase):
-    with pytest.raises(UserAuthNotFoundError):
+    with pytest.raises(UserNotFoundError):
         create_product_use_case.execute(user_id=1, data={})
 
 
 @pytest.mark.django_db
 def test_create_product_user_not_active_error_raised(create_product_use_case: CreateProductUseCase):
     user = UserModelFactory.create(is_active=False)
-    with pytest.raises(UserAuthNotActiveError):
+    with pytest.raises(UserNotActiveError):
         create_product_use_case.execute(user_id=user.pk, data={})

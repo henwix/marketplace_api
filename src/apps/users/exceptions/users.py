@@ -12,20 +12,14 @@ class UserWithDataAlreadyExistsError(ServiceException):
 
 
 @dataclass
-class UserAuthNotFoundError(ServiceException):
-    status_code = status.HTTP_401_UNAUTHORIZED
+class UserNotFoundError(ServiceException):
+    status_code = status.HTTP_404_NOT_FOUND
     message = 'User not found'
     user_id: int
 
 
 @dataclass
-class UserAuthNotActiveError(ServiceException):
-    status_code = status.HTTP_401_UNAUTHORIZED
+class UserNotActiveError(ServiceException):
+    status_code = status.HTTP_403_FORBIDDEN
     message = 'User not active'
     user_id: int
-
-
-@dataclass
-class UserAuthCredentialsNotProvidedError(ServiceException):
-    status_code = status.HTTP_401_UNAUTHORIZED
-    message = 'Authentication credentials were not provided'

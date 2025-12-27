@@ -13,19 +13,19 @@ class BaseProductRepository(ABC):
     def save(self, product: Product, update: bool) -> Product: ...
 
     @abstractmethod
-    def select_for_update_by_id_or_none(self, id: UUID) -> Product | None: ...
+    def get_for_update_by_id(self, id: UUID) -> Product | None: ...
 
     @abstractmethod
-    def get_by_id_or_none(self, id: UUID) -> Product | None: ...
+    def get_by_id(self, id: UUID) -> Product | None: ...
 
     @abstractmethod
-    def get_by_id_for_retrieve_or_none(self, id: UUID) -> Product | None: ...
+    def get_by_id_for_retrieve(self, id: UUID) -> Product | None: ...
 
     @abstractmethod
-    def get_by_id_with_loaded_variants_or_none(self, id: UUID) -> Product | None: ...
+    def get_by_id_with_loaded_variants(self, id: UUID) -> Product | None: ...
 
     @abstractmethod
-    def get_by_slug_for_retrieve_or_none(self, slug: str) -> Product | None: ...
+    def get_by_slug_for_retrieve(self, slug: str) -> Product | None: ...
 
     @abstractmethod
     def get_many_for_global_search(self) -> Iterable[Product]: ...
@@ -61,16 +61,16 @@ class ORMProductRepository(BaseProductRepository):
         product.save(force_update=update)
         return product
 
-    def select_for_update_by_id_or_none(self, id: UUID) -> Product | None:
+    def get_for_update_by_id(self, id: UUID) -> Product | None:
         return Product.objects.select_for_update().filter(pk=id).first()
 
-    def get_by_id_or_none(self, id: UUID) -> Product | None:
+    def get_by_id(self, id: UUID) -> Product | None:
         return Product.objects.filter(pk=id).first()
 
-    def get_by_id_for_retrieve_or_none(self, id: UUID) -> Product | None:
+    def get_by_id_for_retrieve(self, id: UUID) -> Product | None:
         return self._build_query_for_retrieve_with_relations(filters=Q(pk=id)).first()
 
-    def get_by_id_with_loaded_variants_or_none(self, id: UUID) -> Product | None:
+    def get_by_id_with_loaded_variants(self, id: UUID) -> Product | None:
         return (
             Product.objects.annotate(variants_count=Count('variants'))
             .filter(pk=id)
@@ -78,7 +78,7 @@ class ORMProductRepository(BaseProductRepository):
             .first()
         )
 
-    def get_by_slug_for_retrieve_or_none(self, slug: str) -> Product | None:
+    def get_by_slug_for_retrieve(self, slug: str) -> Product | None:
         return self._build_query_for_retrieve_with_relations(filters=Q(slug=slug)).first()
 
     def get_many_for_global_search(self) -> Iterable[Product]:

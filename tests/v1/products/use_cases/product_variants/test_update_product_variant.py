@@ -4,6 +4,7 @@ from uuid import uuid7
 import pytest
 from punq import Container
 
+from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
 from src.apps.products.converters.product_variants import product_variant_to_entity
 from src.apps.products.entities.product_variants import ProductVariantEntity
 from src.apps.products.exceptions.product_variants import (
@@ -15,9 +16,8 @@ from src.apps.products.use_cases.product_variants.update import UpdateProductVar
 from src.apps.sellers.exceptions import SellerNotFoundError
 from src.apps.sellers.models import Seller
 from src.apps.users.exceptions.users import (
-    UserAuthCredentialsNotProvidedError,
-    UserAuthNotActiveError,
-    UserAuthNotFoundError,
+    UserNotActiveError,
+    UserNotFoundError,
 )
 from src.apps.users.models import User
 from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory
@@ -100,18 +100,18 @@ def test_update_variant_seller_not_found_error_raised(
 
 @pytest.mark.django_db
 def test_update_variant_user_credentials_error_raised(update_product_variant_use_case: UpdateProductVariantUseCase):
-    with pytest.raises(UserAuthCredentialsNotProvidedError):
+    with pytest.raises(AuthCredentialsNotProvidedError):
         update_product_variant_use_case.execute(user_id=None, product_variant_id=uuid7(), data={})
 
 
 @pytest.mark.django_db
 def test_update_variant_user_not_found_error_raised(update_product_variant_use_case: UpdateProductVariantUseCase):
-    with pytest.raises(UserAuthNotFoundError):
+    with pytest.raises(UserNotFoundError):
         update_product_variant_use_case.execute(user_id=1, product_variant_id=uuid7(), data={})
 
 
 @pytest.mark.django_db
 def test_update_variant_user_not_active_error_raised(update_product_variant_use_case: UpdateProductVariantUseCase):
     user = UserModelFactory.create(is_active=False)
-    with pytest.raises(UserAuthNotActiveError):
+    with pytest.raises(UserNotActiveError):
         update_product_variant_use_case.execute(user_id=user.pk, product_variant_id=uuid7(), data={})
