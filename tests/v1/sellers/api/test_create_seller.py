@@ -9,7 +9,7 @@ from tests.v1.sellers.test_data.create_seller import CREATE_SELLER_ARGNAMES, CRE
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_created(
+def test_create_seller_created(
     user: User,
     expected_name: str,
     expected_description: str,
@@ -32,7 +32,7 @@ def test_seller_created(
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_not_created_and_returns_401_if_unauthorized(
+def test_create_seller_not_created_and_returns_401_if_unauthorized(
     expected_name: str,
     expected_description: str,
 ):
@@ -45,7 +45,7 @@ def test_seller_not_created_and_returns_401_if_unauthorized(
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_not_created_and_returns_400_if_already_exists(
+def test_create_seller_not_created_and_returns_400_if_already_exists(
     seller: Seller,
     expected_name: str,
     expected_description: str,

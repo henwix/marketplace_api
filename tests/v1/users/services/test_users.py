@@ -1,8 +1,10 @@
 import pytest
 
+from src.apps.sellers.converters.sellers import seller_to_entity
+from src.apps.sellers.models import Seller
 from src.apps.users.converters import user_from_entity, user_to_entity
 from src.apps.users.entities import UserEntity
-from src.apps.users.exceptions.users import UserWithDataAlreadyExistsError
+from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError, UserWithDataAlreadyExistsError
 from src.apps.users.models import User
 from src.apps.users.services.users import BaseUserService
 from tests.v1.users.factories import UserModelFactory
@@ -12,7 +14,7 @@ from tests.v1.users.test_data.set_password_user import SET_PASSWORD_ARGNAMES, SE
 
 @pytest.mark.parametrize(argnames=CREATE_USER_ARGNAMES, argvalues=CREATE_USER_ARGVALUES)
 @pytest.mark.django_db
-def test_user_created(
+def test_create_user_created(
     user_service: BaseUserService,
     expected_first_name: str,
     expected_last_name: str,
@@ -41,7 +43,7 @@ def test_user_created(
 
 @pytest.mark.parametrize(argnames=CREATE_USER_ARGNAMES, argvalues=CREATE_USER_ARGVALUES)
 @pytest.mark.django_db
-def test_user_create_email_already_exists_error(
+def test_create_user_not_created_and_email_already_exists_error_raised(
     user_service: BaseUserService,
     expected_first_name: str,
     expected_last_name: str,
@@ -66,7 +68,7 @@ def test_user_create_email_already_exists_error(
 
 @pytest.mark.parametrize(argnames=CREATE_USER_ARGNAMES, argvalues=CREATE_USER_ARGVALUES)
 @pytest.mark.django_db
-def test_user_create_phone_already_exists_error(
+def test_create_user_not_created_and_phone_already_exists_error_raised(
     user_service: BaseUserService,
     expected_first_name: str,
     expected_last_name: str,
@@ -89,9 +91,54 @@ def test_user_create_phone_already_exists_error(
         )
 
 
+@pytest.mark.django_db
+def test_get_user_by_id_retrieved(user_service: BaseUserService, user: User):
+    retrieved_user = user_service.try_get_by_id(id=user.pk)
+    assert isinstance(retrieved_user, UserEntity)
+    assert retrieved_user == user_to_entity(dto=user)
+
+
+@pytest.mark.django_db
+def test_get_user_by_id_not_retrieved_if_not_exists_and_not_found_error_raised(user_service: BaseUserService):
+    with pytest.raises(UserNotFoundError):
+        user_service.try_get_by_id(id=1)
+
+
+@pytest.mark.django_db
+def test_get_user_by_id_not_retrieved_if_not_active_and_not_active_error_raised(user_service: BaseUserService):
+    user = UserModelFactory.create(is_active=False)
+    with pytest.raises(UserNotActiveError):
+        user_service.try_get_by_id(id=user.pk)
+
+
+@pytest.mark.django_db
+def test_get_user_with_loaded_seller_by_id_retrieved(user_service: BaseUserService, seller: Seller):
+    retrieved_user = user_service.try_get_by_id_with_loaded_seller(id=seller.user_id)
+    assert isinstance(retrieved_user, UserEntity)
+    assert retrieved_user == user_to_entity(dto=seller.user)
+    assert retrieved_user.seller_profile == seller_to_entity(dto=seller)
+
+
+@pytest.mark.django_db
+def test_get_user_with_loaded_seller_by_id_not_retrieved_if_not_exists_and_not_found_error_raised(
+    user_service: BaseUserService,
+):
+    with pytest.raises(UserNotFoundError):
+        user_service.try_get_by_id_with_loaded_seller(id=1)
+
+
+@pytest.mark.django_db
+def test_get_user_with_loaded_seller_by_id_not_retrieved_if_not_active_and_not_active_error_raised(
+    user_service: BaseUserService,
+):
+    user = UserModelFactory.create(is_active=False)
+    with pytest.raises(UserNotActiveError):
+        user_service.try_get_by_id_with_loaded_seller(id=user.pk)
+
+
 @pytest.mark.parametrize(argnames=SET_PASSWORD_ARGNAMES, argvalues=SET_PASSWORD_ARGVALUES)
 @pytest.mark.django_db
-def test_update_user_password(
+def test_update_user_password_updated(
     user_service: BaseUserService,
     user: User,
     expected_password: str,

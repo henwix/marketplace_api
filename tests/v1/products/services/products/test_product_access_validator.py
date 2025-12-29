@@ -1,4 +1,5 @@
 import pytest
+from punq import Container
 
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.exceptions.products import ProductAccessForbiddenError
@@ -9,8 +10,13 @@ from src.apps.sellers.models import Seller
 from tests.v1.products.factories import ProductModelFactory
 
 
+@pytest.fixture
+def product_access_validator_service(container: Container) -> BaseProductAccessValidatorService:
+    return container.resolve(BaseProductAccessValidatorService)
+
+
 @pytest.mark.django_db
-def test_validator_exception_raised_if_seller_is_none(
+def test_validator_error_raised_if_seller_is_none(
     product_access_validator_service: BaseProductAccessValidatorService,
     product: Product,
 ):
@@ -19,7 +25,7 @@ def test_validator_exception_raised_if_seller_is_none(
 
 
 @pytest.mark.django_db
-def test_validator_exception_raised_if_seller_is_not_author(
+def test_validator_error_raised_if_seller_is_not_author(
     product_access_validator_service: BaseProductAccessValidatorService,
     seller: Seller,
     product: Product,
@@ -31,7 +37,7 @@ def test_validator_exception_raised_if_seller_is_not_author(
 
 
 @pytest.mark.django_db
-def test_validator_exception_not_raised_if_validated(
+def test_validator_error_not_raised_if_validated(
     product_access_validator_service: BaseProductAccessValidatorService,
     seller: Seller,
 ):

@@ -22,7 +22,7 @@ class UpdateProductVariantUseCase:
     def execute(self, user_id: int | None, product_variant_id: UUID, data: dict) -> ProductVariantEntity:
         self.auth_validator_service.validate(user_id=user_id)
         user = self.user_service.try_get_by_id_with_loaded_seller(id=user_id)
-        self.seller_validator_service.validate(seller=user.seller_profile, user_id=user_id)
+        self.seller_validator_service.validate(seller=user.seller_profile, user_id=user.id)
         product_variant = self.variant_service.try_get_by_id_with_loaded_product(id=product_variant_id)
         self.variant_access_validator_service.validate(seller=user.seller_profile, product_variant=product_variant)
         product_variant.update_from_data(data=data)

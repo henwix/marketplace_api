@@ -1,3 +1,4 @@
+from django.db import DataError
 from django.urls import include, path
 from drf_spectacular.utils import extend_schema, inline_serializer
 from rest_framework import serializers
@@ -14,6 +15,7 @@ app_name = 'v1'
 )
 @api_view(['GET'])
 def ping(request: Request) -> Response:
+    raise DataError('haha', 'haha_code')
     return Response({'detail': 'pong'})
 
 

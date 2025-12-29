@@ -1,4 +1,5 @@
 import pytest
+from punq import Container
 
 from src.apps.sellers.converters.sellers import data_to_seller_entity, seller_from_entity
 from src.apps.sellers.models import Seller
@@ -7,9 +8,14 @@ from src.apps.users.models import User
 from tests.v1.sellers.test_data.create_seller import CREATE_SELLER_ARGNAMES, CREATE_SELLER_ARGVALUES
 
 
+@pytest.fixture
+def seller_repository(container: Container) -> BaseSellerRepository:
+    return container.resolve(BaseSellerRepository)
+
+
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_created(
+def test_create_seller_created(
     seller_repository: BaseSellerRepository,
     user: User,
     expected_name: str,

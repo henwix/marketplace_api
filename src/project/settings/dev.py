@@ -1,7 +1,7 @@
 from src.project.settings.main import *  # noqa
 
 
-DEBUG = True
+DEBUG = False
 
 
 ALLOWED_HOSTS = [

@@ -7,7 +7,7 @@ from tests.v1.conftest import get_client
 
 
 @pytest.mark.django_db
-def test_seller_retrieved(seller: Seller):
+def test_get_seller_retrieved(seller: Seller):
     client = get_client(user=seller.user, jwt=True)
 
     response = client.get(path='/v1/sellers/')
@@ -20,14 +20,14 @@ def test_seller_retrieved(seller: Seller):
 
 
 @pytest.mark.django_db
-def test_seller_not_retrieved_and_returns_401_if_unauthorized():
+def test_get_seller_not_retrieved_and_returns_401_if_unauthorized():
     client = get_client()
     response = client.get(path='/v1/sellers/')
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 @pytest.mark.django_db
-def test_seller_not_retrieved_and_returns_404_if_does_not_exist(user: User):
+def test_get_seller_not_retrieved_and_returns_404_if_does_not_exist(user: User):
     client = get_client(user=user, jwt=True)
     response = client.get(path='/v1/sellers/')
     assert response.status_code == status.HTTP_404_NOT_FOUND

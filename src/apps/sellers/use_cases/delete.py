@@ -15,5 +15,5 @@ class DeleteSellerUseCase:
     def execute(self, user_id: int | None) -> None:
         self.auth_validator_service.validate(user_id=user_id)
         user = self.user_service.try_get_by_id_with_loaded_seller(id=user_id)
-        self.seller_validator_service.validate(seller=user.seller_profile, user_id=user_id)
+        self.seller_validator_service.validate(seller=user.seller_profile, user_id=user.id)
         self.seller_service.delete(id=user.seller_profile.id)

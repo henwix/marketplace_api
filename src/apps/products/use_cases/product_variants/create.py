@@ -31,7 +31,7 @@ class CreateProductVariantUseCase:
     def execute(self, user_id: int | None, product_id: UUID, data: dict) -> ProductVariantEntity:
         self.auth_validator_service.validate(user_id=user_id)
         user = self.user_service.try_get_by_id_with_loaded_seller(id=user_id)
-        self.seller_validator_service.validate(seller=user.seller_profile, user_id=user_id)
+        self.seller_validator_service.validate(seller=user.seller_profile, user_id=user.id)
         with transaction.atomic():
             product = self.product_service.try_get_for_update_by_id(id=product_id)
             self.product_access_validator_service.validate(seller=user.seller_profile, product=product)

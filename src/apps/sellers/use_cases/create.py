@@ -18,6 +18,6 @@ class CreateSellerUseCase:
         self.auth_validator_service.validate(user_id=user_id)
         user = self.user_service.try_get_by_id_with_loaded_seller(id=user_id)
         self.seller_validator_service.validate(seller=user.seller_profile, user_id=user.id)
-        seller_entity = data_to_seller_entity(data={**data, 'user_id': user_id})
+        seller_entity = data_to_seller_entity(data={**data, 'user_id': user.id})
         new_seller = self.seller_service.save(seller=seller_entity, update=False)
         return new_seller

@@ -9,7 +9,7 @@ from tests.v1.sellers.test_data.create_seller import CREATE_SELLER_ARGNAMES, CRE
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_updated_put(
+def test_update_seller_updated_put(
     seller: Seller,
     expected_name: str,
     expected_description: str,
@@ -33,7 +33,7 @@ def test_seller_updated_put(
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_updated_patch(
+def test_update_seller_updated_patch(
     seller: Seller,
     expected_name: str,
     expected_description: str,
@@ -57,7 +57,7 @@ def test_seller_updated_patch(
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_not_updated_and_returns_401_if_unauthorized_put(
+def test_update_seller_not_updated_and_returns_401_if_unauthorized_put(
     expected_name: str,
     expected_description: str,
 ):
@@ -70,7 +70,7 @@ def test_seller_not_updated_and_returns_401_if_unauthorized_put(
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_not_updated_and_returns_401_if_unauthorized_patch(
+def test_update_seller_not_updated_and_returns_401_if_unauthorized_patch(
     expected_name: str,
     expected_description: str,
 ):
@@ -83,7 +83,7 @@ def test_seller_not_updated_and_returns_401_if_unauthorized_patch(
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_not_updated_and_returns_404_if_does_not_exist_put(
+def test_update_seller_not_updated_and_returns_404_if_does_not_exist_put(
     user: User,
     expected_name: str,
     expected_description: str,
@@ -97,7 +97,7 @@ def test_seller_not_updated_and_returns_404_if_does_not_exist_put(
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
-def test_seller_not_updated_and_returns_404_if_does_not_exist_patch(
+def test_update_seller_not_updated_and_returns_404_if_does_not_exist_patch(
     user: User,
     expected_name: str,
     expected_description: str,

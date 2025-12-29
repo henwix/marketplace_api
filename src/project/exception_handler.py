@@ -22,7 +22,11 @@ def api_exception_handler(exc, context):
         return response
 
     if settings.DEBUG is False:
-        return Response(
-            data={'detail': 'Internal server error'},
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        container: Container = get_container()
+        logger: Logger = container.resolve(Logger)
+        logger.error(
+            msg='Unhandled exception',
+            exc_info=exc,
+            extra={'log_meta': orjson.dumps({'exception': exc.__class__.__name__, 'detail': str(exc)}).decode()},
         )
+        return Response(data={'detail': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

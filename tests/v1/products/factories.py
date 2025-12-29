@@ -27,5 +27,5 @@ class ProductVariantModelFactory(DjangoModelFactory):
 
     product = factory.SubFactory(ProductModelFactory)
     title = lazy_function_factory(value=fake.text, max_length=200)
-    price = fake.pydecimal(left_digits=2, right_digits=10, positive=True)
+    price = fake.pydecimal(left_digits=2, right_digits=2, positive=True)
     stock = factory.Faker('random_int')

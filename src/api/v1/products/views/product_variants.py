@@ -27,7 +27,6 @@ class ProductVariantView(APIView):
         variant = use_case.execute(user_id=request.user.id, data=serializer.validated_data, product_id=id)
         return Response(data=ProductVariantSerializer(variant).data, status=status.HTTP_201_CREATED)
 
-    # TODO: tests
     def get(self, request: Request, id: UUID) -> Response:
         container: Container = get_container()
         use_case: GetProductVariantsUseCase = container.resolve(GetProductVariantsUseCase)

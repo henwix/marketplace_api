@@ -1,6 +1,7 @@
 import pytest
 from django.core.exceptions import ValidationError
 
+from src.apps.sellers.models import Seller
 from src.apps.users.models import User
 from src.apps.users.repositories.users import BaseUserRepository
 from tests.v1.users.factories import UserModelFactory
@@ -77,6 +78,31 @@ def test_update_password_updated(
 
 
 @pytest.mark.django_db
+def test_get_user_by_id_retrieved(user_repository: BaseUserRepository, user: User):
+    retrieved_user = user_repository.get_by_id(id=user.pk)
+    assert isinstance(retrieved_user, User)
+    assert retrieved_user == user
+
+
+@pytest.mark.django_db
+def test_get_user_by_id_not_retrieved_if_not_exists(user_repository: BaseUserRepository, user: User):
+    assert user_repository.get_by_id(id=1) is None
+
+
+@pytest.mark.django_db
+def test_get_user_with_loaded_seller_by_id_retrieved(user_repository: BaseUserRepository, seller: Seller):
+    retrieved_user = user_repository.get_by_id_with_loaded_seller(id=seller.user_id)
+    assert isinstance(retrieved_user, User)
+    assert retrieved_user == seller.user
+    assert retrieved_user._state.fields_cache.get('seller_profile') == seller
+
+
+@pytest.mark.django_db
+def test_get_user_with_loaded_seller_by_id_not_retrieved_if_not_exists(user_repository: BaseUserRepository):
+    assert user_repository.get_by_id_with_loaded_seller(id=1) is None
+
+
+@pytest.mark.django_db
 def test_delete_user_deleted(user_repository: BaseUserRepository, user: User):
     assert User.objects.filter(pk=user.pk).exists()
     user_repository.delete(id=user.pk)
@@ -110,6 +136,3 @@ def test_save_user_saved_for_update(user_repository: BaseUserRepository, user: U
     assert db_user.last_name == saved_user.last_name
     assert db_user.email == saved_user.email
     assert db_user.phone == saved_user.phone
-
-
-# TODO: tests rename
