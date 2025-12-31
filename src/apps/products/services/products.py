@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from dataclasses import dataclass
 from uuid import UUID
 
@@ -81,6 +82,12 @@ class BaseProductService(ABC):
     def try_get_by_slug_for_retrieve(self, slug: str) -> ProductEntity: ...
 
     @abstractmethod
+    def get_many_for_global_search(self) -> Iterable[Product]: ...
+
+    @abstractmethod
+    def get_many_for_personal_search(self, seller_id: UUID) -> Iterable[Product]: ...
+
+    @abstractmethod
     def delete(self, id: UUID) -> None: ...
 
 
@@ -119,6 +126,12 @@ class ProductService(BaseProductService):
         if dto is None:
             raise ProductNotFoundBySlugError(slug=slug)
         return product_to_entity(dto=dto)
+
+    def get_many_for_global_search(self) -> Iterable[Product]:
+        return self.repository.get_many_for_global_search()
+
+    def get_many_for_personal_search(self, seller_id: UUID) -> Iterable[Product]:
+        return self.repository.get_many_for_personal_search(seller_id=seller_id)
 
     def delete(self, id: UUID) -> None:
         self.repository.delete(id=id)

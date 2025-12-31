@@ -1,22 +1,30 @@
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema_view
+from decimal import Decimal
+
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 
+from src.api.v1.authentication.openapi.responses import unauthorized_user_response
+from src.api.v1.common.openapi.parameters import (
+    jwt_header_parameter,
+    ordering_query_parameter,
+    page_query_parameter,
+    page_size_query_parameter,
+    query_parameter,
+    search_query_parameter,
+)
+from src.api.v1.common.openapi.responses import (
+    forbidden_response,
+    not_found_response,
+    successful_page_response,
+    successful_response,
+)
+from src.api.v1.products.openapi.products.enums import ProductsSearchOrderingEnum
+from src.api.v1.products.pagination import SearchProductPagination
 from src.api.v1.products.serializers.products import (
     ProductSerializer,
     RetrieveProductSerializer,
     SearchProductSerializer,
 )
-from src.apps.authentication.docs.schema_responses import unauthorized_user_response
-from src.apps.common.docs.schema_parameters import build_enum_query_param, jwt_header_request_parameter
-from src.apps.common.docs.schema_responses import (
-    forbidden_response,
-    not_found_response,
-    permission_error_403_response,
-    successful_response,
-    unauthorized_error_401_response,
-)
-from src.apps.products.docs.products.enums import ProductsSearchOrderingEnum
 from src.apps.products.exceptions.products import (
     ProductAccessForbiddenError,
     ProductNotFoundByIdError,
@@ -29,7 +37,7 @@ from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundErro
 def extend_product_view_schema():
     return extend_schema_view(
         post=extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=ProductSerializer,
             responses={
                 status.HTTP_201_CREATED: successful_response(response=ProductSerializer),
@@ -45,7 +53,7 @@ def extend_product_view_schema():
 def extend_detail_slug_product_view_schema():
     return extend_schema_view(
         get=extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=None,
             responses={
                 status.HTTP_200_OK: successful_response(response=RetrieveProductSerializer),
@@ -61,7 +69,7 @@ def extend_detail_slug_product_view_schema():
 def extend_detail_product_view_schema():
     def _update_product_extend_schema(method: str):
         return extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=ProductSerializer,
             responses={
                 status.HTTP_200_OK: successful_response(response=ProductSerializer),
@@ -76,7 +84,7 @@ def extend_detail_product_view_schema():
 
     return extend_schema_view(
         get=extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=None,
             responses={
                 status.HTTP_200_OK: successful_response(response=RetrieveProductSerializer),
@@ -87,7 +95,7 @@ def extend_detail_product_view_schema():
             summary='Retrieve Product By Id GET',
         ),
         delete=extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=None,
             responses={
                 status.HTTP_204_NO_CONTENT: None,
@@ -107,17 +115,21 @@ def extend_detail_product_view_schema():
 def extend_global_search_view_schema():
     return extend_schema(
         parameters=[
-            build_enum_query_param(
-                name='o', enum=ProductsSearchOrderingEnum, description='Which field to use when ordering the results.'
-            ),
-            OpenApiParameter(name='max_price', description='Maximum price', type=OpenApiTypes.DECIMAL),
-            OpenApiParameter(name='min_price', description='Minimum price', type=OpenApiTypes.DECIMAL),
-            OpenApiParameter(name='price_range_max', description='Price range', type=OpenApiTypes.DECIMAL),
-            OpenApiParameter(name='price_range_min', description='Price range', type=OpenApiTypes.DECIMAL),
+            search_query_parameter(),
+            ordering_query_parameter(enum=ProductsSearchOrderingEnum),
+            page_query_parameter(paginator=SearchProductPagination),
+            page_size_query_parameter(paginator=SearchProductPagination),
+            query_parameter(name='max_price', type=Decimal, description='Maximum price'),
+            query_parameter(name='min_price', type=Decimal, description='Minimum price'),
+            query_parameter(name='price_range_max', type=Decimal, description='Price range'),
+            query_parameter(name='price_range_min', type=Decimal, description='Price range'),
         ],
         request=None,
         responses={
-            status.HTTP_200_OK: successful_response(response=SearchProductSerializer),
+            status.HTTP_200_OK: successful_page_response(
+                response=SearchProductSerializer,
+                paginator=SearchProductPagination,
+            ),
         },
         summary='Search Global Products GET',
     )
@@ -126,21 +138,26 @@ def extend_global_search_view_schema():
 def extend_personal_search_view_schema():
     return extend_schema(
         parameters=[
-            jwt_header_request_parameter(),
-            build_enum_query_param(
-                name='o', enum=ProductsSearchOrderingEnum, description='Which field to use when ordering the results.'
-            ),
-            OpenApiParameter(name='is_visible', description='Is visible', type=OpenApiTypes.BOOL),
-            OpenApiParameter(name='max_price', description='Maximum price', type=OpenApiTypes.DECIMAL),
-            OpenApiParameter(name='min_price', description='Minimum price', type=OpenApiTypes.DECIMAL),
-            OpenApiParameter(name='price_range_max', description='Price range', type=OpenApiTypes.DECIMAL),
-            OpenApiParameter(name='price_range_min', description='Price range', type=OpenApiTypes.DECIMAL),
+            jwt_header_parameter(),
+            search_query_parameter(),
+            ordering_query_parameter(enum=ProductsSearchOrderingEnum),
+            page_query_parameter(paginator=SearchProductPagination),
+            page_size_query_parameter(paginator=SearchProductPagination),
+            query_parameter(name='is_visible', type=bool, description='Is visible'),
+            query_parameter(name='max_price', type=Decimal, description='Maximum price'),
+            query_parameter(name='min_price', type=Decimal, description='Minimum price'),
+            query_parameter(name='price_range_max', type=Decimal, description='Price range'),
+            query_parameter(name='price_range_min', type=Decimal, description='Price range'),
         ],
         request=None,
         responses={
-            status.HTTP_200_OK: successful_response(response=SearchProductSerializer),
-            status.HTTP_401_UNAUTHORIZED: unauthorized_error_401_response(),
-            status.HTTP_403_FORBIDDEN: permission_error_403_response(),
+            status.HTTP_200_OK: successful_page_response(
+                response=SearchProductSerializer,
+                paginator=SearchProductPagination,
+            ),
+            status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+            status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
+            status.HTTP_404_NOT_FOUND: not_found_response(SellerNotFoundError, UserNotFoundError),
         },
         summary='Search Personal Products GET',
     )

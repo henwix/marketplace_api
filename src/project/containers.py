@@ -9,6 +9,10 @@ from src.apps.sellers.containers import init_sellers
 from src.apps.users.containers import init_users
 
 
+def resolve_depends(interface):
+    return get_container().resolve(interface)
+
+
 @lru_cache(1)
 def get_container() -> Container:
     return _initialize_container()

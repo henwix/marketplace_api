@@ -1,26 +1,26 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 
-from src.api.v1.common.serializers import DetailOutSerializer
-from src.api.v1.users.serializers import PasswordUserSerializer, UpdateUserSerializer, UserSerializer
-from src.apps.authentication.docs.schema_responses import unauthorized_user_response
-from src.apps.common.docs.schema_examples import (
+from src.api.v1.authentication.openapi.responses import unauthorized_user_response
+from src.api.v1.common.openapi.examples import (
     build_detail_response_example,
 )
-from src.apps.common.docs.schema_parameters import jwt_header_request_parameter
-from src.apps.common.docs.schema_responses import (
+from src.api.v1.common.openapi.parameters import jwt_header_parameter
+from src.api.v1.common.openapi.responses import (
     bad_request_response,
     forbidden_response,
     not_found_response,
     successful_response,
 )
+from src.api.v1.common.serializers import DetailOutSerializer
+from src.api.v1.users.serializers import PasswordUserSerializer, UpdateUserSerializer, UserSerializer
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError, UserWithDataAlreadyExistsError
 
 
 def extend_user_view_schema():
     def _update_user_extend_schema(method: str):
         return extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=UpdateUserSerializer,
             responses={
                 status.HTTP_200_OK: successful_response(response=UpdateUserSerializer),
@@ -42,7 +42,7 @@ def extend_user_view_schema():
             summary='Create User POST',
         ),
         get=extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=None,
             responses={
                 status.HTTP_200_OK: successful_response(response=UserSerializer),
@@ -55,7 +55,7 @@ def extend_user_view_schema():
         put=_update_user_extend_schema(method='PUT'),
         patch=_update_user_extend_schema(method='PATCH'),
         delete=extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=None,
             responses={
                 status.HTTP_204_NO_CONTENT: None,
@@ -71,7 +71,7 @@ def extend_user_view_schema():
 def extend_set_password_user_view_schema():
     return extend_schema_view(
         post=extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=PasswordUserSerializer,
             responses={
                 status.HTTP_200_OK: successful_response(

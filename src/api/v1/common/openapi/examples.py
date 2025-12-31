@@ -34,19 +34,3 @@ def build_detail_response_example(
         summary=summary,
         description=description,
     )
-
-
-def unauthorized_error_401_response_example() -> OpenApiExample:
-    return build_detail_response_example(
-        name='Unauthorized error',
-        value='Authentication credentials were not provided.',
-        status_code=401,
-    )
-
-
-def permission_error_403_response_example() -> OpenApiExample:
-    return build_detail_response_example(
-        name='Permission error',
-        value='You do not have permission to perform this action.',
-        status_code=403,
-    )

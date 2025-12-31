@@ -26,6 +26,8 @@ from src.apps.products.use_cases.products.create import CreateProductUseCase
 from src.apps.products.use_cases.products.delete import DeleteProductUseCase
 from src.apps.products.use_cases.products.get_by_id import GetProductByIdUseCase
 from src.apps.products.use_cases.products.get_by_slug import GetProductBySlugUseCase
+from src.apps.products.use_cases.products.global_search import GlobalSearchProductUseCase
+from src.apps.products.use_cases.products.personal_search import PersonalSearchProductUseCase
 from src.apps.products.use_cases.products.update import UpdateProductUseCase
 
 
@@ -34,6 +36,8 @@ def init_products(container: Container) -> None:
     container.register(CreateProductUseCase)
     container.register(GetProductByIdUseCase)
     container.register(GetProductBySlugUseCase)
+    container.register(GlobalSearchProductUseCase)
+    container.register(PersonalSearchProductUseCase)
     container.register(UpdateProductUseCase)
     container.register(DeleteProductUseCase)
 

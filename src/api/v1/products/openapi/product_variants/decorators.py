@@ -1,15 +1,15 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 
-from src.api.v1.products.serializers.product_variants import GetProductVariantsOutSerializer, ProductVariantSerializer
-from src.apps.authentication.docs.schema_responses import unauthorized_user_response
-from src.apps.common.docs.schema_parameters import jwt_header_request_parameter
-from src.apps.common.docs.schema_responses import (
+from src.api.v1.authentication.openapi.responses import unauthorized_user_response
+from src.api.v1.common.openapi.parameters import jwt_header_parameter
+from src.api.v1.common.openapi.responses import (
     bad_request_response,
     forbidden_response,
     not_found_response,
     successful_response,
 )
+from src.api.v1.products.serializers.product_variants import GetProductVariantsOutSerializer, ProductVariantSerializer
 from src.apps.products.exceptions.product_variants import (
     ProductVariantAccessForbiddenError,
     ProductVariantNotFoundError,
@@ -24,7 +24,7 @@ from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundErro
 def extend_product_variant_view_schema():
     return extend_schema_view(
         post=extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=ProductVariantSerializer,
             responses={
                 status.HTTP_201_CREATED: successful_response(response=ProductVariantSerializer),
@@ -38,7 +38,7 @@ def extend_product_variant_view_schema():
             summary='Create Product Variant POST',
         ),
         get=extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=None,
             responses={
                 status.HTTP_200_OK: successful_response(response=GetProductVariantsOutSerializer),
@@ -56,7 +56,7 @@ def extend_product_variant_view_schema():
 def extend_detail_product_variant_view_schema():
     def _update_product_variant_extend_schema(method: str):
         return extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=ProductVariantSerializer,
             responses={
                 status.HTTP_200_OK: successful_response(response=ProductVariantSerializer),
@@ -71,7 +71,7 @@ def extend_detail_product_variant_view_schema():
 
     return extend_schema_view(
         delete=extend_schema(
-            parameters=[jwt_header_request_parameter()],
+            parameters=[jwt_header_parameter()],
             request=None,
             responses={
                 status.HTTP_204_NO_CONTENT: None,
