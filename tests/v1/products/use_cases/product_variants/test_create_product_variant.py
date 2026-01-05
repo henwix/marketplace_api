@@ -5,6 +5,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
+from src.apps.products.commands.product_variants import CreateProductVariantCommand
 from src.apps.products.converters.product_variants import product_variant_to_entity
 from src.apps.products.entities.product_variants import ProductVariantEntity
 from src.apps.products.exceptions.product_variants import ProductVariantsLimitError
@@ -53,9 +54,12 @@ def test_create_variant_created(
     product = ProductModelFactory.create(seller=seller)
     assert ProductVariant.objects.filter(product_id=product.pk).count() == 0
 
-    created_product_variant = create_product_variant_use_case.execute(
-        user_id=seller.user_id, product_id=product.pk, data=expected_data
+    command = CreateProductVariantCommand(
+        user_id=seller.user_id,
+        product_id=product.pk,
+        data=expected_data,
     )
+    created_product_variant = create_product_variant_use_case.execute(command=command)
     db_product_variant = ProductVariant.objects.get(
         pk=created_product_variant.id,
         title=expected_title,
@@ -73,7 +77,8 @@ def test_create_variant_product_not_found_error_raised(
     create_product_variant_use_case: CreateProductVariantUseCase, seller: Seller
 ):
     with pytest.raises(ProductNotFoundByIdError):
-        create_product_variant_use_case.execute(user_id=seller.user_id, product_id=uuid7(), data={})
+        command = CreateProductVariantCommand(user_id=seller.user_id, product_id=uuid7(), data={})
+        create_product_variant_use_case.execute(command=command)
     assert ProductVariant.objects.all().count() == 0
 
 
@@ -82,7 +87,8 @@ def test_create_variant_not_created_and_product_access_error_raised(
     create_product_variant_use_case: CreateProductVariantUseCase, seller: Seller, product: Product
 ):
     with pytest.raises(ProductAccessForbiddenError):
-        create_product_variant_use_case.execute(user_id=seller.user_id, product_id=product.pk, data={})
+        command = CreateProductVariantCommand(user_id=seller.user_id, product_id=product.pk, data={})
+        create_product_variant_use_case.execute(command=command)
     assert ProductVariant.objects.all().count() == 0
 
 
@@ -94,7 +100,8 @@ def test_create_variant_not_created_and_variants_limit_error_raised(
     ProductVariantModelFactory.create_batch(size=10, product=product)
     assert ProductVariant.objects.all().count() == 10
     with pytest.raises(ProductVariantsLimitError):
-        create_product_variant_use_case.execute(user_id=seller.user_id, product_id=product.pk, data={})
+        command = CreateProductVariantCommand(user_id=seller.user_id, product_id=product.pk, data={})
+        create_product_variant_use_case.execute(command=command)
     assert ProductVariant.objects.all().count() == 10
 
 
@@ -104,23 +111,27 @@ def test_create_variant_seller_not_found_error_raised(
     user: User,
 ):
     with pytest.raises(SellerNotFoundError):
-        create_product_variant_use_case.execute(user_id=user.pk, product_id=uuid7(), data={})
+        command = CreateProductVariantCommand(user_id=user.pk, product_id=uuid7(), data={})
+        create_product_variant_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_create_variant_user_credentials_error_raised(create_product_variant_use_case: CreateProductVariantUseCase):
     with pytest.raises(AuthCredentialsNotProvidedError):
-        create_product_variant_use_case.execute(user_id=None, product_id=uuid7(), data={})
+        command = CreateProductVariantCommand(user_id=None, product_id=uuid7(), data={})
+        create_product_variant_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_create_variant_user_not_found_error_raised(create_product_variant_use_case: CreateProductVariantUseCase):
     with pytest.raises(UserNotFoundError):
-        create_product_variant_use_case.execute(user_id=1, product_id=uuid7(), data={})
+        command = CreateProductVariantCommand(user_id=1, product_id=uuid7(), data={})
+        create_product_variant_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_create_variant_user_not_active_error_raised(create_product_variant_use_case: CreateProductVariantUseCase):
     user = UserModelFactory.create(is_active=False)
     with pytest.raises(UserNotActiveError):
-        create_product_variant_use_case.execute(user_id=user.pk, product_id=uuid7(), data={})
+        command = CreateProductVariantCommand(user_id=user.pk, product_id=uuid7(), data={})
+        create_product_variant_use_case.execute(command=command)

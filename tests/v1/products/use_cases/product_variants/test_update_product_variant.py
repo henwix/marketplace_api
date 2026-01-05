@@ -5,6 +5,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
+from src.apps.products.commands.product_variants import UpdateProductVariantCommand
 from src.apps.products.converters.product_variants import product_variant_to_entity
 from src.apps.products.entities.product_variants import ProductVariantEntity
 from src.apps.products.exceptions.product_variants import (
@@ -54,11 +55,12 @@ def test_update_variant_updated(
     product = ProductModelFactory.create(seller=seller)
     product_variant = ProductVariantModelFactory.create(product=product)
 
-    updated_product_variant = update_product_variant_use_case.execute(
+    command = UpdateProductVariantCommand(
         user_id=seller.user_id,
         product_variant_id=product_variant.pk,
         data=expected_data,
     )
+    updated_product_variant = update_product_variant_use_case.execute(command=command)
     db_product_variant = ProductVariant.objects.get(
         pk=product_variant.id,
         title=expected_title,
@@ -76,7 +78,8 @@ def test_update_variant_product_variant_not_found_error_raised(
     update_product_variant_use_case: UpdateProductVariantUseCase, seller: Seller
 ):
     with pytest.raises(ProductVariantNotFoundError):
-        update_product_variant_use_case.execute(user_id=seller.user_id, product_variant_id=uuid7(), data={})
+        command = UpdateProductVariantCommand(user_id=seller.user_id, product_variant_id=uuid7(), data={})
+        update_product_variant_use_case.execute(command=command)
     assert ProductVariant.objects.all().count() == 0
 
 
@@ -85,7 +88,8 @@ def test_update_variant_product_access_forbidden_error_raised(
     update_product_variant_use_case: UpdateProductVariantUseCase, seller: Seller, product_variant: ProductVariant
 ):
     with pytest.raises(ProductVariantAccessForbiddenError):
-        update_product_variant_use_case.execute(user_id=seller.user_id, product_variant_id=product_variant.pk, data={})
+        command = UpdateProductVariantCommand(user_id=seller.user_id, product_variant_id=product_variant.pk, data={})
+        update_product_variant_use_case.execute(command=command)
     assert ProductVariant.objects.all().count() == 1
 
 
@@ -95,23 +99,27 @@ def test_update_variant_seller_not_found_error_raised(
     user: User,
 ):
     with pytest.raises(SellerNotFoundError):
-        update_product_variant_use_case.execute(user_id=user.pk, product_variant_id=uuid7(), data={})
+        command = UpdateProductVariantCommand(user_id=user.pk, product_variant_id=uuid7(), data={})
+        update_product_variant_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_variant_user_credentials_error_raised(update_product_variant_use_case: UpdateProductVariantUseCase):
     with pytest.raises(AuthCredentialsNotProvidedError):
-        update_product_variant_use_case.execute(user_id=None, product_variant_id=uuid7(), data={})
+        command = UpdateProductVariantCommand(user_id=None, product_variant_id=uuid7(), data={})
+        update_product_variant_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_variant_user_not_found_error_raised(update_product_variant_use_case: UpdateProductVariantUseCase):
     with pytest.raises(UserNotFoundError):
-        update_product_variant_use_case.execute(user_id=1, product_variant_id=uuid7(), data={})
+        command = UpdateProductVariantCommand(user_id=1, product_variant_id=uuid7(), data={})
+        update_product_variant_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_variant_user_not_active_error_raised(update_product_variant_use_case: UpdateProductVariantUseCase):
     user = UserModelFactory.create(is_active=False)
     with pytest.raises(UserNotActiveError):
-        update_product_variant_use_case.execute(user_id=user.pk, product_variant_id=uuid7(), data={})
+        command = UpdateProductVariantCommand(user_id=user.pk, product_variant_id=uuid7(), data={})
+        update_product_variant_use_case.execute(command=command)

@@ -2,6 +2,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
+from src.apps.products.commands.products import CreateProductCommand
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.models.products import Product
@@ -39,7 +40,8 @@ def test_create_product_created(
         'is_visible': expected_is_visible,
     }
 
-    created_product = create_product_use_case.execute(user_id=seller.user_id, data=expected_data)
+    command = CreateProductCommand(user_id=seller.user_id, data=expected_data)
+    created_product = create_product_use_case.execute(command=command)
     db_product = Product.objects.get(
         pk=created_product.id,
         title=expected_title,
@@ -58,23 +60,27 @@ def test_create_product_seller_not_found_error_raised(
     user: User,
 ):
     with pytest.raises(SellerNotFoundError):
-        create_product_use_case.execute(user_id=user.pk, data={})
+        command = CreateProductCommand(user_id=user.pk, data={})
+        create_product_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_create_product_user_credentials_error_raised(create_product_use_case: CreateProductUseCase):
     with pytest.raises(AuthCredentialsNotProvidedError):
-        create_product_use_case.execute(user_id=None, data={})
+        command = CreateProductCommand(user_id=None, data={})
+        create_product_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_create_product_user_not_found_error_raised(create_product_use_case: CreateProductUseCase):
     with pytest.raises(UserNotFoundError):
-        create_product_use_case.execute(user_id=1, data={})
+        command = CreateProductCommand(user_id=1, data={})
+        create_product_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_create_product_user_not_active_error_raised(create_product_use_case: CreateProductUseCase):
     user = UserModelFactory.create(is_active=False)
     with pytest.raises(UserNotActiveError):
-        create_product_use_case.execute(user_id=user.pk, data={})
+        command = CreateProductCommand(user_id=user.pk, data={})
+        create_product_use_case.execute(command=command)

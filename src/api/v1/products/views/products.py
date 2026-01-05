@@ -21,6 +21,14 @@ from src.api.v1.products.serializers.products import (
     RetrieveProductSerializer,
     SearchProductSerializer,
 )
+from src.apps.products.commands.products import (
+    CreateProductCommand,
+    DeleteProductCommand,
+    GetProductByIdCommand,
+    GetProductBySlugCommand,
+    PersonalSearchProductCommand,
+    UpdateProductCommand,
+)
 from src.apps.products.use_cases.products.create import CreateProductUseCase
 from src.apps.products.use_cases.products.delete import DeleteProductUseCase
 from src.apps.products.use_cases.products.get_by_id import GetProductByIdUseCase
@@ -37,7 +45,8 @@ class ProductView(APIView):
         serializer = ProductSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         use_case: CreateProductUseCase = resolve_depends(CreateProductUseCase)
-        product = use_case.execute(user_id=request.user.id, data=serializer.validated_data)
+        command = CreateProductCommand(user_id=request.user.id, data=serializer.validated_data)
+        product = use_case.execute(command=command)
         return Response(data=ProductSerializer(product).data, status=status.HTTP_201_CREATED)
 
 
@@ -45,7 +54,8 @@ class ProductView(APIView):
 class DetailSlugProductView(APIView):
     def get(self, request: Request, slug: str) -> Response:
         use_case: GetProductBySlugUseCase = resolve_depends(GetProductBySlugUseCase)
-        product = use_case.execute(user_id=request.user.id, slug=slug)
+        command = GetProductBySlugCommand(user_id=request.user.id, slug=slug)
+        product = use_case.execute(command=command)
         return Response(
             data=RetrieveProductSerializer(product, context={'request': self.request}).data,
             status=status.HTTP_200_OK,
@@ -56,7 +66,8 @@ class DetailSlugProductView(APIView):
 class DetailProductView(APIView):
     def get(self, request: Request, id: UUID) -> Response:
         use_case: GetProductByIdUseCase = resolve_depends(GetProductByIdUseCase)
-        product = use_case.execute(user_id=request.user.id, product_id=id)
+        command = GetProductByIdCommand(user_id=request.user.id, product_id=id)
+        product = use_case.execute(command=command)
         return Response(
             data=RetrieveProductSerializer(product, context={'request': self.request}).data,
             status=status.HTTP_200_OK,
@@ -64,21 +75,23 @@ class DetailProductView(APIView):
 
     def delete(self, request: Request, id: UUID) -> Response:
         use_case: DeleteProductUseCase = resolve_depends(DeleteProductUseCase)
-        use_case.execute(user_id=request.user.id, product_id=id)
+        command = DeleteProductCommand(user_id=request.user.id, product_id=id)
+        use_case.execute(command=command)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def update(self, request: Request, id: UUID, partial: bool) -> Response:
+    def _update(self, request: Request, id: UUID, partial: bool) -> Response:
         serializer = ProductSerializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         use_case: UpdateProductUseCase = resolve_depends(UpdateProductUseCase)
-        product = use_case.execute(user_id=request.user.id, product_id=id, data=serializer.validated_data)
+        command = UpdateProductCommand(user_id=request.user.id, product_id=id, data=serializer.validated_data)
+        product = use_case.execute(command=command)
         return Response(data=ProductSerializer(product).data, status=status.HTTP_200_OK)
 
     def put(self, request: Request, id: UUID) -> Response:
-        return self.update(request=request, id=id, partial=False)
+        return self._update(request=request, id=id, partial=False)
 
     def patch(self, request: Request, id: UUID) -> Response:
-        return self.update(request=request, id=id, partial=True)
+        return self._update(request=request, id=id, partial=True)
 
 
 # TODO: cache for searching
@@ -125,7 +138,8 @@ class PersonalSearchProductView(
 
     def get(self, request: Request) -> Response:
         use_case: PersonalSearchProductUseCase = resolve_depends(PersonalSearchProductUseCase)
-        products = use_case.execute(user_id=request.user.id)
+        command = PersonalSearchProductCommand(user_id=request.user.id)
+        products = use_case.execute(command=command)
         return self.paginate(
             queryset=products,
             paginator=SearchProductPagination,

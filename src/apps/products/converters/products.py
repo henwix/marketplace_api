@@ -19,6 +19,8 @@ def product_from_entity(entity: ProductEntity) -> Product:
         is_visible=entity.is_visible,
         created_at=entity.created_at,
         updated_at=entity.updated_at,
+        reviews_count=entity.reviews_count,
+        reviews_avg_rating=entity.reviews_avg_rating,
     )
 
 
@@ -34,6 +36,8 @@ def product_to_entity(dto: Product) -> ProductEntity:
         is_visible=dto.is_visible,
         created_at=dto.created_at,
         updated_at=dto.updated_at,
+        reviews_count=dto.reviews_count,
+        reviews_avg_rating=dto.reviews_avg_rating,
     )
 
     if 'seller' in dto._state.fields_cache:

@@ -1,6 +1,7 @@
 import pytest
 from punq import Container
 
+from src.apps.sellers.commands import GetSellerByIdCommand
 from src.apps.sellers.converters.sellers import seller_to_entity
 from src.apps.sellers.entities.sellers import SellerEntity
 from src.apps.sellers.exceptions import SellerNotFoundByIdError
@@ -15,7 +16,8 @@ def get_seller_by_id_use_case(container: Container) -> GetSellerByIdUseCase:
 
 @pytest.mark.django_db
 def test_get_seller_by_id_retrieved(get_seller_by_id_use_case: GetSellerByIdUseCase, seller: Seller):
-    retrieved_seller = get_seller_by_id_use_case.execute(seller_id=seller.pk)
+    command = GetSellerByIdCommand(seller_id=seller.pk)
+    retrieved_seller = get_seller_by_id_use_case.execute(command=command)
     assert isinstance(retrieved_seller, SellerEntity)
     assert seller_to_entity(dto=seller) == retrieved_seller
 
@@ -23,4 +25,5 @@ def test_get_seller_by_id_retrieved(get_seller_by_id_use_case: GetSellerByIdUseC
 @pytest.mark.django_db
 def test_get_seller_by_id_not_found_error_raised_if_not_exists(get_seller_by_id_use_case: GetSellerByIdUseCase):
     with pytest.raises(SellerNotFoundByIdError):
-        get_seller_by_id_use_case.execute(seller_id=1)
+        command = GetSellerByIdCommand(seller_id=1)
+        get_seller_by_id_use_case.execute(command=command)

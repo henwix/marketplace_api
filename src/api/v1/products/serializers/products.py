@@ -12,13 +12,15 @@ class ProductSerializer(serializers.ModelSerializer):
             'id',
             'title',
             'slug',
+            'reviews_count',
+            'reviews_avg_rating',
             'description',
             'short_description',
             'is_visible',
             'created_at',
             'updated_at',
         ]
-        read_only_fields = ['id', 'slug']
+        read_only_fields = ['id', 'slug', 'reviews_count', 'reviews_avg_rating']
 
 
 class RetrieveProductSerializer(serializers.ModelSerializer):
@@ -39,6 +41,8 @@ class RetrieveProductSerializer(serializers.ModelSerializer):
             'id',
             'title',
             'slug',
+            'reviews_count',
+            'reviews_avg_rating',
             'seller_url',
             'description',
             'short_description',
@@ -63,4 +67,12 @@ class SearchProductSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ['id', 'url', 'title', 'is_visible', 'price']
+        fields = [
+            'id',
+            'url',
+            'title',
+            'is_visible',
+            'price',
+            'reviews_count',
+            'reviews_avg_rating',
+        ]

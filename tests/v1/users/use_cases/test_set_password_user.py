@@ -2,6 +2,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
+from src.apps.users.commands import SetPasswordUserCommand
 from src.apps.users.exceptions.users import (
     UserNotActiveError,
     UserNotFoundError,
@@ -25,7 +26,8 @@ def test_update_password_updated(
     expected_password: str,
 ):
     assert user.check_password(expected_password) is False
-    result = set_password_user_use_case.execute(user_id=user.pk, password=expected_password)
+    command = SetPasswordUserCommand(user_id=user.pk, password=expected_password)
+    result = set_password_user_use_case.execute(command=command)
 
     db_user = User.objects.get(pk=user.pk)
     assert db_user.check_password(expected_password) is True
@@ -34,18 +36,21 @@ def test_update_password_updated(
 
 @pytest.mark.django_db
 def test_update_password_user_credentials_error_raised(set_password_user_use_case: SetPasswordUserUseCase):
+    command = SetPasswordUserCommand(user_id=None, password='123')
     with pytest.raises(AuthCredentialsNotProvidedError):
-        set_password_user_use_case.execute(user_id=None, password='123')
+        set_password_user_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_password_user_not_found_error_raised(set_password_user_use_case: SetPasswordUserUseCase):
+    command = SetPasswordUserCommand(user_id=1, password='123')
     with pytest.raises(UserNotFoundError):
-        set_password_user_use_case.execute(user_id=1, password='123')
+        set_password_user_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_password_user_not_active_error_raised(set_password_user_use_case: SetPasswordUserUseCase):
     user = UserModelFactory.create(is_active=False)
+    command = SetPasswordUserCommand(user_id=user.pk, password='123')
     with pytest.raises(UserNotActiveError):
-        set_password_user_use_case.execute(user_id=user.pk, password='123')
+        set_password_user_use_case.execute(command=command)

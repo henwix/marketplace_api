@@ -6,12 +6,32 @@ from src.apps.users.models import User
 
 
 class Seller(TimedBaseModel):
-    user = models.OneToOneField(to=User, on_delete=models.CASCADE, related_name='seller_profile')
-    name = models.CharField(_('name'), max_length=100, help_text=_('Seller name'))
-    description = models.TextField(_('description'), blank=True, null=True, help_text=_('Seller description'))
-    avatar = models.CharField(_('avatar'), max_length=255, blank=True, null=True, help_text=_('Seller avatar'))
+    user = models.OneToOneField(
+        verbose_name=_('user'),
+        to=User,
+        on_delete=models.CASCADE,
+        related_name='seller_profile',
+    )
+    name = models.CharField(
+        verbose_name=_('name'),
+        max_length=100,
+        help_text=_('Seller name'),
+    )
+    description = models.TextField(
+        verbose_name=_('description'),
+        blank=True,
+        null=True,
+        help_text=_('Seller description'),
+    )
+    avatar = models.CharField(
+        verbose_name=_('avatar'),
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text=_('Seller avatar'),
+    )
     background = models.CharField(
-        _('background'),
+        verbose_name=_('background'),
         max_length=255,
         blank=True,
         null=True,

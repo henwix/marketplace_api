@@ -8,38 +8,58 @@ from src.apps.users.validators import user_phone_validator
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    first_name = models.CharField(_('first name'), max_length=150, help_text=_('First name'))
-    last_name = models.CharField(_('last name'), max_length=150, help_text=_('Last name'))
-    email = models.EmailField(_('email address'), unique=True, help_text=_('Email'))
+    first_name = models.CharField(
+        verbose_name=_('first name'),
+        max_length=150,
+        help_text=_('First name'),
+    )
+    last_name = models.CharField(
+        verbose_name=_('last name'),
+        max_length=150,
+        help_text=_('Last name'),
+    )
+    email = models.EmailField(
+        verbose_name=_('email address'),
+        unique=True,
+        help_text=_('Email'),
+    )
     phone = models.CharField(
-        _('phone number'),
+        verbose_name=_('phone number'),
         validators=[user_phone_validator],
         unique=True,
         max_length=20,
         help_text=_('Phone number'),
     )
-    password = models.CharField(_('password'), max_length=128, help_text=_('Password'))
+    password = models.CharField(
+        verbose_name=_('password'),
+        max_length=128,
+        help_text=_('Password'),
+    )
     avatar = models.CharField(
+        verbose_name=_('avatar'),
         max_length=255,
         null=True,
         blank=True,
         help_text=_('Avatar'),
     )
     is_staff = models.BooleanField(
-        _('staff status'),
+        verbose_name=_('staff status'),
         default=False,
         help_text=_(
             'Designates whether the user can log into this admin site.',
         ),
     )
     is_active = models.BooleanField(
-        _('active'),
+        verbose_name=_('active'),
         default=True,
         help_text=_(
             'Designates whether this user should be treated as active. Unselect this instead of deleting accounts.'
         ),
     )
-    date_joined = models.DateTimeField(_('date joined'), default=timezone.now)
+    date_joined = models.DateTimeField(
+        verbose_name=_('date joined'),
+        default=timezone.now,
+    )
 
     EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'email'

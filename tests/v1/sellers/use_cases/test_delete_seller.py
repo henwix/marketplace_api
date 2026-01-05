@@ -2,6 +2,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
+from src.apps.sellers.commands import DeleteSellerCommand
 from src.apps.sellers.exceptions import SellerNotFoundError
 from src.apps.sellers.models import Seller
 from src.apps.sellers.use_cases.delete import DeleteSellerUseCase
@@ -18,7 +19,8 @@ def delete_seller_use_case(container: Container) -> DeleteSellerUseCase:
 @pytest.mark.django_db
 def test_delete_seller_deleted(delete_seller_use_case: DeleteSellerUseCase, seller: Seller):
     assert Seller.objects.filter(pk=seller.pk).exists()
-    delete_seller_use_case.execute(user_id=seller.user_id)
+    command = DeleteSellerCommand(user_id=seller.user_id)
+    delete_seller_use_case.execute(command=command)
     assert not Seller.objects.filter(pk=seller.pk).exists()
 
 
@@ -27,24 +29,28 @@ def test_delete_seller_seller_not_found_error_raised(
     delete_seller_use_case: DeleteSellerUseCase,
     user: User,
 ):
+    command = DeleteSellerCommand(user_id=user.pk)
     with pytest.raises(SellerNotFoundError):
-        delete_seller_use_case.execute(user_id=user.pk)
+        delete_seller_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_delete_seller_user_credentials_error_raised(delete_seller_use_case: DeleteSellerUseCase):
+    command = DeleteSellerCommand(user_id=None)
     with pytest.raises(AuthCredentialsNotProvidedError):
-        delete_seller_use_case.execute(user_id=None)
+        delete_seller_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_delete_seller_user_not_found_error_raised(delete_seller_use_case: DeleteSellerUseCase):
+    command = DeleteSellerCommand(user_id=1)
     with pytest.raises(UserNotFoundError):
-        delete_seller_use_case.execute(user_id=1)
+        delete_seller_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_delete_seller_user_not_active_error_raised(delete_seller_use_case: DeleteSellerUseCase):
     user = UserModelFactory.create(is_active=False)
+    command = DeleteSellerCommand(user_id=user.pk)
     with pytest.raises(UserNotActiveError):
-        delete_seller_use_case.execute(user_id=user.pk)
+        delete_seller_use_case.execute(command=command)

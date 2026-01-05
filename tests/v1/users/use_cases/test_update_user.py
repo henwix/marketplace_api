@@ -2,6 +2,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
+from src.apps.users.commands import UpdateUserCommand
 from src.apps.users.entities import UserEntity
 from src.apps.users.exceptions.users import (
     UserNotActiveError,
@@ -40,7 +41,8 @@ def test_update_user_updated(
         'email': expected_email,
         'phone': expected_phone,
     }
-    updated_user = update_user_use_case.execute(user_id=user.pk, data=expected_data)
+    command = UpdateUserCommand(user_id=user.pk, data=expected_data)
+    updated_user = update_user_use_case.execute(command=command)
     db_user = User.objects.get(pk=user.pk)
     assert isinstance(updated_user, UserEntity)
     assert db_user.pk == updated_user.id
@@ -59,8 +61,9 @@ def test_update_user_phone_already_exists_error_raised(update_user_use_case: Upd
     expected_phone = '+592692652134'
     UserModelFactory.create(phone=expected_phone)
 
+    command = UpdateUserCommand(user_id=user.pk, data={'phone': expected_phone})
     with pytest.raises(UserWithDataAlreadyExistsError):
-        update_user_use_case.execute(user_id=user.pk, data={'phone': expected_phone})
+        update_user_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
@@ -68,24 +71,28 @@ def test_update_user_email_already_exists_error_raised(update_user_use_case: Upd
     expected_email = 'sdjghksdhgsg@example.com'
     UserModelFactory.create(email=expected_email)
 
+    command = UpdateUserCommand(user_id=user.pk, data={'email': expected_email})
     with pytest.raises(UserWithDataAlreadyExistsError):
-        update_user_use_case.execute(user_id=user.pk, data={'email': expected_email})
+        update_user_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_user_user_credentials_error_raised(update_user_use_case: UpdateUserUseCase):
+    command = UpdateUserCommand(user_id=None, data={})
     with pytest.raises(AuthCredentialsNotProvidedError):
-        update_user_use_case.execute(user_id=None, data={})
+        update_user_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_user_user_not_found_error_raised(update_user_use_case: UpdateUserUseCase):
+    command = UpdateUserCommand(user_id=1, data={})
     with pytest.raises(UserNotFoundError):
-        update_user_use_case.execute(user_id=1, data={})
+        update_user_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_user_user_not_active_error_raised(update_user_use_case: UpdateUserUseCase):
     user = UserModelFactory.create(is_active=False)
+    command = UpdateUserCommand(user_id=user.pk, data={})
     with pytest.raises(UserNotActiveError):
-        update_user_use_case.execute(user_id=user.pk, data={})
+        update_user_use_case.execute(command=command)

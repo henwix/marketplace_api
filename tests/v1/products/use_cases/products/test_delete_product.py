@@ -4,6 +4,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
+from src.apps.products.commands.products import DeleteProductCommand
 from src.apps.products.exceptions.products import ProductAccessForbiddenError, ProductNotFoundByIdError
 from src.apps.products.models.products import Product
 from src.apps.products.use_cases.products.delete import DeleteProductUseCase
@@ -27,7 +28,8 @@ def delete_product_use_case(container: Container) -> DeleteProductUseCase:
 def test_delete_product_deleted(seller: Seller, delete_product_use_case: DeleteProductUseCase):
     product = ProductModelFactory.create(seller=seller)
     assert Product.objects.filter(pk=product.pk).exists()
-    delete_product_use_case.execute(user_id=seller.user_id, product_id=product.pk)
+    command = DeleteProductCommand(user_id=seller.user_id, product_id=product.pk)
+    delete_product_use_case.execute(command=command)
     assert not Product.objects.filter(pk=product.pk).exists()
 
 
@@ -36,14 +38,16 @@ def test_delete_product_access_error_raised_if_seller_is_not_author(
     seller: Seller, product: Product, delete_product_use_case: DeleteProductUseCase
 ):
     with pytest.raises(ProductAccessForbiddenError):
-        delete_product_use_case.execute(user_id=seller.user_id, product_id=product.pk)
+        command = DeleteProductCommand(user_id=seller.user_id, product_id=product.pk)
+        delete_product_use_case.execute(command=command)
     assert Product.objects.filter(pk=product.pk).exists()
 
 
 @pytest.mark.django_db
 def test_delete_product_not_found_by_id_error_raised(seller: Seller, delete_product_use_case: DeleteProductUseCase):
     with pytest.raises(ProductNotFoundByIdError):
-        delete_product_use_case.execute(user_id=seller.user_id, product_id=uuid7())
+        command = DeleteProductCommand(user_id=seller.user_id, product_id=uuid7())
+        delete_product_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
@@ -52,23 +56,27 @@ def test_delete_product_seller_not_found_error_raised(
     user: User,
 ):
     with pytest.raises(SellerNotFoundError):
-        delete_product_use_case.execute(user_id=user.pk, product_id=uuid7())
+        command = DeleteProductCommand(user_id=user.pk, product_id=uuid7())
+        delete_product_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_delete_product_user_credentials_error_raised(delete_product_use_case: DeleteProductUseCase):
     with pytest.raises(AuthCredentialsNotProvidedError):
-        delete_product_use_case.execute(user_id=None, product_id=uuid7())
+        command = DeleteProductCommand(user_id=None, product_id=uuid7())
+        delete_product_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_delete_product_user_not_found_error_raised(delete_product_use_case: DeleteProductUseCase):
     with pytest.raises(UserNotFoundError):
-        delete_product_use_case.execute(user_id=1, product_id=uuid7())
+        command = DeleteProductCommand(user_id=1, product_id=uuid7())
+        delete_product_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_delete_product_user_not_active_error_raised(delete_product_use_case: DeleteProductUseCase):
     user = UserModelFactory.create(is_active=False)
     with pytest.raises(UserNotActiveError):
-        delete_product_use_case.execute(user_id=user.pk, product_id=uuid7())
+        command = DeleteProductCommand(user_id=user.pk, product_id=uuid7())
+        delete_product_use_case.execute(command=command)

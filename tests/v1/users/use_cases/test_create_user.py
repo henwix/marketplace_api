@@ -1,6 +1,7 @@
 import pytest
 from punq import Container
 
+from src.apps.users.commands import CreateUserCommand
 from src.apps.users.converters import user_from_entity
 from src.apps.users.entities import UserEntity
 from src.apps.users.exceptions.users import UserWithDataAlreadyExistsError
@@ -26,7 +27,7 @@ def test_create_user_created(
     expected_password: str,
 ):
     """Test that a user is created successfully"""
-    created_user = create_user_use_case.execute(
+    command = CreateUserCommand(
         data={
             'first_name': expected_first_name,
             'last_name': expected_last_name,
@@ -35,6 +36,7 @@ def test_create_user_created(
             'password': expected_password,
         },
     )
+    created_user = create_user_use_case.execute(command=command)
     db_user = User.objects.get(
         pk=created_user.id,
         first_name=expected_first_name,
@@ -63,16 +65,17 @@ def test_create_user_phone_already_exists_exception_raised(
     expected_password: str,
 ):
     UserModelFactory.create(phone=expected_phone)
+    command = CreateUserCommand(
+        data={
+            'first_name': expected_first_name,
+            'last_name': expected_last_name,
+            'email': expected_email,
+            'phone': expected_phone,
+            'password': expected_password,
+        },
+    )
     with pytest.raises(UserWithDataAlreadyExistsError):
-        create_user_use_case.execute(
-            data={
-                'first_name': expected_first_name,
-                'last_name': expected_last_name,
-                'email': expected_email,
-                'phone': expected_phone,
-                'password': expected_password,
-            },
-        )
+        create_user_use_case.execute(command=command)
 
 
 @pytest.mark.parametrize(argnames=CREATE_USER_ARGNAMES, argvalues=CREATE_USER_ARGVALUES)
@@ -86,13 +89,14 @@ def test_create_user_email_already_exists_exception_raised(
     expected_password: str,
 ):
     UserModelFactory.create(email=expected_email)
+    command = CreateUserCommand(
+        data={
+            'first_name': expected_first_name,
+            'last_name': expected_last_name,
+            'email': expected_email,
+            'phone': expected_phone,
+            'password': expected_password,
+        },
+    )
     with pytest.raises(UserWithDataAlreadyExistsError):
-        create_user_use_case.execute(
-            data={
-                'first_name': expected_first_name,
-                'last_name': expected_last_name,
-                'email': expected_email,
-                'phone': expected_phone,
-                'password': expected_password,
-            },
-        )
+        create_user_use_case.execute(command=command)

@@ -82,6 +82,7 @@ class ORMProductRepository(BaseProductRepository):
         return self._build_query_for_retrieve_with_relations(filters=Q(slug=slug)).first()
 
     def get_many_for_global_search(self) -> Iterable[Product]:
+        # TODO: index
         filters = (
             Q(is_visible=True) & Q(variants__stock__gt=0) & Q(variants__price__gt=0) & Q(variants__is_visible=True)
         )

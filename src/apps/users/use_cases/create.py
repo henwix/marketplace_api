@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from src.apps.users.commands import CreateUserCommand
 from src.apps.users.entities import UserEntity
 from src.apps.users.services.users import BaseUserService
 
@@ -8,5 +9,5 @@ from src.apps.users.services.users import BaseUserService
 class CreateUserUseCase:
     user_service: BaseUserService
 
-    def execute(self, data: dict) -> UserEntity:
-        return self.user_service.create(data=data)
+    def execute(self, command: CreateUserCommand) -> UserEntity:
+        return self.user_service.create(data=command.data)

@@ -4,6 +4,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
+from src.apps.products.commands.products import PersonalSearchProductCommand
 from src.apps.products.use_cases.products.personal_search import PersonalSearchProductUseCase
 from src.apps.sellers.exceptions import SellerNotFoundError
 from src.apps.sellers.models import Seller
@@ -33,7 +34,8 @@ def test_personal_search_products_retrieved(
         variant_params={'price': Decimal('9.99')},
     )
 
-    retrieved_products = personal_search_product_use_case.execute(user_id=seller.user_id)
+    command = PersonalSearchProductCommand(user_id=seller.user_id)
+    retrieved_products = personal_search_product_use_case.execute(command=command)
     assert len(retrieved_products) == expected_personal_product_count
 
 
@@ -42,24 +44,28 @@ def test_personal_search_seller_not_found_error_raised(
     personal_search_product_use_case: PersonalSearchProductUseCase,
     user: User,
 ):
+    command = PersonalSearchProductCommand(user_id=user.pk)
     with pytest.raises(SellerNotFoundError):
-        personal_search_product_use_case.execute(user_id=user.pk)
+        personal_search_product_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_personal_search_user_credentials_error_raised(personal_search_product_use_case: PersonalSearchProductUseCase):
+    command = PersonalSearchProductCommand(user_id=None)
     with pytest.raises(AuthCredentialsNotProvidedError):
-        personal_search_product_use_case.execute(user_id=None)
+        personal_search_product_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_personal_search_user_not_found_error_raised(personal_search_product_use_case: PersonalSearchProductUseCase):
+    command = PersonalSearchProductCommand(user_id=1)
     with pytest.raises(UserNotFoundError):
-        personal_search_product_use_case.execute(user_id=1)
+        personal_search_product_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_personal_search_user_not_active_error_raised(personal_search_product_use_case: PersonalSearchProductUseCase):
     user = UserModelFactory.create(is_active=False)
+    command = PersonalSearchProductCommand(user_id=user.pk)
     with pytest.raises(UserNotActiveError):
-        personal_search_product_use_case.execute(user_id=user.pk)
+        personal_search_product_use_case.execute(command=command)
