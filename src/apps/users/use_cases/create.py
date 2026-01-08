@@ -5,7 +5,7 @@ from src.apps.users.entities import UserEntity
 from src.apps.users.services.users import BaseUserService
 
 
-@dataclass
+@dataclass(eq=False)
 class CreateUserUseCase:
     user_service: BaseUserService
 

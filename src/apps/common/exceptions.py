@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from rest_framework import status
 
 
-@dataclass
+@dataclass(eq=False)
 class ServiceException(Exception):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     message = 'Application exception occured'

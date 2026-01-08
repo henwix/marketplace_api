@@ -25,10 +25,7 @@ class ProductVariantAccessValidatorService(BaseProductVariantAccessValidatorServ
             )
 
 
-@dataclass
 class BaseProductVariantService(ABC):
-    repository: BaseProductVariantRepository
-
     @abstractmethod
     def save(self, product_variant: ProductVariantEntity, update: bool = False) -> ProductVariantEntity: ...
 
@@ -39,7 +36,10 @@ class BaseProductVariantService(ABC):
     def delete(self, id: UUID) -> None: ...
 
 
+@dataclass(eq=False)
 class ProductVariantService(BaseProductVariantService):
+    repository: BaseProductVariantRepository
+
     def save(self, product_variant: ProductVariantEntity, update: bool = False) -> ProductVariantEntity:
         dto = product_variant_from_entity(entity=product_variant)
         dto = self.repository.save(product_variant=dto, update=update)

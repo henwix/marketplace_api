@@ -11,7 +11,7 @@ from src.apps.sellers.services.sellers import BaseSellerMustExistValidatorServic
 from src.apps.users.services.users import BaseUserService
 
 
-@dataclass
+@dataclass(eq=False)
 class UpdateProductVariantUseCase:
     user_service: BaseUserService
     variant_service: BaseProductVariantService

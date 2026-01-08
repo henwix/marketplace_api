@@ -1,6 +1,6 @@
 from django.urls import path
 
-from src.api.v1.products.views.product_reviews import DetailProductReviewView, ProductReviewView
+from src.api.v1.products.views.product_reviews import ProductReviewView
 from src.api.v1.products.views.product_variants import DetailProductVariantView, ProductVariantView
 from src.api.v1.products.views.products import (
     DetailProductView,
@@ -21,5 +21,4 @@ urlpatterns = [
     path('products/<uuid:id>/variants/', ProductVariantView.as_view(), name='product-variants'),
     path('products/<uuid:id>/reviews/', ProductReviewView.as_view(), name='product-reviews'),
     path('product-variants/<uuid:id>/', DetailProductVariantView.as_view(), name='product-variants-detail'),
-    path('product-reviews/<int:id>/', DetailProductReviewView.as_view(), name='product-reviews-detail'),
 ]

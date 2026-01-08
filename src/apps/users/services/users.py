@@ -14,10 +14,7 @@ from src.apps.users.models import User
 from src.apps.users.repositories.users import BaseUserRepository
 
 
-@dataclass
 class BaseUserService(ABC):
-    repository: BaseUserRepository
-
     @abstractmethod
     def create(self, data: dict) -> UserEntity: ...
 
@@ -37,7 +34,10 @@ class BaseUserService(ABC):
     def delete(self, id: int) -> None: ...
 
 
+@dataclass(eq=False)
 class UserService(BaseUserService):
+    repository: BaseUserRepository
+
     def _validate_dto_and_convert_to_entity(self, dto: User | None, user_id: int) -> UserEntity:
         if dto is None:
             raise UserNotFoundError(user_id=user_id)

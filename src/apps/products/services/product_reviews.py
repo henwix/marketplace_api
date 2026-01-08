@@ -1,14 +1,16 @@
 from abc import ABC, abstractmethod
+from collections.abc import Iterable
 from dataclasses import dataclass
+from uuid import UUID
 
 from src.apps.products.converters.product_reviews import product_review_from_entity, product_review_to_entity
 from src.apps.products.entities.product_reviews import ProductReviewEntity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.exceptions.product_reviews import (
-    ProductReviewAccessForbiddenError,
     ProductReviewAlreadyExistsError,
     ProductReviewNotFoundError,
 )
+from src.apps.products.models.product_reviews import ProductReview
 from src.apps.products.repositories.product_reviews import BaseProductReviewRepository
 from src.apps.users.entities import UserEntity
 
@@ -18,57 +20,52 @@ class BaseSingleProductReviewValidatorService(ABC):
     def validate(self, user: UserEntity, product: ProductEntity) -> None: ...
 
 
-@dataclass
+@dataclass(eq=False)
 class SingleProductReviewValidatorService(BaseSingleProductReviewValidatorService):
     product_review_service: BaseProductReviewService
 
     def validate(self, user: UserEntity, product: ProductEntity) -> None:
-        if self.product_review_service.check_review_exists(user=user, product=product):
+        if self.product_review_service.check_review_exists(user_id=user.id, product_id=product.id):
             raise ProductReviewAlreadyExistsError(user_id=user.id, product_id=product.id)
-
-
-class BaseProductReviewAccessValidatorService(ABC):
-    @abstractmethod
-    def validate(self, user: UserEntity, product_review: ProductReviewEntity) -> None: ...
-
-
-class ProductReviewAccessValidatorService(BaseProductReviewAccessValidatorService):
-    def validate(self, user: UserEntity, product_review: ProductReviewEntity) -> None:
-        if user.id != product_review.user_id:
-            raise ProductReviewAccessForbiddenError(user_id=user.id, product_review_id=product_review.id)
 
 
 class BaseProductReviewService(ABC):
     @abstractmethod
-    def check_review_exists(self, user: UserEntity, product: ProductEntity) -> bool: ...
+    def check_review_exists(self, user_id: int, product_id: UUID) -> bool: ...
 
     @abstractmethod
     def save(self, product_review: ProductReviewEntity, update: bool = False) -> ProductReviewEntity: ...
 
     @abstractmethod
-    def try_get_for_update_by_id(self, id: int) -> ProductReviewEntity: ...
+    def try_get_by_user_id_and_product_id(self, user_id: int, product_id: UUID) -> ProductReviewEntity: ...
+
+    @abstractmethod
+    def get_many_by_product_id_with_loaded_user(self, product_id: UUID) -> Iterable[ProductReview]: ...
 
     @abstractmethod
     def delete(self, id: int) -> None: ...
 
 
-@dataclass
+@dataclass(eq=False)
 class ProductReviewService(BaseProductReviewService):
     repository: BaseProductReviewRepository
 
-    def check_review_exists(self, user: UserEntity, product: ProductEntity) -> bool:
-        return self.repository.check_review_exists(user_id=user.id, product_id=product.id)
+    def check_review_exists(self, user_id: int, product_id: UUID) -> bool:
+        return self.repository.check_review_exists(user_id=user_id, product_id=product_id)
 
     def save(self, product_review: ProductReviewEntity, update: bool = False) -> ProductReviewEntity:
         dto = product_review_from_entity(entity=product_review)
         dto = self.repository.save(review=dto, update=update)
         return product_review_to_entity(dto=dto)
 
-    def try_get_for_update_by_id(self, id: int) -> ProductReviewEntity:
-        dto = self.repository.get_for_update_by_id(id=id)
+    def try_get_by_user_id_and_product_id(self, user_id: int, product_id: UUID) -> ProductReviewEntity:
+        dto = self.repository.get_by_user_id_and_product_id(user_id=user_id, product_id=product_id)
         if dto is None:
-            raise ProductReviewNotFoundError(product_review_id=id)
+            raise ProductReviewNotFoundError(user_id=user_id, product_id=product_id)
         return product_review_to_entity(dto=dto)
+
+    def get_many_by_product_id_with_loaded_user(self, product_id: UUID) -> Iterable[ProductReview]:
+        return self.repository.get_many_by_product_id_with_loaded_user(product_id=product_id)
 
     def delete(self, id: int) -> None:
         self.repository.delete(id=id)

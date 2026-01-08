@@ -1,13 +1,11 @@
 from punq import Container
 
-from src.apps.products.repositories.product_reviews import BaseProductReviewRepository, ProductReviewRepository
+from src.apps.products.repositories.product_reviews import BaseProductReviewRepository, ORMProductReviewRepository
 from src.apps.products.repositories.product_variants import BaseProductVariantRepository, ORMProductVariantRepository
 from src.apps.products.repositories.products import BaseProductRepository, ORMProductRepository
 from src.apps.products.services.product_reviews import (
-    BaseProductReviewAccessValidatorService,
     BaseProductReviewService,
     BaseSingleProductReviewValidatorService,
-    ProductReviewAccessValidatorService,
     ProductReviewService,
     SingleProductReviewValidatorService,
 )
@@ -29,6 +27,7 @@ from src.apps.products.services.products import (
 )
 from src.apps.products.use_cases.product_reviews.create import CreateProductReviewUseCase
 from src.apps.products.use_cases.product_reviews.delete import DeleteProductReviewUseCase
+from src.apps.products.use_cases.product_reviews.get import GetProductReviewsUseCase
 from src.apps.products.use_cases.product_reviews.update import UpdateProductReviewUseCase
 from src.apps.products.use_cases.product_variants.create import CreateProductVariantUseCase
 from src.apps.products.use_cases.product_variants.delete import DeleteProductVariantUseCase
@@ -59,6 +58,7 @@ def init_products(container: Container) -> None:
     container.register(DeleteProductVariantUseCase)
 
     container.register(CreateProductReviewUseCase)
+    container.register(GetProductReviewsUseCase)
     container.register(DeleteProductReviewUseCase)
     container.register(UpdateProductReviewUseCase)
 
@@ -73,11 +73,10 @@ def init_products(container: Container) -> None:
 
     container.register(BaseProductReviewService, ProductReviewService)
     container.register(BaseSingleProductReviewValidatorService, SingleProductReviewValidatorService)
-    container.register(BaseProductReviewAccessValidatorService, ProductReviewAccessValidatorService)
 
     # repositories
     container.register(BaseProductRepository, ORMProductRepository)
 
     container.register(BaseProductVariantRepository, ORMProductVariantRepository)
 
-    container.register(BaseProductReviewRepository, ProductReviewRepository)
+    container.register(BaseProductReviewRepository, ORMProductReviewRepository)

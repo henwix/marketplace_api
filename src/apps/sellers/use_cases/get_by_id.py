@@ -5,7 +5,7 @@ from src.apps.sellers.entities.sellers import SellerEntity
 from src.apps.sellers.services.sellers import BaseSellerService
 
 
-@dataclass
+@dataclass(eq=False)
 class GetSellerByIdUseCase:
     seller_service: BaseSellerService
 

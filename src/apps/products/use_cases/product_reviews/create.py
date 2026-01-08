@@ -11,7 +11,7 @@ from src.apps.products.services.products import BaseProductService
 from src.apps.users.services.users import BaseUserService
 
 
-@dataclass
+@dataclass(eq=False)
 class CreateProductReviewUseCase:
     user_service: BaseUserService
     product_service: BaseProductService

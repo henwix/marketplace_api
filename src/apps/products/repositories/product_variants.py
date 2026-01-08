@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from uuid import UUID
 
 from src.apps.products.models.product_variants import ProductVariant
 
 
-@dataclass
 class BaseProductVariantRepository(ABC):
     @abstractmethod
     def save(self, product_variant: ProductVariant, update: bool) -> ProductVariant: ...

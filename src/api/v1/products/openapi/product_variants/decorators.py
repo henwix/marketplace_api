@@ -21,8 +21,8 @@ from src.apps.sellers.exceptions import SellerNotFoundError
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError
 
 
-def extend_product_variant_view_schema():
-    return extend_schema_view(
+def extend_product_variant_view_schema(view):
+    decorator = extend_schema_view(
         post=extend_schema(
             parameters=[jwt_header_parameter()],
             request=ProductVariantSerializer,
@@ -51,9 +51,10 @@ def extend_product_variant_view_schema():
             summary='Retrieve Product Variants GET',
         ),
     )
+    return decorator(view)
 
 
-def extend_detail_product_variant_view_schema():
+def extend_detail_product_variant_view_schema(view):
     def _update_product_variant_extend_schema(method: str):
         return extend_schema(
             parameters=[jwt_header_parameter()],
@@ -69,7 +70,7 @@ def extend_detail_product_variant_view_schema():
             summary=f'Update Product Variant {method}',
         )
 
-    return extend_schema_view(
+    decorator = extend_schema_view(
         delete=extend_schema(
             parameters=[jwt_header_parameter()],
             request=None,
@@ -86,3 +87,4 @@ def extend_detail_product_variant_view_schema():
         put=_update_product_variant_extend_schema(method='PUT'),
         patch=_update_product_variant_extend_schema(method='PATCH'),
     )
+    return decorator(view)

@@ -14,7 +14,7 @@ from src.apps.sellers.exceptions import SellerAlreadyExistsError, SellerNotFound
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError
 
 
-def extend_seller_view_schema():
+def extend_seller_view_schema(view):
     def _update_seller_extend_schema(method: str):
         return (
             extend_schema(
@@ -30,7 +30,7 @@ def extend_seller_view_schema():
             ),
         )
 
-    return extend_schema_view(
+    decorator = extend_schema_view(
         post=extend_schema(
             parameters=[jwt_header_parameter()],
             request=SellerSerializer,
@@ -66,10 +66,11 @@ def extend_seller_view_schema():
             summary='Delete Seller Profile DELETE',
         ),
     )
+    return decorator(view)
 
 
-def extend_detail_seller_view_schema():
-    return extend_schema_view(
+def extend_detail_seller_view_schema(view):
+    decorator = extend_schema_view(
         get=extend_schema(
             responses={
                 status.HTTP_200_OK: successful_response(response=SellerSerializer),
@@ -78,3 +79,4 @@ def extend_detail_seller_view_schema():
             summary='Retrieve Seller Profile By Id GET',
         ),
     )
+    return decorator(view)

@@ -7,7 +7,7 @@ from src.apps.sellers.services.sellers import BaseSellerMustExistValidatorServic
 from src.apps.users.services.users import BaseUserService
 
 
-@dataclass
+@dataclass(eq=False)
 class DeleteProductUseCase:
     user_service: BaseUserService
     product_service: BaseProductService

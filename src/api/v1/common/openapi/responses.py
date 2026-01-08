@@ -18,7 +18,7 @@ def successful_response(*examples, response: type[Serializer]) -> OpenApiRespons
 def successful_page_response(response: type[Serializer], paginator: type[PageNumberPagination]) -> OpenApiResponse:
     return OpenApiResponse(
         response=inline_serializer(
-            name='PaginatedList',
+            name=f'PaginatedResponse{response.__name__}',
             fields={
                 'count': serializers.IntegerField(default=123),
                 'next': serializers.URLField(

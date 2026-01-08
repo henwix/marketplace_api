@@ -23,7 +23,7 @@ from src.apps.sellers.use_cases.update import UpdateSellerUseCase
 from src.project.containers import resolve_depends
 
 
-@extend_seller_view_schema()
+@extend_seller_view_schema
 class SellerView(APIView):
     def post(self, request: Request) -> Response:
         serializer = SellerSerializer(data=request.data)
@@ -60,7 +60,7 @@ class SellerView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@extend_detail_seller_view_schema()
+@extend_detail_seller_view_schema
 class DetailSellerView(LazyAuthViewMixin, APIView):
     def get(self, request: Request, id: int) -> Response:
         use_case: GetSellerByIdUseCase = resolve_depends(GetSellerByIdUseCase)

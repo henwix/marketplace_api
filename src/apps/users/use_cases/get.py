@@ -6,7 +6,7 @@ from src.apps.users.entities import UserEntity
 from src.apps.users.services.users import BaseUserService
 
 
-@dataclass
+@dataclass(eq=False)
 class GetUserUseCase:
     user_service: BaseUserService
     auth_validator_service: BaseAuthValidatorService

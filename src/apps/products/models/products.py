@@ -77,6 +77,8 @@ class Product(TimedBaseModel):
         indexes = [
             Index(fields=['created_at']),
             Index(fields=['updated_at']),
+            Index(fields=['reviews_count']),
+            Index(fields=['reviews_avg_rating']),
             GinIndex(
                 OpClass(Upper('title'), name='gin_trgm_ops'),
                 name='product_title_trgm_gin_idx',

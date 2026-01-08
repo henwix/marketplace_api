@@ -1,3 +1,4 @@
+from django.contrib.postgres.indexes import Index
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -34,6 +35,10 @@ class ProductReview(TimedBaseModel):
     class Meta:
         verbose_name = 'Product review'
         verbose_name_plural = 'Product reviews'
+        indexes = [
+            Index(fields=['product_id', 'created_at']),
+            Index(fields=['product_id', 'rating']),
+        ]
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'product'],

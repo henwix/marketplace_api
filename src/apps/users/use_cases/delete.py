@@ -5,7 +5,7 @@ from src.apps.users.commands import DeleteUserCommand
 from src.apps.users.services.users import BaseUserService
 
 
-@dataclass
+@dataclass(eq=False)
 class DeleteUserUseCase:
     user_service: BaseUserService
     auth_validator_service: BaseAuthValidatorService

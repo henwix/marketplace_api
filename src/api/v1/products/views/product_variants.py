@@ -22,7 +22,7 @@ from src.apps.products.use_cases.product_variants.update import UpdateProductVar
 from src.project.containers import resolve_depends
 
 
-@extend_product_variant_view_schema()
+@extend_product_variant_view_schema
 class ProductVariantView(APIView):
     def post(self, request: Request, id: UUID) -> Response:
         serializer = ProductVariantSerializer(data=request.data)
@@ -45,7 +45,7 @@ class ProductVariantView(APIView):
         )
 
 
-@extend_detail_product_variant_view_schema()
+@extend_detail_product_variant_view_schema
 class DetailProductVariantView(APIView):
     def delete(self, request: Request, id: UUID) -> Response:
         use_case: DeleteProductVariantUseCase = resolve_depends(DeleteProductVariantUseCase)

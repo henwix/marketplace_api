@@ -39,7 +39,7 @@ from src.apps.products.use_cases.products.update import UpdateProductUseCase
 from src.project.containers import resolve_depends
 
 
-@extend_product_view_schema()
+@extend_product_view_schema
 class ProductView(APIView):
     def post(self, request: Request) -> Response:
         serializer = ProductSerializer(data=request.data)
@@ -50,7 +50,7 @@ class ProductView(APIView):
         return Response(data=ProductSerializer(product).data, status=status.HTTP_201_CREATED)
 
 
-@extend_detail_slug_product_view_schema()
+@extend_detail_slug_product_view_schema
 class DetailSlugProductView(APIView):
     def get(self, request: Request, slug: str) -> Response:
         use_case: GetProductBySlugUseCase = resolve_depends(GetProductBySlugUseCase)
@@ -62,7 +62,7 @@ class DetailSlugProductView(APIView):
         )
 
 
-@extend_detail_product_view_schema()
+@extend_detail_product_view_schema
 class DetailProductView(APIView):
     def get(self, request: Request, id: UUID) -> Response:
         use_case: GetProductByIdUseCase = resolve_depends(GetProductByIdUseCase)
@@ -95,7 +95,7 @@ class DetailProductView(APIView):
 
 
 # TODO: cache for searching
-@extend_global_search_view_schema()
+@extend_global_search_view_schema
 class GlobalSearchProductView(
     PaginationViewMixin,
     LazyAuthViewMixin,
@@ -108,7 +108,7 @@ class GlobalSearchProductView(
         django_filters.rest_framework.DjangoFilterBackend,
     ]
     search_fields = ['title', 'description', 'short_description']
-    ordering_fields = ['created_at', 'updated_at', 'price']
+    ordering_fields = ['created_at', 'updated_at', 'price', 'reviews_count', 'reviews_avg_rating']
     ordering = ['-created_at']
 
     def get(self, request: Request) -> Response:
@@ -121,7 +121,7 @@ class GlobalSearchProductView(
         )
 
 
-@extend_personal_search_view_schema()
+@extend_personal_search_view_schema
 class PersonalSearchProductView(
     PaginationViewMixin,
     GenericAPIView,
@@ -133,7 +133,7 @@ class PersonalSearchProductView(
         django_filters.rest_framework.DjangoFilterBackend,
     ]
     search_fields = ['title', 'description', 'short_description']
-    ordering_fields = ['created_at', 'updated_at', 'price']
+    ordering_fields = ['created_at', 'updated_at', 'price', 'reviews_count', 'reviews_avg_rating']
     ordering = ['-created_at']
 
     def get(self, request: Request) -> Response:

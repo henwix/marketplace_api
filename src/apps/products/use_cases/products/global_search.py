@@ -5,7 +5,7 @@ from src.apps.products.models.products import Product
 from src.apps.products.services.products import BaseProductService
 
 
-@dataclass
+@dataclass(eq=False)
 class GlobalSearchProductUseCase:
     product_service: BaseProductService
 

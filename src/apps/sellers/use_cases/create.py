@@ -8,7 +8,7 @@ from src.apps.sellers.services.sellers import BaseSellerMustNotExistValidatorSer
 from src.apps.users.services.users import BaseUserService
 
 
-@dataclass
+@dataclass(eq=False)
 class CreateSellerUseCase:
     user_service: BaseUserService
     seller_service: BaseSellerService

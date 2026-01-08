@@ -22,7 +22,7 @@ from src.apps.users.use_cases.update import UpdateUserUseCase
 from src.project.containers import resolve_depends
 
 
-@extend_user_view_schema()
+@extend_user_view_schema
 class UserView(APIView):
     def post(self, request: Request) -> Response:
         serializer = UserSerializer(data=request.data)
@@ -59,7 +59,7 @@ class UserView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@extend_set_password_user_view_schema()
+@extend_set_password_user_view_schema
 class SetPasswordUserView(APIView):
     def post(self, request: Request) -> Response:
         serializer = PasswordUserSerializer(data=request.data)

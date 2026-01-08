@@ -2,21 +2,26 @@ from dataclasses import dataclass
 from uuid import UUID
 
 
-@dataclass
+@dataclass(frozen=True, eq=False)
 class CreateProductReviewCommand:
     user_id: int | None
     product_id: UUID
     data: dict
 
 
-@dataclass
+@dataclass(frozen=True, eq=False)
 class UpdateProductReviewCommand:
     user_id: int | None
-    product_review_id: int
+    product_id: UUID
     data: dict
 
 
-@dataclass
+@dataclass(frozen=True, eq=False)
 class DeleteProductReviewCommand:
     user_id: int | None
-    product_review_id: int
+    product_id: UUID
+
+
+@dataclass(frozen=True, eq=False)
+class GetProductReviewsCommand:
+    product_id: UUID

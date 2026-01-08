@@ -34,7 +34,7 @@ class BaseProductVariantsLimitValidatorService(ABC):
     def validate(self, product: ProductEntity) -> None: ...
 
 
-@dataclass
+@dataclass(eq=False)
 class ProductVariantsLimitValidatorService(BaseProductVariantsLimitValidatorService):
     product_variant_repository: BaseProductVariantRepository
 
@@ -59,10 +59,7 @@ class ProductHasVariantsValidatorService(BaseProductHasVariantsValidatorService)
             raise ProductVariantsNotFoundError(product_id=product.id)
 
 
-@dataclass
 class BaseProductService(ABC):
-    repository: BaseProductRepository
-
     @abstractmethod
     def save(self, product: ProductEntity, update: bool = False) -> ProductEntity: ...
 
@@ -91,7 +88,10 @@ class BaseProductService(ABC):
     def delete(self, id: UUID) -> None: ...
 
 
+@dataclass(eq=False)
 class ProductService(BaseProductService):
+    repository: BaseProductRepository
+
     def _validate_dto(self, dto: Product | None, id: UUID) -> None:
         if dto is None:
             raise ProductNotFoundByIdError(id=id)

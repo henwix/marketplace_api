@@ -7,7 +7,7 @@ from src.apps.products.services.products import BaseProductAccessValidatorServic
 from src.apps.users.services.users import BaseUserService
 
 
-@dataclass
+@dataclass(eq=False)
 class GetProductByIdUseCase:
     user_service: BaseUserService
     product_service: BaseProductService

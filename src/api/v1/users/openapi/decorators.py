@@ -17,7 +17,7 @@ from src.api.v1.users.serializers import PasswordUserSerializer, UpdateUserSeria
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError, UserWithDataAlreadyExistsError
 
 
-def extend_user_view_schema():
+def extend_user_view_schema(view):
     def _update_user_extend_schema(method: str):
         return extend_schema(
             parameters=[jwt_header_parameter()],
@@ -32,7 +32,7 @@ def extend_user_view_schema():
             summary=f'Update User {method}',
         )
 
-    return extend_schema_view(
+    decorator = extend_schema_view(
         post=extend_schema(
             request=UserSerializer,
             responses={
@@ -66,10 +66,11 @@ def extend_user_view_schema():
             summary='Delete User DELETE',
         ),
     )
+    return decorator(view)
 
 
-def extend_set_password_user_view_schema():
-    return extend_schema_view(
+def extend_set_password_user_view_schema(view):
+    decorator = extend_schema_view(
         post=extend_schema(
             parameters=[jwt_header_parameter()],
             request=PasswordUserSerializer,
@@ -85,3 +86,4 @@ def extend_set_password_user_view_schema():
             summary='Update User Password POST',
         )
     )
+    return decorator(view)

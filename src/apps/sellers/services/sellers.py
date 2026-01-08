@@ -29,10 +29,7 @@ class SellerMustExistValidatorService(BaseSellerMustExistValidatorService):
             raise SellerNotFoundError(user_id=user_id)
 
 
-@dataclass
 class BaseSellerService(ABC):
-    repository: BaseSellerRepository
-
     @abstractmethod
     def save(self, seller: SellerEntity, update: bool = False) -> SellerEntity: ...
 
@@ -43,7 +40,10 @@ class BaseSellerService(ABC):
     def delete(self, id: int) -> None: ...
 
 
+@dataclass(eq=False)
 class SellerService(BaseSellerService):
+    repository: BaseSellerRepository
+
     def save(self, seller: SellerEntity, update: bool = False) -> SellerEntity:
         dto = seller_from_entity(entity=seller)
         dto = self.repository.save(seller=dto, update=update)

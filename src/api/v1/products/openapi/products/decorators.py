@@ -34,8 +34,8 @@ from src.apps.sellers.exceptions import SellerNotFoundError
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError
 
 
-def extend_product_view_schema():
-    return extend_schema_view(
+def extend_product_view_schema(view):
+    decorator = extend_schema_view(
         post=extend_schema(
             parameters=[jwt_header_parameter()],
             request=ProductSerializer,
@@ -48,10 +48,11 @@ def extend_product_view_schema():
             summary='Create Product POST',
         )
     )
+    return decorator(view)
 
 
-def extend_detail_slug_product_view_schema():
-    return extend_schema_view(
+def extend_detail_slug_product_view_schema(view):
+    decorator = extend_schema_view(
         get=extend_schema(
             parameters=[jwt_header_parameter()],
             request=None,
@@ -64,9 +65,10 @@ def extend_detail_slug_product_view_schema():
             summary='Retrieve Product By Slug GET',
         )
     )
+    return decorator(view)
 
 
-def extend_detail_product_view_schema():
+def extend_detail_product_view_schema(view):
     def _update_product_extend_schema(method: str):
         return extend_schema(
             parameters=[jwt_header_parameter()],
@@ -82,7 +84,7 @@ def extend_detail_product_view_schema():
             summary=f'Update Product {method}',
         )
 
-    return extend_schema_view(
+    decorator = extend_schema_view(
         get=extend_schema(
             parameters=[jwt_header_parameter()],
             request=None,
@@ -110,10 +112,11 @@ def extend_detail_product_view_schema():
         put=_update_product_extend_schema(method='PUT'),
         patch=_update_product_extend_schema(method='PATCH'),
     )
+    return decorator(view)
 
 
-def extend_global_search_view_schema():
-    return extend_schema(
+def extend_global_search_view_schema(view):
+    decorator = extend_schema(
         parameters=[
             search_query_parameter(),
             ordering_query_parameter(enum=ProductsSearchOrderingEnum),
@@ -133,10 +136,11 @@ def extend_global_search_view_schema():
         },
         summary='Search Global Products GET',
     )
+    return decorator(view)
 
 
-def extend_personal_search_view_schema():
-    return extend_schema(
+def extend_personal_search_view_schema(view):
+    decorator = extend_schema(
         parameters=[
             jwt_header_parameter(),
             search_query_parameter(),
@@ -161,3 +165,4 @@ def extend_personal_search_view_schema():
         },
         summary='Search Personal Products GET',
     )
+    return decorator(view)
