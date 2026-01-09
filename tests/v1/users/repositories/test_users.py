@@ -25,13 +25,11 @@ def test_create_user_created(
 ):
     """Test that a user is created successfully"""
     created_user = user_repository.create(
-        data={
-            'first_name': expected_first_name,
-            'last_name': expected_last_name,
-            'email': expected_email,
-            'phone': expected_phone,
-            'password': expected_password,
-        },
+        first_name=expected_first_name,
+        last_name=expected_last_name,
+        email=expected_email,
+        phone=expected_phone,
+        password=expected_password,
     )
 
     assert isinstance(created_user, User)
@@ -54,13 +52,11 @@ def test_create_user_validation_error_raised(
     """Test that creating a user without required fields raises a validation error"""
     with pytest.raises(ValidationError):
         user_repository.create(
-            data={
-                'first_name': expected_first_name,
-                'last_name': expected_last_name,
-                'email': expected_email,
-                'phone': expected_phone,
-                'password': expected_password,
-            },
+            first_name=expected_first_name,
+            last_name=expected_last_name,
+            email=expected_email,
+            phone=expected_phone,
+            password=expected_password,
         )
 
 

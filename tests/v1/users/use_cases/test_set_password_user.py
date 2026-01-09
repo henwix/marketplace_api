@@ -27,11 +27,9 @@ def test_update_password_updated(
 ):
     assert user.check_password(expected_password) is False
     command = SetPasswordUserCommand(user_id=user.pk, password=expected_password)
-    result = set_password_user_use_case.execute(command=command)
-
+    set_password_user_use_case.execute(command=command)
     db_user = User.objects.get(pk=user.pk)
     assert db_user.check_password(expected_password) is True
-    assert result == {'detail': 'Success'}
 
 
 @pytest.mark.django_db

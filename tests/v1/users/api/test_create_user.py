@@ -3,6 +3,7 @@ from rest_framework import status
 
 from src.apps.users.models import User
 from tests.v1.conftest import get_client
+from tests.v1.users.factories import UserModelFactory
 from tests.v1.users.test_data.create_user import CREATE_USER_ARGNAMES, CREATE_USER_ARGVALUES
 
 
@@ -36,12 +37,30 @@ def test_user_created(
 
 
 @pytest.mark.django_db
-def test_user_not_created_and_returns_400_if_already_exists(user: User):
+def test_user_not_created_and_returns_400_if_email_already_exists(user: User):
     client = get_client()
     expected_user_data = {
         'first_name': user.first_name,
         'last_name': user.last_name,
         'email': user.email,
+        'phone': '+99999999999',
+        'password': 'test_user_password_123456',
+    }
+
+    response = client.post(path='/v1/users/', data=expected_user_data)
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'User with this email already exists' == response.data.get('detail')
+
+
+@pytest.mark.django_db
+def test_user_not_created_and_returns_400_if_phone_already_exists():
+    user = UserModelFactory.create(phone='+9999999999')
+    client = get_client()
+    expected_user_data = {
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'email': 'test@test.com',
         'phone': user.phone,
         'password': 'test_user_password_123456',
     }
@@ -49,8 +68,7 @@ def test_user_not_created_and_returns_400_if_already_exists(user: User):
     response = client.post(path='/v1/users/', data=expected_user_data)
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert 'User with this email address already exists.' in response.data.get('email')
-    assert 'User with this phone number already exists.' in response.data.get('phone')
+    assert 'User with this phone already exists' == response.data.get('detail')
 
 
 @pytest.mark.django_db

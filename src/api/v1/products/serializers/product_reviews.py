@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from src.api.v1.users.serializers import PreviewUserSerializer
+from src.api.v1.users.serializers import PreviewUserOutSerializer
 from src.apps.products.models.product_reviews import ProductReview
 
 
@@ -12,7 +12,7 @@ class ProductReviewSerializer(serializers.ModelSerializer):
 
 
 class RetrieveProductReviewSerializer(serializers.ModelSerializer):
-    user = PreviewUserSerializer()
+    user = PreviewUserOutSerializer()
 
     class Meta:
         model = ProductReview

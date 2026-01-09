@@ -16,21 +16,3 @@ def build_response_example_from_error(
         description=description,
         summary=summary,
     )
-
-
-def build_detail_response_example(
-    name: str,
-    value: str,
-    status_code: int,
-    summary: str = '',
-    description: str = '',
-) -> OpenApiExample:
-    """Return response example with custom 'detail' value."""
-    return OpenApiExample(
-        name=name,
-        value={'detail': value},
-        response_only=True,
-        status_codes=[status_code],
-        summary=summary,
-        description=description,
-    )

@@ -14,3 +14,11 @@ class SellerEntity(BaseEntity):
     background: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
+
+    @staticmethod
+    def create(name: str, description: str | None, user_id: int) -> SellerEntity:
+        return SellerEntity(
+            name=name,
+            description=description,
+            user_id=user_id,
+        )

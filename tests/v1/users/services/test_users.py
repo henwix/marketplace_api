@@ -24,13 +24,11 @@ def test_create_user_created(
 ):
     """Test that a user is created successfully"""
     created_user = user_service.create(
-        data={
-            'first_name': expected_first_name,
-            'last_name': expected_last_name,
-            'email': expected_email,
-            'phone': expected_phone,
-            'password': expected_password,
-        },
+        first_name=expected_first_name,
+        last_name=expected_last_name,
+        email=expected_email,
+        phone=expected_phone,
+        password=expected_password,
     )
 
     assert isinstance(created_user, UserEntity)
@@ -56,13 +54,11 @@ def test_create_user_not_created_and_email_already_exists_error_raised(
 
     with pytest.raises(UserWithDataAlreadyExistsError):
         user_service.create(
-            data={
-                'first_name': expected_first_name,
-                'last_name': expected_last_name,
-                'email': expected_email,
-                'phone': expected_phone,
-                'password': expected_password,
-            },
+            first_name=expected_first_name,
+            last_name=expected_last_name,
+            email=expected_email,
+            phone=expected_phone,
+            password=expected_password,
         )
 
 
@@ -81,13 +77,11 @@ def test_create_user_not_created_and_phone_already_exists_error_raised(
 
     with pytest.raises(UserWithDataAlreadyExistsError):
         user_service.create(
-            data={
-                'first_name': expected_first_name,
-                'last_name': expected_last_name,
-                'email': expected_email,
-                'phone': expected_phone,
-                'password': expected_password,
-            },
+            first_name=expected_first_name,
+            last_name=expected_last_name,
+            email=expected_email,
+            phone=expected_phone,
+            password=expected_password,
         )
 
 
@@ -179,3 +173,12 @@ def test_save_user_saved_for_update(user_service: BaseUserService, user: User):
     assert isinstance(saved_user, UserEntity)
     db_user = User.objects.get(pk=user.pk)
     assert user_to_entity(dto=db_user) == saved_user
+
+
+@pytest.mark.django_db
+def test_save_user_not_saved_and_data_already_exists_error_raised(user_service: BaseUserService, user: User):
+    new_user = UserModelFactory.create()
+    new_user.phone = user.phone
+    new_user.email = user.email
+    with pytest.raises(UserWithDataAlreadyExistsError):
+        user_service.save(user=user_to_entity(dto=new_user))

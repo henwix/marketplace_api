@@ -12,6 +12,18 @@ class UserWithDataAlreadyExistsError(ServiceException):
 
 
 @dataclass(eq=False)
+class UserWithEmailAlreadyExistsError(ServiceException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    message = 'User with this email already exists'
+
+
+@dataclass(eq=False)
+class UserWithPhoneAlreadyExistsError(ServiceException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    message = 'User with this phone already exists'
+
+
+@dataclass(eq=False)
 class UserNotFoundError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     message = 'User not found'

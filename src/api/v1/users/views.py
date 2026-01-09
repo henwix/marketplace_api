@@ -6,7 +6,12 @@ from src.api.v1.users.openapi.decorators import (
     extend_set_password_user_view_schema,
     extend_user_view_schema,
 )
-from src.api.v1.users.serializers import PasswordUserSerializer, UpdateUserSerializer, UserSerializer
+from src.api.v1.users.serializers import (
+    CreateUserInSerializer,
+    SetPasswordUserInSerializer,
+    UpdateUserInSerializer,
+    UserOutSerializer,
+)
 from src.apps.users.commands import (
     CreateUserCommand,
     DeleteUserCommand,
@@ -25,26 +30,26 @@ from src.project.containers import resolve_depends
 @extend_user_view_schema
 class UserView(APIView):
     def post(self, request: Request) -> Response:
-        serializer = UserSerializer(data=request.data)
+        serializer = CreateUserInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         use_case: CreateUserUseCase = resolve_depends(CreateUserUseCase)
-        command = CreateUserCommand(data=serializer.validated_data)
+        command = CreateUserCommand(**serializer.validated_data)
         user = use_case.execute(command=command)
-        return Response(data=UserSerializer(user).data, status=status.HTTP_201_CREATED)
+        return Response(data=UserOutSerializer(user).data, status=status.HTTP_201_CREATED)
 
     def get(self, request: Request) -> Response:
         use_case: GetUserUseCase = resolve_depends(GetUserUseCase)
         command = GetUserCommand(user_id=request.user.id)
         user = use_case.execute(command=command)
-        return Response(data=UserSerializer(user).data, status=status.HTTP_200_OK)
+        return Response(data=UserOutSerializer(user).data, status=status.HTTP_200_OK)
 
     def _update(self, request: Request, partial: bool) -> Response:
-        serializer = UpdateUserSerializer(data=request.data, partial=partial)
+        serializer = UpdateUserInSerializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         use_case: UpdateUserUseCase = resolve_depends(UpdateUserUseCase)
-        command = UpdateUserCommand(user_id=request.user.id, data=serializer.validated_data)
+        command = UpdateUserCommand(user_id=request.user.id, **serializer.validated_data)
         user = use_case.execute(command=command)
-        return Response(data=UpdateUserSerializer(user).data, status=status.HTTP_200_OK)
+        return Response(data=UserOutSerializer(user).data, status=status.HTTP_200_OK)
 
     def put(self, request: Request) -> Response:
         return self._update(request=request, partial=False)
@@ -62,9 +67,9 @@ class UserView(APIView):
 @extend_set_password_user_view_schema
 class SetPasswordUserView(APIView):
     def post(self, request: Request) -> Response:
-        serializer = PasswordUserSerializer(data=request.data)
+        serializer = SetPasswordUserInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         use_case: SetPasswordUserUseCase = resolve_depends(SetPasswordUserUseCase)
         command = SetPasswordUserCommand(user_id=request.user.id, password=serializer.validated_data['new_password'])
-        result = use_case.execute(command=command)
-        return Response(data=result, status=status.HTTP_200_OK)
+        use_case.execute(command=command)
+        return Response(status=status.HTTP_204_NO_CONTENT)

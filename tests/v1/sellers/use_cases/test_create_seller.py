@@ -30,12 +30,11 @@ def test_create_seller_created(
     expected_name: str,
     expected_description: str,
 ):
-    expected_seller_data = {
-        'name': expected_name,
-        'description': expected_description,
-    }
-
-    command = CreateSellerCommand(user_id=user.pk, data=expected_seller_data)
+    command = CreateSellerCommand(
+        user_id=user.pk,
+        name=expected_name,
+        description=expected_description,
+    )
     seller = create_seller_use_case.execute(command=command)
     db_seller = Seller.objects.get(pk=seller.id)
     assert isinstance(seller, SellerEntity)
@@ -52,21 +51,33 @@ def test_create_seller_already_exists_error_raised(
     create_seller_use_case: CreateSellerUseCase,
     seller: Seller,
 ):
-    command = CreateSellerCommand(user_id=seller.user_id, data={})
+    command = CreateSellerCommand(
+        user_id=seller.user_id,
+        name='test',
+        description='test',
+    )
     with pytest.raises(SellerAlreadyExistsError):
         create_seller_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_create_seller_user_credentials_error_raised(create_seller_use_case: CreateSellerUseCase):
-    command = CreateSellerCommand(user_id=None, data={})
+    command = CreateSellerCommand(
+        user_id=None,
+        name='test',
+        description='test',
+    )
     with pytest.raises(AuthCredentialsNotProvidedError):
         create_seller_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_create_seller_user_not_found_error_raised(create_seller_use_case: CreateSellerUseCase):
-    command = CreateSellerCommand(user_id=1, data={})
+    command = CreateSellerCommand(
+        user_id=1,
+        name='test',
+        description='test',
+    )
     with pytest.raises(UserNotFoundError):
         create_seller_use_case.execute(command=command)
 
@@ -74,6 +85,10 @@ def test_create_seller_user_not_found_error_raised(create_seller_use_case: Creat
 @pytest.mark.django_db
 def test_create_seller_user_not_active_error_raised(create_seller_use_case: CreateSellerUseCase):
     user = UserModelFactory.create(is_active=False)
-    command = CreateSellerCommand(user_id=user.pk, data={})
+    command = CreateSellerCommand(
+        user_id=user.pk,
+        name='test',
+        description='test',
+    )
     with pytest.raises(UserNotActiveError):
         create_seller_use_case.execute(command=command)

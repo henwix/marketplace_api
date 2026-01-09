@@ -1,27 +1,8 @@
 import pytest
 
-from src.apps.sellers.converters.sellers import data_to_seller_entity, seller_from_entity, seller_to_entity
+from src.apps.sellers.converters.sellers import seller_from_entity, seller_to_entity
 from src.apps.sellers.entities.sellers import SellerEntity
 from src.apps.sellers.models import Seller
-
-
-def test_convert_data_to_seller_entity():
-    data = {
-        'user_id': 155,
-        'name': 'test name',
-        'description': 'test description',
-    }
-    converted_entity = data_to_seller_entity(data=data)
-
-    assert isinstance(converted_entity, SellerEntity)
-    assert converted_entity.id is None
-    assert converted_entity.user_id == data['user_id']
-    assert converted_entity.name == data['name']
-    assert converted_entity.description == data['description']
-    assert converted_entity.avatar is None
-    assert converted_entity.background is None
-    assert converted_entity.created_at is None
-    assert converted_entity.updated_at is None
 
 
 @pytest.mark.django_db

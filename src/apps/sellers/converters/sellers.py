@@ -2,10 +2,6 @@ from src.apps.sellers.entities.sellers import SellerEntity
 from src.apps.sellers.models import Seller
 
 
-def data_to_seller_entity(data: dict) -> SellerEntity:
-    return SellerEntity(**data)
-
-
 def seller_to_entity(dto: Seller | None) -> SellerEntity | None:
     if dto is None:
         return None

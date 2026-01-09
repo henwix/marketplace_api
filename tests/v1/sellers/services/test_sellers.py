@@ -1,7 +1,6 @@
 import pytest
 from punq import Container
 
-from src.apps.sellers.converters.sellers import data_to_seller_entity
 from src.apps.sellers.entities.sellers import SellerEntity
 from src.apps.sellers.services.sellers import BaseSellerService
 from src.apps.users.models import User
@@ -21,13 +20,12 @@ def test_create_seller_created(
     expected_name: str,
     expected_description: str,
 ):
-    expected_seller_data = {
-        'user_id': user.pk,
-        'name': expected_name,
-        'description': expected_description,
-    }
-
-    seller = seller_service.save(seller=data_to_seller_entity(data=expected_seller_data))
+    entity = SellerEntity.create(
+        name=expected_name,
+        description=expected_description,
+        user_id=user.pk,
+    )
+    seller = seller_service.save(seller=entity)
     assert isinstance(seller, SellerEntity)
     assert seller.user_id == user.pk
     assert seller.name == expected_name

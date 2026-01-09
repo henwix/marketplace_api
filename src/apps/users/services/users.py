@@ -9,14 +9,55 @@ from src.apps.users.exceptions.users import (
     UserNotActiveError,
     UserNotFoundError,
     UserWithDataAlreadyExistsError,
+    UserWithEmailAlreadyExistsError,
+    UserWithPhoneAlreadyExistsError,
 )
 from src.apps.users.models import User
 from src.apps.users.repositories.users import BaseUserRepository
 
 
+class BaseUserValidatorService(ABC):
+    @abstractmethod
+    def validate(self, email: str, phone: str) -> None: ...
+
+
+@dataclass
+class UserUniqueEmailValidatorService(BaseUserValidatorService):
+    user_repository: BaseUserRepository
+
+    def validate(self, email: str, *args, **kwargs) -> None:
+        if self.user_repository.check_user_with_email_exists(email=email):
+            raise UserWithEmailAlreadyExistsError()
+
+
+@dataclass
+class UserUniquePhoneValidatorService(BaseUserValidatorService):
+    user_repository: BaseUserRepository
+
+    def validate(self, phone: str, *args, **kwargs) -> None:
+        if self.user_repository.check_user_with_phone_exists(phone=phone):
+            raise UserWithPhoneAlreadyExistsError()
+
+
+@dataclass
+class ComposedUserValidatorService(BaseUserValidatorService):
+    validators: list[BaseUserValidatorService]
+
+    def validate(self, email: str, phone: str) -> None:
+        for validator in self.validators:
+            validator.validate(email=email, phone=phone)
+
+
 class BaseUserService(ABC):
     @abstractmethod
-    def create(self, data: dict) -> UserEntity: ...
+    def create(
+        self,
+        first_name: str,
+        last_name: str,
+        email: str,
+        phone: str,
+        password: str,
+    ) -> UserEntity: ...
 
     @abstractmethod
     def save(self, user: UserEntity, update: bool = False) -> UserEntity: ...
@@ -46,9 +87,22 @@ class UserService(BaseUserService):
             raise UserNotActiveError(user_id=user_id)
         return user
 
-    def create(self, data: dict) -> UserEntity:
+    def create(
+        self,
+        first_name: str,
+        last_name: str,
+        email: str,
+        phone: str,
+        password: str,
+    ) -> UserEntity:
         try:
-            dto = self.repository.create(data=data)
+            dto = self.repository.create(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone=phone,
+                password=password,
+            )
             return user_to_entity(dto=dto)
         except IntegrityError:
             raise UserWithDataAlreadyExistsError()

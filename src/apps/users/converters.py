@@ -3,10 +3,6 @@ from src.apps.users.entities import UserEntity
 from src.apps.users.models import User
 
 
-def data_to_user_entity(data: dict) -> UserEntity:
-    return UserEntity(**data)
-
-
 def user_to_entity(dto: User) -> UserEntity:
     entity = UserEntity(
         id=dto.pk,

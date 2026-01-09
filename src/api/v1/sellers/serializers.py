@@ -1,10 +1,14 @@
 from rest_framework import serializers
 
-from src.apps.sellers.models import Seller
+
+class SellerInSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=100)
+    description = serializers.CharField(allow_null=True, allow_blank=True, required=False)
 
 
-class SellerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Seller
-        fields = ['id', 'name', 'description', 'avatar', 'background']
-        read_only_fields = ['id', 'avatar', 'background']
+class SellerOutSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    name = serializers.CharField(max_length=100)
+    description = serializers.CharField(allow_null=True)
+    avatar = serializers.CharField(allow_null=True)
+    background = serializers.CharField(allow_null=True)
