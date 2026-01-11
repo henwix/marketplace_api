@@ -1,18 +1,20 @@
 from dataclasses import dataclass
 
+from src.apps.common.types import UNSET, Unset
+
 
 @dataclass(frozen=True, eq=False)
 class CreateSellerCommand:
     user_id: int | None
     name: str
-    description: str | None = None
+    description: str
 
 
 @dataclass(frozen=True, eq=False)
 class UpdateSellerCommand:
     user_id: int | None
-    name: str | None = None
-    description: str | None = None
+    name: str | Unset = UNSET
+    description: str | Unset = UNSET
 
 
 @dataclass(frozen=True, eq=False)

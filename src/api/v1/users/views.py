@@ -43,19 +43,13 @@ class UserView(APIView):
         user = use_case.execute(command=command)
         return Response(data=UserOutSerializer(user).data, status=status.HTTP_200_OK)
 
-    def _update(self, request: Request, partial: bool) -> Response:
-        serializer = UpdateUserInSerializer(data=request.data, partial=partial)
+    def patch(self, request: Request) -> Response:
+        serializer = UpdateUserInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         use_case: UpdateUserUseCase = resolve_depends(UpdateUserUseCase)
         command = UpdateUserCommand(user_id=request.user.id, **serializer.validated_data)
         user = use_case.execute(command=command)
         return Response(data=UserOutSerializer(user).data, status=status.HTTP_200_OK)
-
-    def put(self, request: Request) -> Response:
-        return self._update(request=request, partial=False)
-
-    def patch(self, request: Request) -> Response:
-        return self._update(request=request, partial=True)
 
     def delete(self, request: Request) -> Response:
         use_case: DeleteUserUseCase = resolve_depends(DeleteUserUseCase)

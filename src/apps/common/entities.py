@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from src.apps.common.types import UNSET
+
 
 @dataclass
 class BaseEntity:
@@ -8,7 +10,7 @@ class BaseEntity:
             if hasattr(self, k):
                 setattr(self, k, v)
 
-    def update_fields(self, **kwargs) -> None:
+    def update(self, **kwargs) -> None:
         for k, v in kwargs.items():
-            if hasattr(self, k) and v is not None:
+            if hasattr(self, k) and v is not UNSET:
                 setattr(self, k, v)

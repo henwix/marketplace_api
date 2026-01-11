@@ -1,11 +1,16 @@
 from dataclasses import dataclass
 from uuid import UUID
 
+from src.apps.common.types import UNSET, Unset
+
 
 @dataclass(frozen=True, eq=False)
 class CreateProductCommand:
     user_id: int | None
-    data: dict
+    title: str
+    description: str
+    short_description: str
+    is_visible: bool
 
 
 @dataclass(frozen=True, eq=False)
@@ -30,7 +35,10 @@ class GetProductBySlugCommand:
 class UpdateProductCommand:
     user_id: int | None
     product_id: UUID
-    data: dict
+    title: str | Unset = UNSET
+    description: str | Unset = UNSET
+    short_description: str | Unset = UNSET
+    is_visible: bool | Unset = UNSET
 
 
 @dataclass(frozen=True, eq=False)

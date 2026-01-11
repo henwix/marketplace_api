@@ -9,14 +9,14 @@ class SellerEntity(BaseEntity):
     id: int | None = None
     user_id: int
     name: str
-    description: str | None = None
+    description: str = ''
     avatar: str | None = None
     background: str | None = None
     created_at: datetime | None = None
     updated_at: datetime | None = None
 
     @staticmethod
-    def create(name: str, description: str | None, user_id: int) -> SellerEntity:
+    def create(name: str, description: str, user_id: int) -> SellerEntity:
         return SellerEntity(
             name=name,
             description=description,

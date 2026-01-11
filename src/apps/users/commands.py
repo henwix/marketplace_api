@@ -1,5 +1,7 @@
 from dataclasses import dataclass
 
+from src.apps.common.types import UNSET, Unset
+
 
 @dataclass(frozen=True, eq=False)
 class CreateUserCommand:
@@ -13,10 +15,10 @@ class CreateUserCommand:
 @dataclass(frozen=True, eq=False)
 class UpdateUserCommand:
     user_id: int | None
-    first_name: str | None = None
-    last_name: str | None = None
-    email: str | None = None
-    phone: str | None = None
+    first_name: str | Unset = UNSET
+    last_name: str | Unset = UNSET
+    email: str | Unset = UNSET
+    phone: str | Unset = UNSET
 
 
 @dataclass(frozen=True, eq=False)

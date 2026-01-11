@@ -37,6 +37,20 @@ def test_update_seller_updated(update_seller_use_case: UpdateSellerUseCase, sell
 
 
 @pytest.mark.django_db
+def test_update_seller_updated_partial(update_seller_use_case: UpdateSellerUseCase, seller: Seller):
+    expected_name = 'test seller name'
+    expected_description = 'test seller desc'
+
+    command = UpdateSellerCommand(user_id=seller.user_id, name=expected_name)
+    updated_seller = update_seller_use_case.execute(command=command)
+    assert updated_seller.name == expected_name
+
+    command = UpdateSellerCommand(user_id=seller.user_id, description=expected_description)
+    updated_seller = update_seller_use_case.execute(command=command)
+    assert updated_seller.description == expected_description
+
+
+@pytest.mark.django_db
 def test_update_seller_seller_not_found_error_raised(
     update_seller_use_case: UpdateSellerUseCase,
     user: User,

@@ -22,5 +22,10 @@ class UpdateProductUseCase:
         self.seller_validator_service.validate(seller=user.seller_profile, user_id=user.id)
         product = self.product_service.try_get_by_id(id=command.product_id)
         self.product_access_validator_service.validate(seller=user.seller_profile, product=product)
-        product.update_from_data(data=command.data)
+        product.update(
+            title=command.title,
+            description=command.description,
+            short_description=command.short_description,
+            is_visible=command.is_visible,
+        )
         return self.product_service.save(product=product, update=True)

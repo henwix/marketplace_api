@@ -18,7 +18,7 @@ class UpdateSellerUseCase:
         self.auth_validator_service.validate(user_id=command.user_id)
         user = self.user_service.try_get_by_id_with_loaded_seller(id=command.user_id)
         self.seller_validator_service.validate(seller=user.seller_profile, user_id=user.id)
-        user.seller_profile.update_fields(
+        user.seller_profile.update(
             name=command.name,
             description=command.description,
         )

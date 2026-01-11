@@ -58,6 +58,38 @@ def test_update_user_updated(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    argnames=['expected_first_name', 'expected_last_name', 'expected_email', 'expected_phone'],
+    argvalues=[
+        ('New Test First Name', 'New Test Last Name', 'new_email_test@test.com', '+8761276591245'),
+    ],
+)
+def test_update_user_updated_partial(
+    update_user_use_case: UpdateUserUseCase,
+    user: User,
+    expected_first_name: str,
+    expected_last_name: str,
+    expected_email: str,
+    expected_phone: str,
+):
+    command = UpdateUserCommand(user_id=user.pk, first_name=expected_first_name)
+    updated_user = update_user_use_case.execute(command=command)
+    assert updated_user.first_name == expected_first_name
+
+    command = UpdateUserCommand(user_id=user.pk, last_name=expected_last_name)
+    updated_user = update_user_use_case.execute(command=command)
+    assert updated_user.last_name == expected_last_name
+
+    command = UpdateUserCommand(user_id=user.pk, email=expected_email)
+    updated_user = update_user_use_case.execute(command=command)
+    assert updated_user.email == expected_email
+
+    command = UpdateUserCommand(user_id=user.pk, phone=expected_phone)
+    updated_user = update_user_use_case.execute(command=command)
+    assert updated_user.phone == expected_phone
+
+
+@pytest.mark.django_db
 def test_update_user_phone_already_exists_error_raised(update_user_use_case: UpdateUserUseCase, user: User):
     expected_phone = '+592692652134'
     UserModelFactory.create(phone=expected_phone)

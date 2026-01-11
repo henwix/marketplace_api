@@ -7,7 +7,7 @@ from src.api.v1.sellers.openapi.decorators import (
     extend_detail_seller_view_schema,
     extend_seller_view_schema,
 )
-from src.api.v1.sellers.serializers import SellerInSerializer, SellerOutSerializer
+from src.api.v1.sellers.serializers import CreateSellerInSerializer, SellerOutSerializer, UpdateSellerInSerializer
 from src.apps.sellers.commands import (
     CreateSellerCommand,
     DeleteSellerCommand,
@@ -26,7 +26,7 @@ from src.project.containers import resolve_depends
 @extend_seller_view_schema
 class SellerView(APIView):
     def post(self, request: Request) -> Response:
-        serializer = SellerInSerializer(data=request.data)
+        serializer = CreateSellerInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         use_case: CreateSellerUseCase = resolve_depends(CreateSellerUseCase)
         command = CreateSellerCommand(user_id=request.user.id, **serializer.validated_data)
@@ -39,19 +39,13 @@ class SellerView(APIView):
         seller = use_case.execute(command=command)
         return Response(data=SellerOutSerializer(seller).data, status=status.HTTP_200_OK)
 
-    def _update(self, request: Request, partial: bool) -> Response:
-        serializer = SellerInSerializer(data=request.data, partial=partial)
+    def patch(self, request: Request) -> Response:
+        serializer = UpdateSellerInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         use_case: UpdateSellerUseCase = resolve_depends(UpdateSellerUseCase)
         command = UpdateSellerCommand(user_id=request.user.id, **serializer.validated_data)
         seller = use_case.execute(command=command)
         return Response(data=SellerOutSerializer(seller).data, status=status.HTTP_200_OK)
-
-    def put(self, request: Request) -> Response:
-        return self._update(request=request, partial=False)
-
-    def patch(self, request: Request) -> Response:
-        return self._update(request=request, partial=True)
 
     def delete(self, request: Request) -> Response:
         use_case: DeleteSellerUseCase = resolve_depends(DeleteSellerUseCase)

@@ -21,9 +21,11 @@ from src.api.v1.common.openapi.responses import (
 from src.api.v1.products.openapi.products.enums import ProductsSearchOrderingEnum
 from src.api.v1.products.pagination import SearchProductPagination
 from src.api.v1.products.serializers.products import (
-    ProductSerializer,
-    RetrieveProductSerializer,
-    SearchProductSerializer,
+    CreateProductInSerializer,
+    ProductOutSerializer,
+    RetrieveProductOutSerializer,
+    SearchProductOutSerializer,
+    UpdateProductInSerializer,
 )
 from src.apps.products.exceptions.products import (
     ProductAccessForbiddenError,
@@ -38,9 +40,9 @@ def extend_product_view_schema(view):
     decorator = extend_schema_view(
         post=extend_schema(
             parameters=[jwt_header_parameter()],
-            request=ProductSerializer,
+            request=CreateProductInSerializer,
             responses={
-                status.HTTP_201_CREATED: successful_response(response=ProductSerializer),
+                status.HTTP_201_CREATED: successful_response(response=ProductOutSerializer),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
                 status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
                 status.HTTP_404_NOT_FOUND: not_found_response(SellerNotFoundError, UserNotFoundError),
@@ -57,7 +59,7 @@ def extend_detail_slug_product_view_schema(view):
             parameters=[jwt_header_parameter()],
             request=None,
             responses={
-                status.HTTP_200_OK: successful_response(response=RetrieveProductSerializer),
+                status.HTTP_200_OK: successful_response(response=RetrieveProductOutSerializer),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(include_credentials_error=False),
                 status.HTTP_403_FORBIDDEN: forbidden_response(ProductAccessForbiddenError, UserNotActiveError),
                 status.HTTP_404_NOT_FOUND: not_found_response(ProductNotFoundBySlugError, UserNotFoundError),
@@ -69,27 +71,12 @@ def extend_detail_slug_product_view_schema(view):
 
 
 def extend_detail_product_view_schema(view):
-    def _update_product_extend_schema(method: str):
-        return extend_schema(
-            parameters=[jwt_header_parameter()],
-            request=ProductSerializer,
-            responses={
-                status.HTTP_200_OK: successful_response(response=ProductSerializer),
-                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
-                status.HTTP_403_FORBIDDEN: forbidden_response(ProductAccessForbiddenError, UserNotActiveError),
-                status.HTTP_404_NOT_FOUND: not_found_response(
-                    SellerNotFoundError, ProductNotFoundByIdError, UserNotFoundError
-                ),
-            },
-            summary=f'Update Product {method}',
-        )
-
     decorator = extend_schema_view(
         get=extend_schema(
             parameters=[jwt_header_parameter()],
             request=None,
             responses={
-                status.HTTP_200_OK: successful_response(response=RetrieveProductSerializer),
+                status.HTTP_200_OK: successful_response(response=RetrieveProductOutSerializer),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(include_credentials_error=False),
                 status.HTTP_403_FORBIDDEN: forbidden_response(ProductAccessForbiddenError, UserNotActiveError),
                 status.HTTP_404_NOT_FOUND: not_found_response(ProductNotFoundByIdError, UserNotFoundError),
@@ -109,8 +96,19 @@ def extend_detail_product_view_schema(view):
             },
             summary='Delete Product DELETE',
         ),
-        put=_update_product_extend_schema(method='PUT'),
-        patch=_update_product_extend_schema(method='PATCH'),
+        patch=extend_schema(
+            parameters=[jwt_header_parameter()],
+            request=UpdateProductInSerializer,
+            responses={
+                status.HTTP_200_OK: successful_response(response=ProductOutSerializer),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(ProductAccessForbiddenError, UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(
+                    SellerNotFoundError, ProductNotFoundByIdError, UserNotFoundError
+                ),
+            },
+            summary='Update Product PATCH',
+        ),
     )
     return decorator(view)
 
@@ -130,7 +128,7 @@ def extend_global_search_view_schema(view):
         request=None,
         responses={
             status.HTTP_200_OK: successful_page_response(
-                response=SearchProductSerializer,
+                response=SearchProductOutSerializer,
                 paginator=SearchProductPagination,
             ),
         },
@@ -156,7 +154,7 @@ def extend_personal_search_view_schema(view):
         request=None,
         responses={
             status.HTTP_200_OK: successful_page_response(
-                response=SearchProductSerializer,
+                response=SearchProductOutSerializer,
                 paginator=SearchProductPagination,
             ),
             status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),

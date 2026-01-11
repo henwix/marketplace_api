@@ -19,13 +19,29 @@ class ProductEntity(BaseEntity):
     variants: list[ProductVariantEntity] | None = None
     variants_count: int | None = None
     title: str
-    description: str | None = None
-    short_description: str | None = None
+    description: str = ''
+    short_description: str = ''
     is_visible: bool = True
     created_at: datetime | None = None
     updated_at: datetime | None = None
     reviews_count: int = 0
-    reviews_avg_rating: Decimal = 0
+    reviews_avg_rating: Decimal = Decimal('0')
+
+    @staticmethod
+    def create(
+        title: str,
+        description: str,
+        short_description: str,
+        is_visible: bool,
+        seller_id: int,
+    ) -> ProductEntity:
+        return ProductEntity(
+            title=title,
+            description=description,
+            short_description=short_description,
+            is_visible=is_visible,
+            seller_id=seller_id,
+        )
 
     def build_slug(self) -> None:
         self.slug = f'{slugify(text=self.title)}-{str(self.id)[-8:]}'

@@ -16,7 +16,7 @@ class UpdateUserUseCase:
         self.auth_validator_service.validate(user_id=command.user_id)
         user = self.user_service.try_get_by_id(id=command.user_id)
         self.user_validator_service.validate(email=command.email, phone=command.phone)
-        user.update_fields(
+        user.update(
             first_name=command.first_name,
             last_name=command.last_name,
             email=command.email,

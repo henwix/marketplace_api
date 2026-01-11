@@ -1,30 +1,55 @@
-from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from src.api.v1.products.serializers.product_variants import ProductVariantSerializer
-from src.apps.products.models.products import Product
 
 
-class ProductSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Product
-        fields = [
-            'id',
-            'title',
-            'slug',
-            'reviews_count',
-            'reviews_avg_rating',
-            'description',
-            'short_description',
-            'is_visible',
-            'created_at',
-            'updated_at',
-        ]
-        read_only_fields = ['id', 'slug', 'reviews_count', 'reviews_avg_rating']
+class CreateProductInSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=255)
+    description = serializers.CharField(
+        allow_blank=True,
+        default='',
+        required=False,
+    )
+    short_description = serializers.CharField(
+        allow_blank=True,
+        default='',
+        max_length=500,
+        required=False,
+    )
+    is_visible = serializers.BooleanField(
+        default=True,
+        required=False,
+    )
 
 
-class RetrieveProductSerializer(serializers.ModelSerializer):
-    variants = ProductVariantSerializer(many=True, read_only=True, help_text=_('Product variants'))
+class UpdateProductInSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=255, required=False)
+    description = serializers.CharField(
+        allow_blank=True,
+        required=False,
+    )
+    short_description = serializers.CharField(
+        allow_blank=True,
+        max_length=500,
+        required=False,
+    )
+    is_visible = serializers.BooleanField(required=False)
+
+
+class ProductOutSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    title = serializers.CharField(max_length=255)
+    slug = serializers.SlugField(max_length=300)
+    reviews_count = serializers.IntegerField()
+    reviews_avg_rating = serializers.DecimalField(max_digits=3, decimal_places=2)
+    description = serializers.CharField()
+    short_description = serializers.CharField(max_length=500)
+    is_visible = serializers.BooleanField()
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
+
+
+class RetrieveProductOutSerializer(ProductOutSerializer):
     seller_url = serializers.HyperlinkedRelatedField(
         view_name='v1:sellers:sellers-detail',
         lookup_field='id',
@@ -32,47 +57,23 @@ class RetrieveProductSerializer(serializers.ModelSerializer):
         source='seller',
         many=False,
         read_only=True,
-        help_text=_('Seller url'),
     )
-
-    class Meta:
-        model = Product
-        fields = [
-            'id',
-            'title',
-            'slug',
-            'reviews_count',
-            'reviews_avg_rating',
-            'seller_url',
-            'description',
-            'short_description',
-            'is_visible',
-            'created_at',
-            'updated_at',
-            'variants',
-        ]
+    variants = ProductVariantSerializer(many=True)
 
 
-class SearchProductSerializer(serializers.ModelSerializer):
+class SearchProductOutSerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    title = serializers.CharField(max_length=255)
+    price = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+    )
     url = serializers.HyperlinkedIdentityField(
         view_name='v1:products:products-slug-detail',
         lookup_field='slug',
         lookup_url_kwarg='slug',
         read_only=True,
-        help_text=_('Product url'),
     )
-    price = serializers.DecimalField(
-        max_digits=10, decimal_places=2, read_only=True, help_text=_('Product minimal price')
-    )
-
-    class Meta:
-        model = Product
-        fields = [
-            'id',
-            'url',
-            'title',
-            'is_visible',
-            'price',
-            'reviews_count',
-            'reviews_avg_rating',
-        ]
+    is_visible = serializers.BooleanField()
+    reviews_count = serializers.IntegerField()
+    reviews_avg_rating = serializers.DecimalField(max_digits=3, decimal_places=2)

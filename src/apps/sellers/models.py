@@ -20,20 +20,17 @@ class Seller(TimedBaseModel):
     description = models.TextField(
         verbose_name=_('description'),
         blank=True,
-        null=True,
         help_text=_('Seller description'),
     )
     avatar = models.CharField(
         verbose_name=_('avatar'),
         max_length=255,
-        blank=True,
         null=True,
         help_text=_('Seller avatar'),
     )
     background = models.CharField(
         verbose_name=_('background'),
         max_length=255,
-        blank=True,
         null=True,
         help_text=_('Seller background image'),
     )

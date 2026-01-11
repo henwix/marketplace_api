@@ -17,9 +17,11 @@ from src.api.v1.products.openapi.products.decorators import (
 )
 from src.api.v1.products.pagination import SearchProductPagination
 from src.api.v1.products.serializers.products import (
-    ProductSerializer,
-    RetrieveProductSerializer,
-    SearchProductSerializer,
+    CreateProductInSerializer,
+    ProductOutSerializer,
+    RetrieveProductOutSerializer,
+    SearchProductOutSerializer,
+    UpdateProductInSerializer,
 )
 from src.apps.products.commands.products import (
     CreateProductCommand,
@@ -42,12 +44,12 @@ from src.project.containers import resolve_depends
 @extend_product_view_schema
 class ProductView(APIView):
     def post(self, request: Request) -> Response:
-        serializer = ProductSerializer(data=request.data)
+        serializer = CreateProductInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         use_case: CreateProductUseCase = resolve_depends(CreateProductUseCase)
-        command = CreateProductCommand(user_id=request.user.id, data=serializer.validated_data)
+        command = CreateProductCommand(user_id=request.user.id, **serializer.validated_data)
         product = use_case.execute(command=command)
-        return Response(data=ProductSerializer(product).data, status=status.HTTP_201_CREATED)
+        return Response(data=ProductOutSerializer(product).data, status=status.HTTP_201_CREATED)
 
 
 @extend_detail_slug_product_view_schema
@@ -57,7 +59,7 @@ class DetailSlugProductView(APIView):
         command = GetProductBySlugCommand(user_id=request.user.id, slug=slug)
         product = use_case.execute(command=command)
         return Response(
-            data=RetrieveProductSerializer(product, context={'request': self.request}).data,
+            data=RetrieveProductOutSerializer(product, context={'request': self.request}).data,
             status=status.HTTP_200_OK,
         )
 
@@ -69,7 +71,7 @@ class DetailProductView(APIView):
         command = GetProductByIdCommand(user_id=request.user.id, product_id=id)
         product = use_case.execute(command=command)
         return Response(
-            data=RetrieveProductSerializer(product, context={'request': self.request}).data,
+            data=RetrieveProductOutSerializer(product, context={'request': self.request}).data,
             status=status.HTTP_200_OK,
         )
 
@@ -79,19 +81,13 @@ class DetailProductView(APIView):
         use_case.execute(command=command)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def _update(self, request: Request, id: UUID, partial: bool) -> Response:
-        serializer = ProductSerializer(data=request.data, partial=partial)
+    def patch(self, request: Request, id: UUID) -> Response:
+        serializer = UpdateProductInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         use_case: UpdateProductUseCase = resolve_depends(UpdateProductUseCase)
-        command = UpdateProductCommand(user_id=request.user.id, product_id=id, data=serializer.validated_data)
+        command = UpdateProductCommand(user_id=request.user.id, product_id=id, **serializer.validated_data)
         product = use_case.execute(command=command)
-        return Response(data=ProductSerializer(product).data, status=status.HTTP_200_OK)
-
-    def put(self, request: Request, id: UUID) -> Response:
-        return self._update(request=request, id=id, partial=False)
-
-    def patch(self, request: Request, id: UUID) -> Response:
-        return self._update(request=request, id=id, partial=True)
+        return Response(data=ProductOutSerializer(product).data, status=status.HTTP_200_OK)
 
 
 # TODO: cache for searching
@@ -117,7 +113,7 @@ class GlobalSearchProductView(
         return self.paginate(
             queryset=products,
             paginator=SearchProductPagination,
-            serializer=SearchProductSerializer,
+            serializer=SearchProductOutSerializer,
         )
 
 
@@ -143,5 +139,5 @@ class PersonalSearchProductView(
         return self.paginate(
             queryset=products,
             paginator=SearchProductPagination,
-            serializer=SearchProductSerializer,
+            serializer=SearchProductOutSerializer,
         )

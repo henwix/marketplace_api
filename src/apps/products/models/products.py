@@ -1,3 +1,4 @@
+from decimal import Decimal
 from uuid import uuid7
 
 from django.contrib.postgres.indexes import GinIndex, Index, OpClass
@@ -38,14 +39,12 @@ class Product(TimedBaseModel):
     description = models.TextField(
         verbose_name=_('description'),
         blank=True,
-        null=True,
         help_text=_('Product description'),
     )
     short_description = models.CharField(
         verbose_name=_('short description'),
         max_length=500,
         blank=True,
-        null=True,
         help_text=_('Short product description'),
     )
     is_visible = models.BooleanField(
@@ -63,7 +62,7 @@ class Product(TimedBaseModel):
         verbose_name=_('reviews average rating'),
         max_digits=3,
         decimal_places=2,
-        default=0,
+        default=Decimal('0'),
         help_text=_('Reviews average rating'),
         validators=[MinValueValidator(0), MaxValueValidator(5)],
     )

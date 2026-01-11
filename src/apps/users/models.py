@@ -39,7 +39,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name=_('avatar'),
         max_length=255,
         null=True,
-        blank=True,
         help_text=_('Avatar'),
     )
     is_staff = models.BooleanField(
