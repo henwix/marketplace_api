@@ -26,9 +26,7 @@ def test_get_product_reviews_retrieved(
     expected_reviews_count = len(expected_ratings)
     users = UserModelFactory.create_batch(size=expected_reviews_count)
     for user, rating in zip(users, expected_ratings, strict=True):
-        create_command = CreateProductReviewCommand(
-            user_id=user.pk, product_id=product.pk, data={'rating': rating, 'text': 'test'}
-        )
+        create_command = CreateProductReviewCommand(user_id=user.pk, product_id=product.pk, rating=rating, text='test')
         create_product_review_use_case.execute(command=create_command)
 
     get_command = GetProductReviewsCommand(product_id=product.pk)

@@ -13,10 +13,10 @@ class CreateUserInSerializer(serializers.Serializer):
 
 
 class UpdateUserInSerializer(serializers.Serializer):
-    first_name = serializers.CharField(max_length=150, required=False)
-    last_name = serializers.CharField(max_length=150, required=False)
-    email = serializers.EmailField(max_length=254, required=False)
-    phone = serializers.CharField(max_length=20, validators=[user_phone_validator], required=False)
+    first_name = serializers.CharField(max_length=150)
+    last_name = serializers.CharField(max_length=150)
+    email = serializers.EmailField(max_length=254)
+    phone = serializers.CharField(max_length=20, validators=[user_phone_validator])
 
 
 class SetPasswordUserInSerializer(serializers.Serializer):

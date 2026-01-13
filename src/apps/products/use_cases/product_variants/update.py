@@ -25,5 +25,10 @@ class UpdateProductVariantUseCase:
         self.seller_validator_service.validate(seller=user.seller_profile, user_id=user.id)
         product_variant = self.variant_service.try_get_by_id_with_loaded_product(id=command.product_variant_id)
         self.variant_access_validator_service.validate(seller=user.seller_profile, product_variant=product_variant)
-        product_variant.update_from_data(data=command.data)
+        product_variant.update(
+            title=command.title,
+            price=command.price,
+            stock=command.stock,
+            is_visible=command.is_visible,
+        )
         return self.variant_service.save(product_variant=product_variant, update=True)

@@ -28,3 +28,9 @@ def test_build_entity_slug(expected_product_title: str):
 
     entity.build_slug()
     assert expected_slug == entity.slug
+
+    # Change title and check that the slug is built only if it does not exists,
+    # and if it does exist, then nothing changes
+    entity.title = 'TestProductTitle'
+    entity.build_slug()
+    assert expected_slug == entity.slug

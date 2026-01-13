@@ -33,6 +33,76 @@ def test_update_seller_updated_patch(
 
 @pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
 @pytest.mark.django_db
+def test_update_seller_updated_patch_partial(
+    seller: Seller,
+    expected_name: str,
+    expected_description: str,
+):
+    user = seller.user
+    client = get_client(user=user, jwt=True)
+
+    response = client.patch(path='/v1/sellers/', data={'name': expected_name})
+    db_seller = Seller.objects.get(user_id=user.pk)
+    assert response.status_code == status.HTTP_200_OK
+    assert db_seller.name == expected_name
+    assert response.data.get('name') == expected_name
+
+    response = client.patch(path='/v1/sellers/', data={'description': expected_description})
+    db_seller = Seller.objects.get(user_id=user.pk)
+    assert response.status_code == status.HTTP_200_OK
+    assert db_seller.description == expected_description
+    assert response.data.get('description') == expected_description
+
+
+@pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
+@pytest.mark.django_db
+def test_update_seller_updated_put(
+    seller: Seller,
+    expected_name: str,
+    expected_description: str,
+):
+    user = seller.user
+    client = get_client(user=user, jwt=True)
+    expected_seller_data = {'name': expected_name, 'description': expected_description}
+
+    response = client.put(path='/v1/sellers/', data=expected_seller_data)
+    db_seller = Seller.objects.get(user_id=user.pk)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data.get('id') == db_seller.pk
+    assert db_seller.name == expected_name
+    assert db_seller.description == expected_description
+    assert response.data.get('name') == expected_name
+    assert response.data.get('description') == expected_description
+    assert response.data.get('avatar') is None
+    assert response.data.get('background') is None
+
+
+@pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
+@pytest.mark.django_db
+def test_update_seller_not_updated_and_returns_400_if_partial_put(
+    seller: Seller,
+    expected_name: str,
+    expected_description: str,
+):
+    user = seller.user
+    client = get_client(user=user, jwt=True)
+
+    response = client.put(path='/v1/sellers/', data={'name': expected_name})
+    db_seller = Seller.objects.get(user_id=user.pk)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert db_seller.name == seller.name
+    assert 'This field is required.' in response.data.get('description')
+
+    response = client.put(path='/v1/sellers/', data={'description': expected_description})
+    db_seller = Seller.objects.get(user_id=user.pk)
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert db_seller.description == seller.description
+    assert 'This field is required.' in response.data.get('name')
+
+
+@pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
+@pytest.mark.django_db
 def test_update_seller_not_updated_and_returns_401_if_unauthorized_patch(
     expected_name: str,
     expected_description: str,
@@ -41,6 +111,19 @@ def test_update_seller_not_updated_and_returns_401_if_unauthorized_patch(
     expected_seller_data = {'name': expected_name, 'description': expected_description}
 
     response = client.patch(path='/v1/sellers/', data=expected_seller_data)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
+@pytest.mark.django_db
+def test_update_seller_not_updated_and_returns_401_if_unauthorized_put(
+    expected_name: str,
+    expected_description: str,
+):
+    client = get_client()
+    expected_seller_data = {'name': expected_name, 'description': expected_description}
+
+    response = client.put(path='/v1/sellers/', data=expected_seller_data)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
@@ -55,4 +138,18 @@ def test_update_seller_not_updated_and_returns_404_if_does_not_exist_patch(
     expected_seller_data = {'name': expected_name, 'description': expected_description}
 
     response = client.patch(path='/v1/sellers/', data=expected_seller_data)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.parametrize(argnames=CREATE_SELLER_ARGNAMES, argvalues=CREATE_SELLER_ARGVALUES)
+@pytest.mark.django_db
+def test_update_seller_not_updated_and_returns_404_if_does_not_exist_put(
+    user: User,
+    expected_name: str,
+    expected_description: str,
+):
+    client = get_client(user=user, jwt=True)
+    expected_seller_data = {'name': expected_name, 'description': expected_description}
+
+    response = client.put(path='/v1/sellers/', data=expected_seller_data)
     assert response.status_code == status.HTTP_404_NOT_FOUND

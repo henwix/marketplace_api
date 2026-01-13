@@ -46,19 +46,16 @@ def test_update_variant_updated(
     expected_stock: int,
     expected_is_visible: bool,
 ):
-    expected_data = {
-        'title': expected_title,
-        'price': expected_price,
-        'stock': expected_stock,
-        'is_visible': expected_is_visible,
-    }
     product = ProductModelFactory.create(seller=seller)
     product_variant = ProductVariantModelFactory.create(product=product)
 
     command = UpdateProductVariantCommand(
         user_id=seller.user_id,
         product_variant_id=product_variant.pk,
-        data=expected_data,
+        title=expected_title,
+        price=expected_price,
+        stock=expected_stock,
+        is_visible=expected_is_visible,
     )
     updated_product_variant = update_product_variant_use_case.execute(command=command)
     db_product_variant = ProductVariant.objects.get(
@@ -74,11 +71,55 @@ def test_update_variant_updated(
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    argnames=['expected_title', 'expected_price', 'expected_stock', 'expected_is_visible'],
+    argvalues=[
+        ('Test Variant Title', Decimal('34.99'), 13, True),
+        ('VarriantTitleTest', Decimal('19399.99'), 105, False),
+    ],
+)
+def test_update_variant_updated_partial(
+    update_product_variant_use_case: UpdateProductVariantUseCase,
+    seller: Seller,
+    expected_title: str,
+    expected_price: Decimal,
+    expected_stock: int,
+    expected_is_visible: bool,
+):
+    product = ProductModelFactory.create(seller=seller)
+    product_variant = ProductVariantModelFactory.create(product=product)
+
+    command = UpdateProductVariantCommand(
+        user_id=seller.user_id, product_variant_id=product_variant.pk, title=expected_title
+    )
+    updated_product_variant = update_product_variant_use_case.execute(command=command)
+    assert updated_product_variant.title == expected_title
+
+    command = UpdateProductVariantCommand(
+        user_id=seller.user_id, product_variant_id=product_variant.pk, price=expected_price
+    )
+    updated_product_variant = update_product_variant_use_case.execute(command=command)
+    assert updated_product_variant.price == expected_price
+
+    command = UpdateProductVariantCommand(
+        user_id=seller.user_id, product_variant_id=product_variant.pk, stock=expected_stock
+    )
+    updated_product_variant = update_product_variant_use_case.execute(command=command)
+    assert updated_product_variant.stock == expected_stock
+
+    command = UpdateProductVariantCommand(
+        user_id=seller.user_id, product_variant_id=product_variant.pk, is_visible=expected_is_visible
+    )
+    updated_product_variant = update_product_variant_use_case.execute(command=command)
+    assert updated_product_variant.is_visible == expected_is_visible
+
+
+@pytest.mark.django_db
 def test_update_variant_product_variant_not_found_error_raised(
     update_product_variant_use_case: UpdateProductVariantUseCase, seller: Seller
 ):
     with pytest.raises(ProductVariantNotFoundError):
-        command = UpdateProductVariantCommand(user_id=seller.user_id, product_variant_id=uuid7(), data={})
+        command = UpdateProductVariantCommand(user_id=seller.user_id, product_variant_id=uuid7())
         update_product_variant_use_case.execute(command=command)
     assert ProductVariant.objects.all().count() == 0
 
@@ -88,7 +129,7 @@ def test_update_variant_product_access_forbidden_error_raised(
     update_product_variant_use_case: UpdateProductVariantUseCase, seller: Seller, product_variant: ProductVariant
 ):
     with pytest.raises(ProductVariantAccessForbiddenError):
-        command = UpdateProductVariantCommand(user_id=seller.user_id, product_variant_id=product_variant.pk, data={})
+        command = UpdateProductVariantCommand(user_id=seller.user_id, product_variant_id=product_variant.pk)
         update_product_variant_use_case.execute(command=command)
     assert ProductVariant.objects.all().count() == 1
 
@@ -99,21 +140,21 @@ def test_update_variant_seller_not_found_error_raised(
     user: User,
 ):
     with pytest.raises(SellerNotFoundError):
-        command = UpdateProductVariantCommand(user_id=user.pk, product_variant_id=uuid7(), data={})
+        command = UpdateProductVariantCommand(user_id=user.pk, product_variant_id=uuid7())
         update_product_variant_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_variant_user_credentials_error_raised(update_product_variant_use_case: UpdateProductVariantUseCase):
     with pytest.raises(AuthCredentialsNotProvidedError):
-        command = UpdateProductVariantCommand(user_id=None, product_variant_id=uuid7(), data={})
+        command = UpdateProductVariantCommand(user_id=None, product_variant_id=uuid7())
         update_product_variant_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_variant_user_not_found_error_raised(update_product_variant_use_case: UpdateProductVariantUseCase):
     with pytest.raises(UserNotFoundError):
-        command = UpdateProductVariantCommand(user_id=1, product_variant_id=uuid7(), data={})
+        command = UpdateProductVariantCommand(user_id=1, product_variant_id=uuid7())
         update_product_variant_use_case.execute(command=command)
 
 
@@ -121,5 +162,5 @@ def test_update_variant_user_not_found_error_raised(update_product_variant_use_c
 def test_update_variant_user_not_active_error_raised(update_product_variant_use_case: UpdateProductVariantUseCase):
     user = UserModelFactory.create(is_active=False)
     with pytest.raises(UserNotActiveError):
-        command = UpdateProductVariantCommand(user_id=user.pk, product_variant_id=uuid7(), data={})
+        command = UpdateProductVariantCommand(user_id=user.pk, product_variant_id=uuid7())
         update_product_variant_use_case.execute(command=command)

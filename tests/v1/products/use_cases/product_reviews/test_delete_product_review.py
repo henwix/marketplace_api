@@ -4,7 +4,6 @@ import pytest
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
 from src.apps.products.commands.product_reviews import CreateProductReviewCommand, DeleteProductReviewCommand
-from src.apps.products.commands.product_variants import CreateProductVariantCommand
 from src.apps.products.exceptions.product_reviews import ProductReviewNotFoundError
 from src.apps.products.exceptions.products import ProductNotFoundByIdError
 from src.apps.products.models.product_reviews import ProductReview
@@ -30,8 +29,8 @@ def test_delete_review_deleted_one(
     product: Product,
     expected_rating: int,
 ):
-    create_command = CreateProductVariantCommand(
-        user_id=user.pk, product_id=product.pk, data={'rating': expected_rating, 'text': 'test'}
+    create_command = CreateProductReviewCommand(
+        user_id=user.pk, product_id=product.pk, rating=expected_rating, text='test'
     )
     created_review = create_product_review_use_case.execute(command=create_command)
     db_product: Product = Product.objects.get(pk=product.pk)
@@ -57,9 +56,7 @@ def test_delete_review_deleted_many(
 ):
     users = UserModelFactory.create_batch(size=len(expected_ratings))
     for user, rating in zip(users, expected_ratings, strict=True):
-        create_command = CreateProductReviewCommand(
-            user_id=user.pk, product_id=product.pk, data={'rating': rating, 'text': 'test'}
-        )
+        create_command = CreateProductReviewCommand(user_id=user.pk, product_id=product.pk, rating=rating, text='test')
         create_product_review_use_case.execute(command=create_command)
     product.refresh_from_db()
 

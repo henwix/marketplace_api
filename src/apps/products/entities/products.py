@@ -44,7 +44,8 @@ class ProductEntity(BaseEntity):
         )
 
     def build_slug(self) -> None:
-        self.slug = f'{slugify(text=self.title)}-{str(self.id)[-8:]}'
+        if self.slug is None:
+            self.slug = f'{slugify(text=self.title)}-{str(self.id)[-8:]}'
 
     def apply_create_review_data(self, rating: int) -> None:
         current_total_rating = self.reviews_avg_rating * self.reviews_count

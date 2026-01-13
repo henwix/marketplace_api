@@ -34,17 +34,11 @@ def test_update_review_updated_one(
     expected_new_rating: int,
     expected_new_text: str,
 ):
-    create_command = CreateProductReviewCommand(
-        user_id=user.pk,
-        product_id=product.pk,
-        data={'rating': 1, 'text': 'test'},
-    )
+    create_command = CreateProductReviewCommand(user_id=user.pk, product_id=product.pk, rating=1, text='1')
     create_product_review_use_case.execute(command=create_command)
 
     update_command = UpdateProductReviewCommand(
-        user_id=user.pk,
-        product_id=product.pk,
-        data={'rating': expected_new_rating, 'text': expected_new_text},
+        user_id=user.pk, product_id=product.pk, rating=expected_new_rating, text=expected_new_text
     )
     updated_review = update_product_review_use_case.execute(command=update_command)
     db_review = ProductReview.objects.get(pk=updated_review.id)
@@ -54,6 +48,43 @@ def test_update_review_updated_one(
     assert updated_review == product_review_to_entity(dto=db_review)
     assert product.reviews_count == 1
     assert product.reviews_avg_rating == expected_new_rating
+    assert updated_review.rating == expected_new_rating
+    assert updated_review.text == expected_new_text
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    argnames='expected_new_rating, expected_new_text',
+    argvalues=[
+        (5, 'New Updated Review text'),
+        (2, 'Updated Text'),
+    ],
+)
+def test_update_review_updated_one_partial(
+    create_product_review_use_case: CreateProductReviewUseCase,
+    update_product_review_use_case: UpdateProductReviewUseCase,
+    user: User,
+    product: Product,
+    expected_new_rating: int,
+    expected_new_text: str,
+):
+    create_command = CreateProductReviewCommand(user_id=user.pk, product_id=product.pk, rating=1, text='1')
+    create_product_review_use_case.execute(command=create_command)
+
+    update_command = UpdateProductReviewCommand(user_id=user.pk, product_id=product.pk, rating=expected_new_rating)
+    updated_review = update_product_review_use_case.execute(command=update_command)
+    db_review = ProductReview.objects.get(pk=updated_review.id)
+    product.refresh_from_db()
+    assert updated_review == product_review_to_entity(dto=db_review)
+    assert product.reviews_count == 1
+    assert product.reviews_avg_rating == expected_new_rating
+    assert updated_review.rating == expected_new_rating
+
+    update_command = UpdateProductReviewCommand(user_id=user.pk, product_id=product.pk, text=expected_new_text)
+    updated_review = update_product_review_use_case.execute(command=update_command)
+    db_review = ProductReview.objects.get(pk=updated_review.id)
+    assert updated_review == product_review_to_entity(dto=db_review)
+    assert updated_review.text == expected_new_text
 
 
 @pytest.mark.django_db
@@ -76,9 +107,7 @@ def test_update_review_updated_many(
 ):
     users = UserModelFactory.create_batch(size=len(expected_old_ratings))
     for user, rating in zip(users, expected_old_ratings, strict=True):
-        create_command = CreateProductReviewCommand(
-            user_id=user.pk, product_id=product.pk, data={'rating': rating, 'text': 'test'}
-        )
+        create_command = CreateProductReviewCommand(user_id=user.pk, product_id=product.pk, rating=rating, text='test')
         create_product_review_use_case.execute(command=create_command)
     product.refresh_from_db()
 
@@ -87,7 +116,7 @@ def test_update_review_updated_many(
             product=product, old_rating=old_rating, new_rating=new_rating
         )
 
-        update_command = UpdateProductReviewCommand(user_id=user.pk, product_id=product.pk, data={'rating': new_rating})
+        update_command = UpdateProductReviewCommand(user_id=user.pk, product_id=product.pk, rating=new_rating)
         update_product_review_use_case.execute(command=update_command)
         product.refresh_from_db()
         assert product.reviews_count == len(expected_old_ratings)
@@ -100,7 +129,7 @@ def test_update_review_not_updated_and_product_not_found_error_raised(
     user: User,
 ):
     with pytest.raises(ProductNotFoundByIdError):
-        command = UpdateProductReviewCommand(user_id=user.pk, product_id=uuid7(), data={})
+        command = UpdateProductReviewCommand(user_id=user.pk, product_id=uuid7())
         update_product_review_use_case.execute(command=command)
 
 
@@ -111,21 +140,21 @@ def test_update_review_not_updated_and_product_review_not_found_error_raised(
     product: Product,
 ):
     with pytest.raises(ProductReviewNotFoundError):
-        command = UpdateProductReviewCommand(user_id=user.pk, product_id=product.pk, data={})
+        command = UpdateProductReviewCommand(user_id=user.pk, product_id=product.pk)
         update_product_review_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_review_user_credentials_error_raised(update_product_review_use_case: UpdateProductReviewUseCase):
     with pytest.raises(AuthCredentialsNotProvidedError):
-        command = UpdateProductReviewCommand(user_id=None, product_id=uuid7(), data={})
+        command = UpdateProductReviewCommand(user_id=None, product_id=uuid7())
         update_product_review_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_review_user_not_found_error_raised(update_product_review_use_case: UpdateProductReviewUseCase):
     with pytest.raises(UserNotFoundError):
-        command = UpdateProductReviewCommand(user_id=1, product_id=uuid7(), data={})
+        command = UpdateProductReviewCommand(user_id=1, product_id=uuid7())
         update_product_review_use_case.execute(command=command)
 
 
@@ -133,5 +162,5 @@ def test_update_review_user_not_found_error_raised(update_product_review_use_cas
 def test_update_review_user_not_active_error_raised(update_product_review_use_case: UpdateProductReviewUseCase):
     user = UserModelFactory.create(is_active=False)
     with pytest.raises(UserNotActiveError):
-        command = UpdateProductReviewCommand(user_id=user.pk, product_id=uuid7(), data={})
+        command = UpdateProductReviewCommand(user_id=user.pk, product_id=uuid7())
         update_product_review_use_case.execute(command=command)

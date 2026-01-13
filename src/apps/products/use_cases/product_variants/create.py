@@ -4,7 +4,6 @@ from django.db import transaction
 
 from src.apps.authentication.services.auth import BaseAuthValidatorService
 from src.apps.products.commands.product_variants import CreateProductVariantCommand
-from src.apps.products.converters.product_variants import data_to_product_variant_entity
 from src.apps.products.entities.product_variants import ProductVariantEntity
 from src.apps.products.services.product_variants import (
     BaseProductVariantService,
@@ -36,6 +35,12 @@ class CreateProductVariantUseCase:
             product = self.product_service.try_get_for_update_by_id(id=command.product_id)
             self.product_access_validator_service.validate(seller=user.seller_profile, product=product)
             self.variants_limit_validator_service.validate(product=product)
-            variant_entity = data_to_product_variant_entity(data={**command.data, 'product_id': product.id})
+            variant_entity = ProductVariantEntity.create(
+                title=command.title,
+                price=command.price,
+                stock=command.stock,
+                is_visible=command.is_visible,
+                product_id=product.id,
+            )
             new_variant = self.variant_service.save(product_variant=variant_entity, update=False)
         return new_variant

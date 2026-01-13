@@ -8,7 +8,12 @@ from rest_framework.response import Response
 from src.api.v1.common.mixins import LazyAuthViewMixin, PaginationViewMixin
 from src.api.v1.products.openapi.product_reviews.decorators import extend_product_review_view_schema
 from src.api.v1.products.pagination import ProductReviewPagination
-from src.api.v1.products.serializers.product_reviews import ProductReviewSerializer, RetrieveProductReviewSerializer
+from src.api.v1.products.serializers.product_reviews import (
+    CreateProductReviewInSerializer,
+    ProductReviewOutSerializer,
+    RetrieveProductReviewOutSerializer,
+    UpdateProductReviewInSerializer,
+)
 from src.apps.products.commands.product_reviews import (
     CreateProductReviewCommand,
     DeleteProductReviewCommand,
@@ -33,12 +38,12 @@ class ProductReviewView(
     ordering = ['-created_at']
 
     def post(self, request: Request, id: UUID) -> Response:
-        serializer = ProductReviewSerializer(data=request.data)
+        serializer = CreateProductReviewInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         use_case: CreateProductReviewUseCase = resolve_depends(CreateProductReviewUseCase)
-        command = CreateProductReviewCommand(user_id=request.user.id, product_id=id, data=serializer.validated_data)
+        command = CreateProductReviewCommand(user_id=request.user.id, product_id=id, **serializer.validated_data)
         review = use_case.execute(command=command)
-        return Response(data=ProductReviewSerializer(review).data, status=status.HTTP_201_CREATED)
+        return Response(data=ProductReviewOutSerializer(review).data, status=status.HTTP_201_CREATED)
 
     def get(self, request: Request, id: UUID) -> Response:
         use_case: GetProductReviewsUseCase = resolve_depends(GetProductReviewsUseCase)
@@ -47,7 +52,7 @@ class ProductReviewView(
         return self.paginate(
             queryset=reviews,
             paginator=ProductReviewPagination,
-            serializer=RetrieveProductReviewSerializer,
+            serializer=RetrieveProductReviewOutSerializer,
         )
 
     def delete(self, request: Request, id: UUID) -> Response:
@@ -57,16 +62,12 @@ class ProductReviewView(
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def _update(self, request: Request, id: UUID, partial: bool) -> Response:
-        serializer = ProductReviewSerializer(data=request.data, partial=partial)
+        serializer = UpdateProductReviewInSerializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         use_case: UpdateProductReviewUseCase = resolve_depends(UpdateProductReviewUseCase)
-        command = UpdateProductReviewCommand(
-            user_id=request.user.id,
-            product_id=id,
-            data=serializer.validated_data,
-        )
+        command = UpdateProductReviewCommand(user_id=request.user.id, product_id=id, **serializer.validated_data)
         review = use_case.execute(command=command)
-        return Response(data=ProductReviewSerializer(review).data, status=status.HTTP_200_OK)
+        return Response(data=ProductReviewOutSerializer(review).data, status=status.HTTP_200_OK)
 
     def put(self, request: Request, id: UUID) -> Response:
         return self._update(request=request, id=id, partial=False)

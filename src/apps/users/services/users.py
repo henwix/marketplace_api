@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from django.db import IntegrityError
 
-from src.apps.common.types import UNSET
+from src.apps.common.types import UNSET, Unset
 from src.apps.users.converters import user_from_entity, user_to_entity
 from src.apps.users.entities import UserEntity
 from src.apps.users.exceptions.users import (
@@ -19,14 +19,14 @@ from src.apps.users.repositories.users import BaseUserRepository
 
 class BaseUserValidatorService(ABC):
     @abstractmethod
-    def validate(self, email: str | None, phone: str | None) -> None: ...
+    def validate(self, email: str | Unset, phone: str | Unset) -> None: ...
 
 
 @dataclass
 class UserUniqueEmailValidatorService(BaseUserValidatorService):
     user_repository: BaseUserRepository
 
-    def validate(self, email: str | None, *args, **kwargs) -> None:
+    def validate(self, email: str | Unset, *args, **kwargs) -> None:
         if email is not UNSET and self.user_repository.check_user_with_email_exists(email=email):
             raise UserWithEmailAlreadyExistsError()
 
@@ -35,7 +35,7 @@ class UserUniqueEmailValidatorService(BaseUserValidatorService):
 class UserUniquePhoneValidatorService(BaseUserValidatorService):
     user_repository: BaseUserRepository
 
-    def validate(self, phone: str | None, *args, **kwargs) -> None:
+    def validate(self, phone: str | Unset, *args, **kwargs) -> None:
         if phone is not UNSET and self.user_repository.check_user_with_phone_exists(phone=phone):
             raise UserWithPhoneAlreadyExistsError()
 
@@ -44,7 +44,7 @@ class UserUniquePhoneValidatorService(BaseUserValidatorService):
 class ComposedUserValidatorService(BaseUserValidatorService):
     validators: list[BaseUserValidatorService]
 
-    def validate(self, email: str | None, phone: str | None) -> None:
+    def validate(self, email: str | Unset, phone: str | Unset) -> None:
         for validator in self.validators:
             validator.validate(email=email, phone=phone)
 

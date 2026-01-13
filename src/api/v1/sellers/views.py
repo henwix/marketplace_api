@@ -39,19 +39,25 @@ class SellerView(APIView):
         seller = use_case.execute(command=command)
         return Response(data=SellerOutSerializer(seller).data, status=status.HTTP_200_OK)
 
-    def patch(self, request: Request) -> Response:
-        serializer = UpdateSellerInSerializer(data=request.data)
+    def delete(self, request: Request) -> Response:
+        use_case: DeleteSellerUseCase = resolve_depends(DeleteSellerUseCase)
+        command = DeleteSellerCommand(user_id=request.user.id)
+        use_case.execute(command=command)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def _update(self, request: Request, partial: bool) -> Response:
+        serializer = UpdateSellerInSerializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         use_case: UpdateSellerUseCase = resolve_depends(UpdateSellerUseCase)
         command = UpdateSellerCommand(user_id=request.user.id, **serializer.validated_data)
         seller = use_case.execute(command=command)
         return Response(data=SellerOutSerializer(seller).data, status=status.HTTP_200_OK)
 
-    def delete(self, request: Request) -> Response:
-        use_case: DeleteSellerUseCase = resolve_depends(DeleteSellerUseCase)
-        command = DeleteSellerCommand(user_id=request.user.id)
-        use_case.execute(command=command)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    def put(self, request: Request) -> Response:
+        return self._update(request=request, partial=False)
+
+    def patch(self, request: Request) -> Response:
+        return self._update(request=request, partial=True)
 
 
 @extend_detail_seller_view_schema

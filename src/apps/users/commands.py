@@ -27,11 +27,11 @@ class DeleteUserCommand:
 
 
 @dataclass(frozen=True, eq=False)
-class GetUserCommand:
-    user_id: int | None
-
-
-@dataclass(frozen=True, eq=False)
 class SetPasswordUserCommand:
     user_id: int | None
     password: str
+
+
+@dataclass(frozen=True, eq=False)
+class GetUserCommand:
+    user_id: int | None

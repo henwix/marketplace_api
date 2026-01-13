@@ -9,7 +9,12 @@ from src.api.v1.common.openapi.responses import (
     not_found_response,
     successful_response,
 )
-from src.api.v1.products.serializers.product_variants import GetProductVariantsOutSerializer, ProductVariantSerializer
+from src.api.v1.products.serializers.product_variants import (
+    CreateProductVariantInSerializer,
+    GetProductVariantsOutSerializer,
+    ProductVariantOutSerializer,
+    UpdateProductVariantInSerializer,
+)
 from src.apps.products.exceptions.product_variants import (
     ProductVariantAccessForbiddenError,
     ProductVariantNotFoundError,
@@ -25,9 +30,9 @@ def extend_product_variant_view_schema(view):
     decorator = extend_schema_view(
         post=extend_schema(
             parameters=[jwt_header_parameter()],
-            request=ProductVariantSerializer,
+            request=CreateProductVariantInSerializer,
             responses={
-                status.HTTP_201_CREATED: successful_response(response=ProductVariantSerializer),
+                status.HTTP_201_CREATED: successful_response(response=ProductVariantOutSerializer),
                 status.HTTP_400_BAD_REQUEST: bad_request_response(ProductVariantsLimitError),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
                 status.HTTP_403_FORBIDDEN: forbidden_response(ProductAccessForbiddenError, UserNotActiveError),
@@ -58,9 +63,9 @@ def extend_detail_product_variant_view_schema(view):
     def _update_product_variant_extend_schema(method: str):
         return extend_schema(
             parameters=[jwt_header_parameter()],
-            request=ProductVariantSerializer,
+            request=UpdateProductVariantInSerializer,
             responses={
-                status.HTTP_200_OK: successful_response(response=ProductVariantSerializer),
+                status.HTTP_200_OK: successful_response(response=ProductVariantOutSerializer),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
                 status.HTTP_403_FORBIDDEN: forbidden_response(ProductVariantAccessForbiddenError, UserNotActiveError),
                 status.HTTP_404_NOT_FOUND: not_found_response(

@@ -1,19 +1,28 @@
 from rest_framework import serializers
 
 from src.api.v1.users.serializers import PreviewUserOutSerializer
-from src.apps.products.models.product_reviews import ProductReview
 
 
-class ProductReviewSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductReview
-        fields = ['id', 'rating', 'text']
-        read_only_fields = ['id']
+class CreateProductReviewInSerializer(serializers.Serializer):
+    rating = serializers.IntegerField(min_value=1, max_value=5, default=1)
+    text = serializers.CharField()
 
 
-class RetrieveProductReviewSerializer(serializers.ModelSerializer):
+class UpdateProductReviewInSerializer(serializers.Serializer):
+    rating = serializers.IntegerField(min_value=1, max_value=5)
+    text = serializers.CharField()
+
+
+class ProductReviewOutSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    rating = serializers.IntegerField(min_value=1, max_value=5)
+    text = serializers.CharField()
+
+
+class RetrieveProductReviewOutSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    rating = serializers.IntegerField(min_value=1, max_value=5)
+    text = serializers.CharField()
+    created_at = serializers.DateTimeField()
+    updated_at = serializers.DateTimeField()
     user = PreviewUserOutSerializer()
-
-    class Meta:
-        model = ProductReview
-        fields = ['id', 'rating', 'text', 'created_at', 'updated_at', 'user']

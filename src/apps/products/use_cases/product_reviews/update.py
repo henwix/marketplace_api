@@ -27,7 +27,7 @@ class UpdateProductReviewUseCase:
                 product_id=product.id,
             )
             old_rating = product_review.rating
-            product_review.update_from_data(data=command.data)
+            product_review.update(rating=command.rating, text=command.text)
             product.apply_update_review_data(old_rating=old_rating, new_rating=product_review.rating)
             product_review = self.product_review_service.save(product_review=product_review, update=True)
             self.product_service.save(product=product, update=True)

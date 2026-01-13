@@ -2,10 +2,6 @@ from src.apps.products.entities.product_reviews import ProductReviewEntity
 from src.apps.products.models.product_reviews import ProductReview
 
 
-def data_to_product_review_entity(data: dict) -> ProductReviewEntity:
-    return ProductReviewEntity(**data)
-
-
 def product_review_from_entity(entity: ProductReviewEntity) -> ProductReview:
     return ProductReview(
         pk=entity.id,

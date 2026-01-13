@@ -4,7 +4,6 @@ import pytest
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
 from src.apps.products.commands.product_reviews import CreateProductReviewCommand
-from src.apps.products.commands.product_variants import CreateProductVariantCommand
 from src.apps.products.converters.product_reviews import product_review_to_entity
 from src.apps.products.entities.product_reviews import ProductReviewEntity
 from src.apps.products.exceptions.product_reviews import ProductReviewAlreadyExistsError
@@ -41,8 +40,8 @@ def test_create_review_created_one(
     expected_rating: int,
     expected_text: str,
 ):
-    command = CreateProductVariantCommand(
-        user_id=user.pk, product_id=product.pk, data={'rating': expected_rating, 'text': expected_text}
+    command = CreateProductReviewCommand(
+        user_id=user.pk, product_id=product.pk, rating=expected_rating, text=expected_text
     )
     review = create_product_review_use_case.execute(command=command)
     db_review = ProductReview.objects.get(user_id=user.pk, product_id=product.pk, rating=expected_rating)
@@ -65,9 +64,7 @@ def test_create_review_created_many(
     expected_reviews_avg_rating = calculate_final_avg_rating(ratings=expected_ratings)
     users = UserModelFactory.create_batch(size=expected_reviews_count)
     for user, rating in zip(users, expected_ratings, strict=True):
-        command = CreateProductReviewCommand(
-            user_id=user.pk, product_id=product.pk, data={'rating': rating, 'text': 'test'}
-        )
+        command = CreateProductReviewCommand(user_id=user.pk, product_id=product.pk, rating=rating, text='text')
         create_product_review_use_case.execute(command=command)
 
     db_product = Product.objects.get(pk=product.pk)
@@ -81,7 +78,7 @@ def test_create_review_not_created_and_product_not_found_error_raised(
     user: User,
 ):
     with pytest.raises(ProductNotFoundByIdError):
-        command = CreateProductReviewCommand(user_id=user.pk, product_id=uuid7(), data={})
+        command = CreateProductReviewCommand(user_id=user.pk, product_id=uuid7(), rating=1, text='1')
         create_product_review_use_case.execute(command=command)
 
 
@@ -93,21 +90,21 @@ def test_create_review_not_created_and_review_already_exists_error_raised(
 ):
     ProductReviewModelFactory.create(user=user, product=product)
     with pytest.raises(ProductReviewAlreadyExistsError):
-        command = CreateProductReviewCommand(user_id=user.pk, product_id=product.pk, data={})
+        command = CreateProductReviewCommand(user_id=user.pk, product_id=product.pk, rating=1, text='1')
         create_product_review_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_create_review_user_credentials_error_raised(create_product_review_use_case: CreateProductReviewUseCase):
     with pytest.raises(AuthCredentialsNotProvidedError):
-        command = CreateProductReviewCommand(user_id=None, product_id=uuid7(), data={})
+        command = CreateProductReviewCommand(user_id=None, product_id=uuid7(), rating=1, text='1')
         create_product_review_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_create_review_user_not_found_error_raised(create_product_review_use_case: CreateProductReviewUseCase):
     with pytest.raises(UserNotFoundError):
-        command = CreateProductReviewCommand(user_id=1, product_id=uuid7(), data={})
+        command = CreateProductReviewCommand(user_id=1, product_id=uuid7(), rating=1, text='1')
         create_product_review_use_case.execute(command=command)
 
 
@@ -115,5 +112,5 @@ def test_create_review_user_not_found_error_raised(create_product_review_use_cas
 def test_create_review_user_not_active_error_raised(create_product_review_use_case: CreateProductReviewUseCase):
     user = UserModelFactory.create(is_active=False)
     with pytest.raises(UserNotActiveError):
-        command = CreateProductReviewCommand(user_id=user.pk, product_id=uuid7(), data={})
+        command = CreateProductReviewCommand(user_id=user.pk, product_id=uuid7(), rating=1, text='1')
         create_product_review_use_case.execute(command=command)

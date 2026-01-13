@@ -4,10 +4,6 @@ from src.apps.products.models.products import Product
 from src.apps.sellers.converters.sellers import seller_to_entity
 
 
-def data_to_product_entity(data: dict) -> ProductEntity:
-    return ProductEntity(**data)
-
-
 def product_from_entity(entity: ProductEntity) -> Product:
     return Product(
         pk=entity.id,

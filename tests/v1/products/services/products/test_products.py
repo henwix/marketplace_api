@@ -44,13 +44,11 @@ def test_save_product_saved_for_update(
     expected_short_desc: str,
     expected_is_visible: bool,
 ):
-    product_entity.update_from_data(
-        data={
-            'title': expected_title,
-            'description': expected_desc,
-            'short_description': expected_short_desc,
-            'is_visible': expected_is_visible,
-        }
+    product_entity.update(
+        title=expected_title,
+        description=expected_desc,
+        short_description=expected_short_desc,
+        is_visible=expected_is_visible,
     )
 
     saved_product = product_service.save(product=product_entity, update=True)

@@ -81,13 +81,19 @@ class DetailProductView(APIView):
         use_case.execute(command=command)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def patch(self, request: Request, id: UUID) -> Response:
-        serializer = UpdateProductInSerializer(data=request.data)
+    def _update(self, request: Request, id: UUID, partial: bool) -> Response:
+        serializer = UpdateProductInSerializer(data=request.data, partial=partial)
         serializer.is_valid(raise_exception=True)
         use_case: UpdateProductUseCase = resolve_depends(UpdateProductUseCase)
         command = UpdateProductCommand(user_id=request.user.id, product_id=id, **serializer.validated_data)
         product = use_case.execute(command=command)
         return Response(data=ProductOutSerializer(product).data, status=status.HTTP_200_OK)
+
+    def patch(self, request: Request, id: UUID) -> Response:
+        return self._update(request=request, id=id, partial=True)
+
+    def put(self, request: Request, id: UUID) -> Response:
+        return self._update(request=request, id=id, partial=False)
 
 
 # TODO: cache for searching

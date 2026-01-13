@@ -2,10 +2,6 @@ from src.apps.products.entities.product_variants import ProductVariantEntity
 from src.apps.products.models.product_variants import ProductVariant
 
 
-def data_to_product_variant_entity(data: dict) -> ProductVariantEntity:
-    return ProductVariantEntity(**data)
-
-
 def product_variant_from_entity(entity: ProductVariantEntity) -> ProductVariant:
     return ProductVariant(
         pk=entity.id,
