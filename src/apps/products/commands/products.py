@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
+from src.apps.common.commands import BaseUpdateCommand
 from src.apps.common.types import UNSET, Unset
 
 
@@ -32,13 +33,15 @@ class GetProductBySlugCommand:
 
 
 @dataclass(frozen=True, eq=False)
-class UpdateProductCommand:
+class UpdateProductCommand(BaseUpdateCommand):
     user_id: int | None
     product_id: UUID
     title: str | Unset = UNSET
     description: str | Unset = UNSET
     short_description: str | Unset = UNSET
     is_visible: bool | Unset = UNSET
+
+    _skip_fields = {'user_id', 'product_id'}
 
 
 @dataclass(frozen=True, eq=False)

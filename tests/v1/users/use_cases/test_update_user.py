@@ -2,6 +2,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
+from src.apps.common.exceptions import NothingToUpdateError
 from src.apps.users.commands import UpdateUserCommand
 from src.apps.users.entities import UserEntity
 from src.apps.users.exceptions.users import (
@@ -89,6 +90,12 @@ def test_update_user_updated_partial(
     assert updated_user.phone == expected_phone
 
 
+def test_update_user_not_updated_and_nothing_not_update_error_raised(update_user_use_case: UpdateUserUseCase):
+    command = UpdateUserCommand(user_id=None)
+    with pytest.raises(NothingToUpdateError):
+        update_user_use_case.execute(command=command)
+
+
 @pytest.mark.django_db
 def test_update_user_phone_already_exists_error_raised(update_user_use_case: UpdateUserUseCase, user: User):
     expected_phone = '+592692652134'
@@ -111,14 +118,14 @@ def test_update_user_email_already_exists_error_raised(update_user_use_case: Upd
 
 @pytest.mark.django_db
 def test_update_user_user_credentials_error_raised(update_user_use_case: UpdateUserUseCase):
-    command = UpdateUserCommand(user_id=None)
+    command = UpdateUserCommand(user_id=None, first_name='1')
     with pytest.raises(AuthCredentialsNotProvidedError):
         update_user_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_user_user_not_found_error_raised(update_user_use_case: UpdateUserUseCase):
-    command = UpdateUserCommand(user_id=1)
+    command = UpdateUserCommand(user_id=1, first_name='1')
     with pytest.raises(UserNotFoundError):
         update_user_use_case.execute(command=command)
 
@@ -126,6 +133,6 @@ def test_update_user_user_not_found_error_raised(update_user_use_case: UpdateUse
 @pytest.mark.django_db
 def test_update_user_user_not_active_error_raised(update_user_use_case: UpdateUserUseCase):
     user = UserModelFactory.create(is_active=False)
-    command = UpdateUserCommand(user_id=user.pk)
+    command = UpdateUserCommand(user_id=user.pk, first_name='1')
     with pytest.raises(UserNotActiveError):
         update_user_use_case.execute(command=command)

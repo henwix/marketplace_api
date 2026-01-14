@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 
+from src.apps.common.commands import BaseUpdateCommand
 from src.apps.common.types import UNSET, Unset
 
 
@@ -13,7 +14,7 @@ class CreateUserCommand:
 
 
 @dataclass(frozen=True, eq=False)
-class UpdateUserCommand:
+class UpdateUserCommand(BaseUpdateCommand):
     user_id: int | None
     first_name: str | Unset = UNSET
     last_name: str | Unset = UNSET

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from src.apps.authentication.services.auth import BaseAuthValidatorService
+from src.apps.common.exceptions import NothingToUpdateError
 from src.apps.products.commands.products import UpdateProductCommand
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.services.products import BaseProductAccessValidatorService, BaseProductService
@@ -17,6 +18,8 @@ class UpdateProductUseCase:
     product_access_validator_service: BaseProductAccessValidatorService
 
     def execute(self, command: UpdateProductCommand) -> ProductEntity:
+        if command.is_empty:
+            raise NothingToUpdateError
         self.auth_validator_service.validate(user_id=command.user_id)
         user = self.user_service.try_get_by_id_with_loaded_seller(id=command.user_id)
         self.seller_validator_service.validate(seller=user.seller_profile, user_id=user.id)

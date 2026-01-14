@@ -23,6 +23,7 @@ from src.api.v1.products.serializers.product_reviews import (
     RetrieveProductReviewOutSerializer,
     UpdateProductReviewInSerializer,
 )
+from src.apps.common.exceptions import NothingToUpdateError
 from src.apps.products.exceptions.product_reviews import ProductReviewAlreadyExistsError, ProductReviewNotFoundError
 from src.apps.products.exceptions.products import ProductNotFoundByIdError
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError
@@ -35,6 +36,7 @@ def extend_product_review_view_schema(view):
             request=UpdateProductReviewInSerializer,
             responses={
                 status.HTTP_200_OK: successful_response(response=ProductReviewOutSerializer),
+                status.HTTP_400_BAD_REQUEST: bad_request_response(NothingToUpdateError),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
                 status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
                 status.HTTP_404_NOT_FOUND: not_found_response(

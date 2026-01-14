@@ -3,6 +3,7 @@ from dataclasses import dataclass
 from django.db import transaction
 
 from src.apps.authentication.services.auth import BaseAuthValidatorService
+from src.apps.common.exceptions import NothingToUpdateError
 from src.apps.products.commands.product_reviews import UpdateProductReviewCommand
 from src.apps.products.entities.product_reviews import ProductReviewEntity
 from src.apps.products.services.product_reviews import BaseProductReviewService
@@ -18,6 +19,8 @@ class UpdateProductReviewUseCase:
     auth_validator_service: BaseAuthValidatorService
 
     def execute(self, command: UpdateProductReviewCommand) -> ProductReviewEntity:
+        if command.is_empty:
+            raise NothingToUpdateError
         self.auth_validator_service.validate(user_id=command.user_id)
         user = self.user_service.try_get_by_id(id=command.user_id)
         with transaction.atomic():

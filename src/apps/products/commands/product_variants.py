@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from decimal import Decimal
 from uuid import UUID
 
+from src.apps.common.commands import BaseUpdateCommand
 from src.apps.common.types import UNSET, Unset
 
 
@@ -16,13 +17,15 @@ class CreateProductVariantCommand:
 
 
 @dataclass(frozen=True, eq=False)
-class UpdateProductVariantCommand:
+class UpdateProductVariantCommand(BaseUpdateCommand):
     user_id: int | None
     product_variant_id: UUID
     title: str | Unset = UNSET
     price: Decimal | Unset = UNSET
     stock: int | Unset = UNSET
     is_visible: bool | Unset = UNSET
+
+    _skip_fields = {'user_id', 'product_variant_id'}
 
 
 @dataclass(frozen=True, eq=False)

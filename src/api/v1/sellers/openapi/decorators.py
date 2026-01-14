@@ -10,6 +10,7 @@ from src.api.v1.common.openapi.responses import (
     successful_response,
 )
 from src.api.v1.sellers.serializers import CreateSellerInSerializer, SellerOutSerializer, UpdateSellerInSerializer
+from src.apps.common.exceptions import NothingToUpdateError
 from src.apps.sellers.exceptions import SellerAlreadyExistsError, SellerNotFoundByIdError, SellerNotFoundError
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError
 
@@ -21,6 +22,7 @@ def extend_seller_view_schema(view):
             request=UpdateSellerInSerializer,
             responses={
                 status.HTTP_200_OK: successful_response(response=SellerOutSerializer),
+                status.HTTP_400_BAD_REQUEST: bad_request_response(NothingToUpdateError),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
                 status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
                 status.HTTP_404_NOT_FOUND: not_found_response(SellerNotFoundError, UserNotFoundError),

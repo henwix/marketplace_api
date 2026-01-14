@@ -15,6 +15,7 @@ from src.api.v1.products.serializers.product_variants import (
     ProductVariantOutSerializer,
     UpdateProductVariantInSerializer,
 )
+from src.apps.common.exceptions import NothingToUpdateError
 from src.apps.products.exceptions.product_variants import (
     ProductVariantAccessForbiddenError,
     ProductVariantNotFoundError,
@@ -66,6 +67,7 @@ def extend_detail_product_variant_view_schema(view):
             request=UpdateProductVariantInSerializer,
             responses={
                 status.HTTP_200_OK: successful_response(response=ProductVariantOutSerializer),
+                status.HTTP_400_BAD_REQUEST: bad_request_response(NothingToUpdateError),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
                 status.HTTP_403_FORBIDDEN: forbidden_response(ProductVariantAccessForbiddenError, UserNotActiveError),
                 status.HTTP_404_NOT_FOUND: not_found_response(

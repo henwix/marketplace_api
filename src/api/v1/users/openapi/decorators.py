@@ -15,6 +15,7 @@ from src.api.v1.users.serializers import (
     UpdateUserInSerializer,
     UserOutSerializer,
 )
+from src.apps.common.exceptions import NothingToUpdateError
 from src.apps.users.exceptions.users import (
     UserNotActiveError,
     UserNotFoundError,
@@ -35,6 +36,7 @@ def extend_user_view_schema(view):
                     UserWithEmailAlreadyExistsError,
                     UserWithPhoneAlreadyExistsError,
                     UserWithDataAlreadyExistsError,
+                    NothingToUpdateError,
                 ),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
                 status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),

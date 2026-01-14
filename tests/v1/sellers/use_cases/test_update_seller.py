@@ -2,6 +2,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
+from src.apps.common.exceptions import NothingToUpdateError
 from src.apps.sellers.commands import UpdateSellerCommand
 from src.apps.sellers.converters.sellers import seller_to_entity
 from src.apps.sellers.entities.sellers import SellerEntity
@@ -51,25 +52,32 @@ def test_update_seller_updated_partial(update_seller_use_case: UpdateSellerUseCa
 
 
 @pytest.mark.django_db
+def test_update_seller_not_updated_and_nothing_to_updated_error_raised(update_seller_use_case: UpdateSellerUseCase):
+    command = UpdateSellerCommand(user_id=1)
+    with pytest.raises(NothingToUpdateError):
+        update_seller_use_case.execute(command=command)
+
+
+@pytest.mark.django_db
 def test_update_seller_seller_not_found_error_raised(
     update_seller_use_case: UpdateSellerUseCase,
     user: User,
 ):
-    command = UpdateSellerCommand(user_id=user.pk)
+    command = UpdateSellerCommand(user_id=user.pk, name='1')
     with pytest.raises(SellerNotFoundError):
         update_seller_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_seller_user_credentials_error_raised(update_seller_use_case: UpdateSellerUseCase):
-    command = UpdateSellerCommand(user_id=None)
+    command = UpdateSellerCommand(user_id=None, name='1')
     with pytest.raises(AuthCredentialsNotProvidedError):
         update_seller_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_seller_user_not_found_error_raised(update_seller_use_case: UpdateSellerUseCase):
-    command = UpdateSellerCommand(user_id=1)
+    command = UpdateSellerCommand(user_id=1, name='1')
     with pytest.raises(UserNotFoundError):
         update_seller_use_case.execute(command=command)
 
@@ -77,6 +85,6 @@ def test_update_seller_user_not_found_error_raised(update_seller_use_case: Updat
 @pytest.mark.django_db
 def test_update_seller_user_not_active_error_raised(update_seller_use_case: UpdateSellerUseCase):
     user = UserModelFactory.create(is_active=False)
-    command = UpdateSellerCommand(user_id=user.pk)
+    command = UpdateSellerCommand(user_id=user.pk, name='1')
     with pytest.raises(UserNotActiveError):
         update_seller_use_case.execute(command=command)

@@ -11,3 +11,9 @@ class ServiceException(Exception):
     @classmethod
     def response(cls) -> dict:
         return {'detail': cls.message}
+
+
+@dataclass(eq=False)
+class NothingToUpdateError(ServiceException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    message = 'No fields provided to update'

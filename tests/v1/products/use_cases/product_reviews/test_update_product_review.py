@@ -3,6 +3,7 @@ from uuid import uuid7
 import pytest
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
+from src.apps.common.exceptions import NothingToUpdateError
 from src.apps.products.commands.product_reviews import CreateProductReviewCommand, UpdateProductReviewCommand
 from src.apps.products.converters.product_reviews import product_review_to_entity
 from src.apps.products.entities.product_reviews import ProductReviewEntity
@@ -123,13 +124,21 @@ def test_update_review_updated_many(
         assert product.reviews_avg_rating == expected_reviews_avg_rating
 
 
+def test_update_review_not_updated_and_nothing_to_update_error_raised(
+    update_product_review_use_case: UpdateProductReviewUseCase,
+):
+    command = UpdateProductReviewCommand(user_id=None, product_id=uuid7())
+    with pytest.raises(NothingToUpdateError):
+        update_product_review_use_case.execute(command=command)
+
+
 @pytest.mark.django_db
 def test_update_review_not_updated_and_product_not_found_error_raised(
     update_product_review_use_case: UpdateProductReviewUseCase,
     user: User,
 ):
     with pytest.raises(ProductNotFoundByIdError):
-        command = UpdateProductReviewCommand(user_id=user.pk, product_id=uuid7())
+        command = UpdateProductReviewCommand(user_id=user.pk, product_id=uuid7(), rating=1)
         update_product_review_use_case.execute(command=command)
 
 
@@ -140,21 +149,21 @@ def test_update_review_not_updated_and_product_review_not_found_error_raised(
     product: Product,
 ):
     with pytest.raises(ProductReviewNotFoundError):
-        command = UpdateProductReviewCommand(user_id=user.pk, product_id=product.pk)
+        command = UpdateProductReviewCommand(user_id=user.pk, product_id=product.pk, rating=1)
         update_product_review_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_review_user_credentials_error_raised(update_product_review_use_case: UpdateProductReviewUseCase):
     with pytest.raises(AuthCredentialsNotProvidedError):
-        command = UpdateProductReviewCommand(user_id=None, product_id=uuid7())
+        command = UpdateProductReviewCommand(user_id=None, product_id=uuid7(), rating=1)
         update_product_review_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_review_user_not_found_error_raised(update_product_review_use_case: UpdateProductReviewUseCase):
     with pytest.raises(UserNotFoundError):
-        command = UpdateProductReviewCommand(user_id=1, product_id=uuid7())
+        command = UpdateProductReviewCommand(user_id=1, product_id=uuid7(), rating=1)
         update_product_review_use_case.execute(command=command)
 
 
@@ -162,5 +171,5 @@ def test_update_review_user_not_found_error_raised(update_product_review_use_cas
 def test_update_review_user_not_active_error_raised(update_product_review_use_case: UpdateProductReviewUseCase):
     user = UserModelFactory.create(is_active=False)
     with pytest.raises(UserNotActiveError):
-        command = UpdateProductReviewCommand(user_id=user.pk, product_id=uuid7())
+        command = UpdateProductReviewCommand(user_id=user.pk, product_id=uuid7(), rating=1)
         update_product_review_use_case.execute(command=command)

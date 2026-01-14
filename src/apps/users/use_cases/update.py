@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 
 from src.apps.authentication.services.auth import BaseAuthValidatorService
+from src.apps.common.exceptions import NothingToUpdateError
 from src.apps.users.commands import UpdateUserCommand
 from src.apps.users.entities import UserEntity
 from src.apps.users.services.users import BaseUserService, BaseUserValidatorService
@@ -13,6 +14,8 @@ class UpdateUserUseCase:
     auth_validator_service: BaseAuthValidatorService
 
     def execute(self, command: UpdateUserCommand) -> UserEntity:
+        if command.is_empty:
+            raise NothingToUpdateError
         self.auth_validator_service.validate(user_id=command.user_id)
         user = self.user_service.try_get_by_id(id=command.user_id)
         self.user_validator_service.validate(email=command.email, phone=command.phone)

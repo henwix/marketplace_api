@@ -5,6 +5,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
+from src.apps.common.exceptions import NothingToUpdateError
 from src.apps.products.commands.product_variants import UpdateProductVariantCommand
 from src.apps.products.converters.product_variants import product_variant_to_entity
 from src.apps.products.entities.product_variants import ProductVariantEntity
@@ -114,12 +115,20 @@ def test_update_variant_updated_partial(
     assert updated_product_variant.is_visible == expected_is_visible
 
 
+def test_update_variant_not_updated_and_nothing_found_error_raised(
+    update_product_variant_use_case: UpdateProductVariantUseCase,
+):
+    command = UpdateProductVariantCommand(user_id=None, product_variant_id=uuid7())
+    with pytest.raises(NothingToUpdateError):
+        update_product_variant_use_case.execute(command=command)
+
+
 @pytest.mark.django_db
 def test_update_variant_product_variant_not_found_error_raised(
     update_product_variant_use_case: UpdateProductVariantUseCase, seller: Seller
 ):
     with pytest.raises(ProductVariantNotFoundError):
-        command = UpdateProductVariantCommand(user_id=seller.user_id, product_variant_id=uuid7())
+        command = UpdateProductVariantCommand(user_id=seller.user_id, product_variant_id=uuid7(), title='1')
         update_product_variant_use_case.execute(command=command)
     assert ProductVariant.objects.all().count() == 0
 
@@ -129,7 +138,7 @@ def test_update_variant_product_access_forbidden_error_raised(
     update_product_variant_use_case: UpdateProductVariantUseCase, seller: Seller, product_variant: ProductVariant
 ):
     with pytest.raises(ProductVariantAccessForbiddenError):
-        command = UpdateProductVariantCommand(user_id=seller.user_id, product_variant_id=product_variant.pk)
+        command = UpdateProductVariantCommand(user_id=seller.user_id, product_variant_id=product_variant.pk, title='1')
         update_product_variant_use_case.execute(command=command)
     assert ProductVariant.objects.all().count() == 1
 
@@ -140,21 +149,21 @@ def test_update_variant_seller_not_found_error_raised(
     user: User,
 ):
     with pytest.raises(SellerNotFoundError):
-        command = UpdateProductVariantCommand(user_id=user.pk, product_variant_id=uuid7())
+        command = UpdateProductVariantCommand(user_id=user.pk, product_variant_id=uuid7(), title='1')
         update_product_variant_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_variant_user_credentials_error_raised(update_product_variant_use_case: UpdateProductVariantUseCase):
     with pytest.raises(AuthCredentialsNotProvidedError):
-        command = UpdateProductVariantCommand(user_id=None, product_variant_id=uuid7())
+        command = UpdateProductVariantCommand(user_id=None, product_variant_id=uuid7(), title='1')
         update_product_variant_use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_update_variant_user_not_found_error_raised(update_product_variant_use_case: UpdateProductVariantUseCase):
     with pytest.raises(UserNotFoundError):
-        command = UpdateProductVariantCommand(user_id=1, product_variant_id=uuid7())
+        command = UpdateProductVariantCommand(user_id=1, product_variant_id=uuid7(), title='1')
         update_product_variant_use_case.execute(command=command)
 
 
@@ -162,5 +171,5 @@ def test_update_variant_user_not_found_error_raised(update_product_variant_use_c
 def test_update_variant_user_not_active_error_raised(update_product_variant_use_case: UpdateProductVariantUseCase):
     user = UserModelFactory.create(is_active=False)
     with pytest.raises(UserNotActiveError):
-        command = UpdateProductVariantCommand(user_id=user.pk, product_variant_id=uuid7())
+        command = UpdateProductVariantCommand(user_id=user.pk, product_variant_id=uuid7(), title='1')
         update_product_variant_use_case.execute(command=command)
