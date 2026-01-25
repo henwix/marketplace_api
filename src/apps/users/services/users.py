@@ -28,7 +28,7 @@ class UserUniqueEmailValidatorService(BaseUserValidatorService):
 
     def validate(self, email: str | Unset, *args, **kwargs) -> None:
         if email is not UNSET and self.user_repository.check_user_with_email_exists(email=email):
-            raise UserWithEmailAlreadyExistsError()
+            raise UserWithEmailAlreadyExistsError
 
 
 @dataclass
@@ -37,7 +37,7 @@ class UserUniquePhoneValidatorService(BaseUserValidatorService):
 
     def validate(self, phone: str | Unset, *args, **kwargs) -> None:
         if phone is not UNSET and self.user_repository.check_user_with_phone_exists(phone=phone):
-            raise UserWithPhoneAlreadyExistsError()
+            raise UserWithPhoneAlreadyExistsError
 
 
 @dataclass
@@ -106,7 +106,7 @@ class UserService(BaseUserService):
             )
             return user_to_entity(dto=dto)
         except IntegrityError:
-            raise UserWithDataAlreadyExistsError()
+            raise UserWithDataAlreadyExistsError
 
     def save(self, user: UserEntity, update: bool = False) -> UserEntity:
         try:
@@ -114,7 +114,7 @@ class UserService(BaseUserService):
             dto = self.repository.save(user=dto, update=update)
             return user_to_entity(dto=dto)
         except IntegrityError:
-            raise UserWithDataAlreadyExistsError()
+            raise UserWithDataAlreadyExistsError
 
     def try_get_by_id_with_loaded_seller(self, id: int) -> UserEntity:
         dto = self.repository.get_by_id_with_loaded_seller(id=id)

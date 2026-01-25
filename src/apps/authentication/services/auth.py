@@ -11,4 +11,4 @@ class BaseAuthValidatorService(ABC):
 class AuthValidatorService(BaseAuthValidatorService):
     def validate(self, user_id: int | None):
         if user_id is None:
-            raise AuthCredentialsNotProvidedError()
+            raise AuthCredentialsNotProvidedError

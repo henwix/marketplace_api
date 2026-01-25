@@ -7,7 +7,7 @@ from rest_framework.request import Request
 from rest_framework.views import APIView, Response
 
 from src.api.v1.common.mixins import LazyAuthViewMixin, PaginationViewMixin
-from src.api.v1.products.filters import GlobalProductFilter, PersonalProductFilter
+from src.api.v1.products.filters import PersonalProductFilter
 from src.api.v1.products.openapi.products.decorators import (
     extend_detail_product_view_schema,
     extend_detail_slug_product_view_schema,
@@ -15,7 +15,7 @@ from src.api.v1.products.openapi.products.decorators import (
     extend_personal_search_view_schema,
     extend_product_view_schema,
 )
-from src.api.v1.products.pagination import SearchProductPagination
+from src.api.v1.products.pagination import SearchProductCursorPagination, SearchProductPagePagination
 from src.api.v1.products.serializers.products import (
     CreateProductInSerializer,
     ProductOutSerializer,
@@ -103,14 +103,12 @@ class GlobalSearchProductView(
     LazyAuthViewMixin,
     GenericAPIView,
 ):
-    filterset_class = GlobalProductFilter
     filter_backends = [
         filters.SearchFilter,
         filters.OrderingFilter,
-        django_filters.rest_framework.DjangoFilterBackend,
     ]
     search_fields = ['title', 'description', 'short_description']
-    ordering_fields = ['created_at', 'updated_at', 'price', 'reviews_count', 'reviews_avg_rating']
+    ordering_fields = ['created_at', 'updated_at']
     ordering = ['-created_at']
 
     def get(self, request: Request) -> Response:
@@ -118,7 +116,7 @@ class GlobalSearchProductView(
         products = use_case.execute()
         return self.paginate(
             queryset=products,
-            paginator=SearchProductPagination,
+            paginator=SearchProductCursorPagination,
             serializer=SearchProductOutSerializer,
         )
 
@@ -135,7 +133,7 @@ class PersonalSearchProductView(
         django_filters.rest_framework.DjangoFilterBackend,
     ]
     search_fields = ['title', 'description', 'short_description']
-    ordering_fields = ['created_at', 'updated_at', 'price', 'reviews_count', 'reviews_avg_rating']
+    ordering_fields = ['created_at', 'updated_at', 'reviews_count', 'reviews_avg_rating']
     ordering = ['-created_at']
 
     def get(self, request: Request) -> Response:
@@ -144,6 +142,6 @@ class PersonalSearchProductView(
         products = use_case.execute(command=command)
         return self.paginate(
             queryset=products,
-            paginator=SearchProductPagination,
+            paginator=SearchProductPagePagination,
             serializer=SearchProductOutSerializer,
         )

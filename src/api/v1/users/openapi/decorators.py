@@ -26,25 +26,6 @@ from src.apps.users.exceptions.users import (
 
 
 def extend_user_view_schema(view):
-    def _update_user_extend_schema(method: str):
-        return extend_schema(
-            parameters=[jwt_header_parameter()],
-            request=UpdateUserInSerializer,
-            responses={
-                status.HTTP_200_OK: successful_response(response=UserOutSerializer),
-                status.HTTP_400_BAD_REQUEST: bad_request_response(
-                    UserWithEmailAlreadyExistsError,
-                    UserWithPhoneAlreadyExistsError,
-                    UserWithDataAlreadyExistsError,
-                    NothingToUpdateError,
-                ),
-                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
-                status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
-                status.HTTP_404_NOT_FOUND: not_found_response(UserNotFoundError),
-            },
-            summary=f'Update User {method}',
-        )
-
     decorator = extend_schema_view(
         post=extend_schema(
             request=CreateUserInSerializer,
@@ -69,8 +50,39 @@ def extend_user_view_schema(view):
             },
             summary='Retrieve User GET',
         ),
-        put=_update_user_extend_schema(method='PUT'),
-        patch=_update_user_extend_schema(method='PATCH'),
+        put=extend_schema(
+            parameters=[jwt_header_parameter()],
+            request=UpdateUserInSerializer,
+            responses={
+                status.HTTP_200_OK: successful_response(response=UserOutSerializer),
+                status.HTTP_400_BAD_REQUEST: bad_request_response(
+                    UserWithEmailAlreadyExistsError,
+                    UserWithPhoneAlreadyExistsError,
+                    UserWithDataAlreadyExistsError,
+                ),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(UserNotFoundError),
+            },
+            summary='Update User PUT',
+        ),
+        patch=extend_schema(
+            parameters=[jwt_header_parameter()],
+            request=UpdateUserInSerializer,
+            responses={
+                status.HTTP_200_OK: successful_response(response=UserOutSerializer),
+                status.HTTP_400_BAD_REQUEST: bad_request_response(
+                    UserWithEmailAlreadyExistsError,
+                    UserWithPhoneAlreadyExistsError,
+                    UserWithDataAlreadyExistsError,
+                    NothingToUpdateError,
+                ),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(UserNotFoundError),
+            },
+            summary='Update User PATCH',
+        ),
         delete=extend_schema(
             parameters=[jwt_header_parameter()],
             request=None,

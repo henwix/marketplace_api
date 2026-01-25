@@ -61,22 +61,6 @@ def extend_product_variant_view_schema(view):
 
 
 def extend_detail_product_variant_view_schema(view):
-    def _update_product_variant_extend_schema(method: str):
-        return extend_schema(
-            parameters=[jwt_header_parameter()],
-            request=UpdateProductVariantInSerializer,
-            responses={
-                status.HTTP_200_OK: successful_response(response=ProductVariantOutSerializer),
-                status.HTTP_400_BAD_REQUEST: bad_request_response(NothingToUpdateError),
-                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
-                status.HTTP_403_FORBIDDEN: forbidden_response(ProductVariantAccessForbiddenError, UserNotActiveError),
-                status.HTTP_404_NOT_FOUND: not_found_response(
-                    SellerNotFoundError, ProductVariantNotFoundError, UserNotFoundError
-                ),
-            },
-            summary=f'Update Product Variant {method}',
-        )
-
     decorator = extend_schema_view(
         delete=extend_schema(
             parameters=[jwt_header_parameter()],
@@ -91,7 +75,32 @@ def extend_detail_product_variant_view_schema(view):
             },
             summary='Delete Product Variant DELETE',
         ),
-        put=_update_product_variant_extend_schema(method='PUT'),
-        patch=_update_product_variant_extend_schema(method='PATCH'),
+        put=extend_schema(
+            parameters=[jwt_header_parameter()],
+            request=UpdateProductVariantInSerializer,
+            responses={
+                status.HTTP_200_OK: successful_response(response=ProductVariantOutSerializer),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(ProductVariantAccessForbiddenError, UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(
+                    SellerNotFoundError, ProductVariantNotFoundError, UserNotFoundError
+                ),
+            },
+            summary='Update Product Variant PUT',
+        ),
+        patch=extend_schema(
+            parameters=[jwt_header_parameter()],
+            request=UpdateProductVariantInSerializer,
+            responses={
+                status.HTTP_200_OK: successful_response(response=ProductVariantOutSerializer),
+                status.HTTP_400_BAD_REQUEST: bad_request_response(NothingToUpdateError),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(ProductVariantAccessForbiddenError, UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(
+                    SellerNotFoundError, ProductVariantNotFoundError, UserNotFoundError
+                ),
+            },
+            summary='Update Product Variant PATCH',
+        ),
     )
     return decorator(view)

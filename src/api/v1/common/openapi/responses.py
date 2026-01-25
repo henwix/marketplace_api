@@ -1,6 +1,6 @@
 from drf_spectacular.utils import OpenApiResponse, inline_serializer
 from rest_framework import serializers
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import CursorPagination, PageNumberPagination
 from rest_framework.serializers import Serializer
 
 from src.api.v1.common.openapi.examples import build_response_example_from_error
@@ -26,6 +26,24 @@ def successful_page_response(response: type[Serializer], paginator: type[PageNum
                 ),
                 'previous': serializers.URLField(
                     default=f'http://api.example.org/accounts/?{paginator.page_query_param}=2'
+                ),
+                'results': response(many=True),
+            },
+        ),
+        description='Successful Response',
+    )
+
+
+def successful_cursor_response(response: type[Serializer], paginator: type[CursorPagination]) -> OpenApiResponse:
+    return OpenApiResponse(
+        response=inline_serializer(
+            name=f'CursorPaginatedResponse{response.__name__}',
+            fields={
+                'next': serializers.URLField(
+                    default=f'http://api.example.org/accounts/?{paginator.cursor_query_param}=0LTEyLTExKzA2JTNBMDklM0'
+                ),
+                'previous': serializers.URLField(
+                    default=f'http://api.example.org/accounts/?{paginator.cursor_query_param}=zA2JTNBMDklM0EwOS41NDk3'
                 ),
                 'results': response(many=True),
             },

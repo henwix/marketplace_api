@@ -121,21 +121,6 @@ def test_get_product_by_id_with_relations_retrieved(product: Product, product_re
 
 
 @pytest.mark.django_db
-def test_get_product_by_id_with_relations_and_zero_prices_retrieved(
-    product: Product, product_repository: BaseProductRepository
-):
-    expected_variants = 4
-    expected_variants_with_zero_price = 2
-    ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
-    ProductVariantModelFactory.create_batch(size=expected_variants_with_zero_price, product=product, price=0)
-    retrieved_product = product_repository.get_by_id_for_retrieve(id=product.pk)
-
-    assert isinstance(retrieved_product, Product)
-    assert retrieved_product == product
-    assert len(getattr(retrieved_product, '_prefetched_objects_cache', {}).get('variants')) == expected_variants
-
-
-@pytest.mark.django_db
 def test_get_product_by_id_with_relations_and_not_visible_variants_retrieved(
     product: Product, product_repository: BaseProductRepository
 ):
@@ -165,21 +150,6 @@ def test_get_product_by_slug_with_relations_retrieved(product: Product, product_
     assert isinstance(retrieved_product, Product)
     assert retrieved_product == product
     assert retrieved_product._state.fields_cache.get('seller') == product.seller
-    assert len(getattr(retrieved_product, '_prefetched_objects_cache', {}).get('variants')) == expected_variants
-
-
-@pytest.mark.django_db
-def test_get_product_by_slug_with_relations_and_zero_price_retrieved(
-    product: Product, product_repository: BaseProductRepository
-):
-    expected_variants = 7
-    expected_variants_with_zero_price = 3
-    ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
-    ProductVariantModelFactory.create_batch(size=expected_variants_with_zero_price, product=product, price=0)
-    retrieved_product = product_repository.get_by_slug_for_retrieve(slug=product.slug)
-
-    assert isinstance(retrieved_product, Product)
-    assert retrieved_product == product
     assert len(getattr(retrieved_product, '_prefetched_objects_cache', {}).get('variants')) == expected_variants
 
 
@@ -279,22 +249,6 @@ def test_get_products_for_global_search_not_retrieved_if_variants_not_visible(
 
 
 @pytest.mark.django_db
-def test_get_products_for_global_search_not_retrieved_if_price_equals_zero(product_repository: BaseProductRepository):
-    expected_products = 2
-    create_test_products_with_variant({'size': expected_products}, {'price': 0})
-    retrieved_products = product_repository.get_many_for_global_search()
-    assert len(retrieved_products) == 0
-
-
-@pytest.mark.django_db
-def test_get_products_for_global_search_not_retrieved_if_stock_equals_zero(product_repository: BaseProductRepository):
-    expected_products = 5
-    create_test_products_with_variant({'size': expected_products}, {'stock': 0})
-    retrieved_products = product_repository.get_many_for_global_search()
-    assert len(retrieved_products) == 0
-
-
-@pytest.mark.django_db
 def test_get_products_for_global_search_retrieved_with_not_visible_products(product_repository: BaseProductRepository):
     expected_visible_products = 6
     expected_invisible_products = 3
@@ -312,16 +266,6 @@ def test_get_products_for_global_search_retrieved_with_not_visible_variants(prod
     create_test_products_with_variant({'size': expected_invisible_products}, {'is_visible': False})
     retrieved_products = product_repository.get_many_for_global_search()
     assert len(retrieved_products) == expected_visible_products
-
-
-@pytest.mark.django_db
-def test_get_products_for_global_search_retrieved_with_prices_equals_zero(product_repository: BaseProductRepository):
-    expected_products_with_positive_price = 8
-    expected_products_with_zero_price = 6
-    create_test_products_with_variant({'size': expected_products_with_positive_price})
-    create_test_products_with_variant({'size': expected_products_with_zero_price}, {'price': 0})
-    retrieved_products = product_repository.get_many_for_global_search()
-    assert len(retrieved_products) == expected_products_with_positive_price
 
 
 @pytest.mark.django_db
@@ -439,20 +383,6 @@ def test_get_products_for_global_search_retrieved_with_correct_min_price_with_ze
 
 
 @pytest.mark.django_db
-def test_get_products_for_global_search_retrieved_with_correct_min_price_with_zero_prices(
-    product_repository: BaseProductRepository,
-):
-    expected_price = Decimal('75')
-    product = ProductModelFactory.create()
-    ProductVariantModelFactory.create(product=product, price=expected_price)
-    ProductVariantModelFactory.create(product=product, price=Decimal('0'))
-    ProductVariantModelFactory.create(product=product, price=Decimal('0'))
-    ProductVariantModelFactory.create(product=product, price=Decimal('99'))
-    retrieved_products = product_repository.get_many_for_global_search()
-    assert retrieved_products[0].price == expected_price
-
-
-@pytest.mark.django_db
 def test_get_products_for_personal_search_retrieved_only_owned_products(
     seller: Seller, product_repository: BaseProductRepository
 ):
@@ -530,21 +460,6 @@ def test_get_products_for_personal_search_retrieved_with_correct_min_price_with_
     ProductVariantModelFactory.create(product=product, price=Decimal('84'), stock=0)
     ProductVariantModelFactory.create(product=product, price=Decimal('12'), stock=0)
     ProductVariantModelFactory.create(product=product, price=Decimal('298'))
-    retrieved_products = product_repository.get_many_for_personal_search(seller_id=seller.pk)
-    assert retrieved_products[0].price == expected_price
-
-
-@pytest.mark.django_db
-def test_get_products_for_personal_search_retrieved_with_correct_min_price_with_zero_prices(
-    seller: Seller,
-    product_repository: BaseProductRepository,
-):
-    expected_price = Decimal('75')
-    product = ProductModelFactory.create(seller=seller)
-    ProductVariantModelFactory.create(product=product, price=expected_price)
-    ProductVariantModelFactory.create(product=product, price=Decimal('0'))
-    ProductVariantModelFactory.create(product=product, price=Decimal('0'))
-    ProductVariantModelFactory.create(product=product, price=Decimal('99'))
     retrieved_products = product_repository.get_many_for_personal_search(seller_id=seller.pk)
     assert retrieved_products[0].price == expected_price
 

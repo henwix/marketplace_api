@@ -1,8 +1,10 @@
 from decimal import Decimal
 from uuid import uuid7
 
+from django.contrib.postgres.indexes import Index
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
 from src.apps.common.models import TimedBaseModel
@@ -52,3 +54,10 @@ class ProductVariant(TimedBaseModel):
     class Meta:
         verbose_name = 'Product variant'
         verbose_name_plural = 'Product variants'
+        indexes = [
+            Index(
+                fields=['product_id'],
+                name='idx_variant_product_search',
+                condition=Q(is_visible=True) & Q(stock__gt=0),
+            )
+        ]

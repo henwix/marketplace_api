@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from uuid import UUID
 
-from django.db.models import Count, Min, Prefetch, Q
+from django.db.models import Count, Exists, OuterRef, Prefetch, Q, Subquery
 
 from src.apps.products.models.product_variants import ProductVariant
 from src.apps.products.models.products import Product
@@ -41,21 +41,21 @@ class ORMProductRepository(BaseProductRepository):
     def _build_query_for_retrieve_with_relations(self, filters: Q) -> Iterable[Product]:
         return (
             Product.objects.filter(filters)
-            .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
+            .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True)))
             .select_related('seller')
         )
 
-    def _build_query_for_search(self, filters: Q) -> Iterable[Product]:
-        return (
-            Product.objects.annotate(
-                price=Min(
-                    'variants__price',
-                    filter=Q(variants__is_visible=True) & Q(variants__price__gt=0) & Q(variants__stock__gt=0),
-                )
+    def _build_query_for_product_search(self, filters: Q, global_search: bool) -> Iterable[Product]:
+        subquery = ProductVariant.objects.filter(product_id=OuterRef('pk'), is_visible=True, stock__gt=0)
+
+        if global_search:
+            qs = Product.objects.annotate(
+                has_valid_variants=Exists(queryset=subquery),
+                price=Subquery(subquery.order_by('price').values('price')[:1]),
             )
-            .filter(filters)
-            .distinct()
-        )
+        else:
+            qs = Product.objects.annotate(price=Subquery(subquery.order_by('price').values('price')[:1]))
+        return qs.filter(filters)
 
     def save(self, product: Product, update: bool) -> Product:
         product.save(force_update=update)
@@ -82,14 +82,12 @@ class ORMProductRepository(BaseProductRepository):
         return self._build_query_for_retrieve_with_relations(filters=Q(slug=slug)).first()
 
     def get_many_for_global_search(self) -> Iterable[Product]:
-        # TODO: index
-        filters = (
-            Q(is_visible=True) & Q(variants__stock__gt=0) & Q(variants__price__gt=0) & Q(variants__is_visible=True)
+        return self._build_query_for_product_search(
+            filters=Q(is_visible=True) & Q(has_valid_variants=True), global_search=True
         )
-        return self._build_query_for_search(filters=filters)
 
     def get_many_for_personal_search(self, seller_id: UUID) -> Iterable[Product]:
-        return self._build_query_for_search(filters=Q(seller_id=seller_id))
+        return self._build_query_for_product_search(filters=Q(seller_id=seller_id), global_search=False)
 
     def delete(self, id: UUID) -> None:
         Product.objects.filter(pk=id).delete()

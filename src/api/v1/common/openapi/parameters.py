@@ -3,7 +3,7 @@ from typing import Any
 
 from django.db import models
 from drf_spectacular.utils import OpenApiParameter
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import BasePagination, CursorPagination, PageNumberPagination
 from rest_framework.settings import api_settings
 
 
@@ -32,7 +32,15 @@ def ordering_query_parameter(enum: type[Enum]) -> OpenApiParameter:
     )
 
 
-def page_query_parameter(paginator: type[PageNumberPagination]) -> OpenApiParameter:
+def cursor_query_parameter(paginator: type[CursorPagination]) -> OpenApiParameter:
+    return query_parameter(
+        name=paginator.cursor_query_param,
+        type=str,
+        description='The pagination cursor value',
+    )
+
+
+def page_query_parameter(paginator: type[BasePagination]) -> OpenApiParameter:
     return query_parameter(
         name=paginator.page_query_param,
         type=int,

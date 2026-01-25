@@ -16,20 +16,6 @@ from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundErro
 
 
 def extend_seller_view_schema(view):
-    def _update_seller_extend_schema(method: str):
-        return extend_schema(
-            parameters=[jwt_header_parameter()],
-            request=UpdateSellerInSerializer,
-            responses={
-                status.HTTP_200_OK: successful_response(response=SellerOutSerializer),
-                status.HTTP_400_BAD_REQUEST: bad_request_response(NothingToUpdateError),
-                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
-                status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
-                status.HTTP_404_NOT_FOUND: not_found_response(SellerNotFoundError, UserNotFoundError),
-            },
-            summary=f'Update Seller Profile {method}',
-        )
-
     decorator = extend_schema_view(
         post=extend_schema(
             parameters=[jwt_header_parameter()],
@@ -53,8 +39,29 @@ def extend_seller_view_schema(view):
             },
             summary='Retrieve Seller Profile GET',
         ),
-        patch=_update_seller_extend_schema(method='PATCH'),
-        put=_update_seller_extend_schema(method='PUT'),
+        patch=extend_schema(
+            parameters=[jwt_header_parameter()],
+            request=UpdateSellerInSerializer,
+            responses={
+                status.HTTP_200_OK: successful_response(response=SellerOutSerializer),
+                status.HTTP_400_BAD_REQUEST: bad_request_response(NothingToUpdateError),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(SellerNotFoundError, UserNotFoundError),
+            },
+            summary='Update Seller Profile PATCH',
+        ),
+        put=extend_schema(
+            parameters=[jwt_header_parameter()],
+            request=UpdateSellerInSerializer,
+            responses={
+                status.HTTP_200_OK: successful_response(response=SellerOutSerializer),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(SellerNotFoundError, UserNotFoundError),
+            },
+            summary='Update Seller Profile PUT',
+        ),
         delete=extend_schema(
             parameters=[jwt_header_parameter()],
             responses={

@@ -1,10 +1,9 @@
-from decimal import Decimal
-
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 
 from src.api.v1.authentication.openapi.responses import unauthorized_user_response
 from src.api.v1.common.openapi.parameters import (
+    cursor_query_parameter,
     jwt_header_parameter,
     ordering_query_parameter,
     page_query_parameter,
@@ -16,11 +15,15 @@ from src.api.v1.common.openapi.responses import (
     bad_request_response,
     forbidden_response,
     not_found_response,
+    successful_cursor_response,
     successful_page_response,
     successful_response,
 )
-from src.api.v1.products.openapi.products.enums import ProductsSearchOrderingEnum
-from src.api.v1.products.pagination import SearchProductPagination
+from src.api.v1.products.openapi.products.enums import (
+    ProductsGlobalSearchOrderingEnum,
+    ProductsPersonalSearchOrderingEnum,
+)
+from src.api.v1.products.pagination import SearchProductCursorPagination, SearchProductPagePagination
 from src.api.v1.products.serializers.products import (
     CreateProductInSerializer,
     ProductOutSerializer,
@@ -73,22 +76,6 @@ def extend_detail_slug_product_view_schema(view):
 
 
 def extend_detail_product_view_schema(view):
-    def _update_product_extend_schema(method: str):
-        return extend_schema(
-            parameters=[jwt_header_parameter()],
-            request=UpdateProductInSerializer,
-            responses={
-                status.HTTP_200_OK: successful_response(response=ProductOutSerializer),
-                status.HTTP_400_BAD_REQUEST: bad_request_response(NothingToUpdateError),
-                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
-                status.HTTP_403_FORBIDDEN: forbidden_response(ProductAccessForbiddenError, UserNotActiveError),
-                status.HTTP_404_NOT_FOUND: not_found_response(
-                    SellerNotFoundError, ProductNotFoundByIdError, UserNotFoundError
-                ),
-            },
-            summary=f'Update Product {method}',
-        )
-
     decorator = extend_schema_view(
         get=extend_schema(
             parameters=[jwt_header_parameter()],
@@ -114,8 +101,33 @@ def extend_detail_product_view_schema(view):
             },
             summary='Delete Product DELETE',
         ),
-        patch=_update_product_extend_schema(method='PATCH'),
-        put=_update_product_extend_schema(method='PUT'),
+        patch=extend_schema(
+            parameters=[jwt_header_parameter()],
+            request=UpdateProductInSerializer,
+            responses={
+                status.HTTP_200_OK: successful_response(response=ProductOutSerializer),
+                status.HTTP_400_BAD_REQUEST: bad_request_response(NothingToUpdateError),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(ProductAccessForbiddenError, UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(
+                    SellerNotFoundError, ProductNotFoundByIdError, UserNotFoundError
+                ),
+            },
+            summary='Update Product PATCH',
+        ),
+        put=extend_schema(
+            parameters=[jwt_header_parameter()],
+            request=UpdateProductInSerializer,
+            responses={
+                status.HTTP_200_OK: successful_response(response=ProductOutSerializer),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(ProductAccessForbiddenError, UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(
+                    SellerNotFoundError, ProductNotFoundByIdError, UserNotFoundError
+                ),
+            },
+            summary='Update Product PUT',
+        ),
     )
     return decorator(view)
 
@@ -124,19 +136,15 @@ def extend_global_search_view_schema(view):
     decorator = extend_schema(
         parameters=[
             search_query_parameter(),
-            ordering_query_parameter(enum=ProductsSearchOrderingEnum),
-            page_query_parameter(paginator=SearchProductPagination),
-            page_size_query_parameter(paginator=SearchProductPagination),
-            query_parameter(name='max_price', type=Decimal, description='Maximum price'),
-            query_parameter(name='min_price', type=Decimal, description='Minimum price'),
-            query_parameter(name='price_range_max', type=Decimal, description='Price range'),
-            query_parameter(name='price_range_min', type=Decimal, description='Price range'),
+            ordering_query_parameter(enum=ProductsGlobalSearchOrderingEnum),
+            cursor_query_parameter(paginator=SearchProductCursorPagination),
+            page_size_query_parameter(paginator=SearchProductCursorPagination),
         ],
         request=None,
         responses={
-            status.HTTP_200_OK: successful_page_response(
+            status.HTTP_200_OK: successful_cursor_response(
                 response=SearchProductOutSerializer,
-                paginator=SearchProductPagination,
+                paginator=SearchProductCursorPagination,
             ),
         },
         summary='Search Global Products GET',
@@ -149,20 +157,16 @@ def extend_personal_search_view_schema(view):
         parameters=[
             jwt_header_parameter(),
             search_query_parameter(),
-            ordering_query_parameter(enum=ProductsSearchOrderingEnum),
-            page_query_parameter(paginator=SearchProductPagination),
-            page_size_query_parameter(paginator=SearchProductPagination),
+            ordering_query_parameter(enum=ProductsPersonalSearchOrderingEnum),
+            page_query_parameter(paginator=SearchProductPagePagination),
+            page_size_query_parameter(paginator=SearchProductPagePagination),
             query_parameter(name='is_visible', type=bool, description='Is visible'),
-            query_parameter(name='max_price', type=Decimal, description='Maximum price'),
-            query_parameter(name='min_price', type=Decimal, description='Minimum price'),
-            query_parameter(name='price_range_max', type=Decimal, description='Price range'),
-            query_parameter(name='price_range_min', type=Decimal, description='Price range'),
         ],
         request=None,
         responses={
             status.HTTP_200_OK: successful_page_response(
                 response=SearchProductOutSerializer,
-                paginator=SearchProductPagination,
+                paginator=SearchProductPagePagination,
             ),
             status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
             status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),

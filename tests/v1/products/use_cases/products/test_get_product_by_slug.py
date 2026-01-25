@@ -129,29 +129,6 @@ def test_get_invisible_product_retrieved_with_correct_relations(
 
 
 @pytest.mark.django_db
-def test_get_invisible_product_retrieved_with_correct_relations_and_zero_prices_are_excluded(
-    product: Product, get_product_by_slug_use_case: GetProductBySlugUseCase
-):
-    expected_variants = 7
-    expected_variants_with_zero_price = 2
-    ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
-    ProductVariantModelFactory.create_batch(size=expected_variants_with_zero_price, product=product, price=0)
-    command = GetProductBySlugCommand(user_id=None, slug=product.slug)
-    retrieved_product = get_product_by_slug_use_case.execute(command=command)
-    db_product = (
-        Product.objects.filter(pk=product.pk)
-        .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
-        .select_related('seller')
-        .first()
-    )
-
-    assert isinstance(retrieved_product, ProductEntity)
-    assert retrieved_product.seller == seller_to_entity(dto=product.seller)
-    assert len(retrieved_product.variants) == expected_variants
-    assert product_to_entity(dto=db_product) == retrieved_product
-
-
-@pytest.mark.django_db
 def test_get_invisible_product_retrieved_with_correct_relations_and_invisible_variants_are_excluded(
     product: Product, get_product_by_slug_use_case: GetProductBySlugUseCase
 ):

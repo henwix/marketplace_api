@@ -101,27 +101,6 @@ def test_get_product_by_id_with_relations_retrieved(product: Product, product_se
 
 
 @pytest.mark.django_db
-def test_get_product_by_id_with_relations_and_zero_price_retrieved(
-    product: Product, product_service: BaseProductService
-):
-    expected_variants = 4
-    expected_variants_with_zero_price = 2
-    ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
-    ProductVariantModelFactory.create_batch(size=expected_variants_with_zero_price, product=product, price=0)
-    retrieved_product = product_service.try_get_by_id_for_retrieve(id=product.pk)
-    db_product = (
-        Product.objects.filter(pk=product.pk)
-        .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
-        .select_related('seller')
-        .first()
-    )
-
-    assert isinstance(retrieved_product, ProductEntity)
-    assert product_to_entity(dto=db_product) == retrieved_product
-    assert len(retrieved_product.variants) == expected_variants
-
-
-@pytest.mark.django_db
 def test_get_product_by_id_with_relations_and_and_not_visible_variants_retrieved(
     product: Product, product_service: BaseProductService
 ):
@@ -165,27 +144,6 @@ def test_get_product_by_slug_with_relations_retrieved(product: Product, product_
     assert isinstance(retrieved_product, ProductEntity)
     assert product_to_entity(dto=db_product) == retrieved_product
     assert retrieved_product.seller == seller_to_entity(product.seller)
-    assert len(retrieved_product.variants) == expected_variants
-
-
-@pytest.mark.django_db
-def test_get_product_by_slug_with_relations_and_zero_price_retrieved(
-    product: Product, product_service: BaseProductService
-):
-    expected_variants = 1
-    expected_variants_with_zero_price = 7
-    ProductVariantModelFactory.create_batch(size=expected_variants, product=product)
-    ProductVariantModelFactory.create_batch(size=expected_variants_with_zero_price, product=product, price=0)
-    retrieved_product = product_service.try_get_by_slug_for_retrieve(slug=product.slug)
-    db_product = (
-        Product.objects.filter(pk=product.pk)
-        .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True, price__gt=0)))
-        .select_related('seller')
-        .first()
-    )
-
-    assert isinstance(retrieved_product, ProductEntity)
-    assert product_to_entity(dto=db_product) == retrieved_product
     assert len(retrieved_product.variants) == expected_variants
 
 

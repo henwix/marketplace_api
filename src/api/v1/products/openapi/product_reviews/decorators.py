@@ -30,24 +30,6 @@ from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundErro
 
 
 def extend_product_review_view_schema(view):
-    def _extend_update_product_review_schema(method: str):
-        return extend_schema(
-            parameters=[jwt_header_parameter()],
-            request=UpdateProductReviewInSerializer,
-            responses={
-                status.HTTP_200_OK: successful_response(response=ProductReviewOutSerializer),
-                status.HTTP_400_BAD_REQUEST: bad_request_response(NothingToUpdateError),
-                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
-                status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
-                status.HTTP_404_NOT_FOUND: not_found_response(
-                    UserNotFoundError,
-                    ProductNotFoundByIdError,
-                    ProductReviewNotFoundError,
-                ),
-            },
-            summary=f'Update Product Review {method}',
-        )
-
     decorator = extend_schema_view(
         post=extend_schema(
             parameters=[jwt_header_parameter()],
@@ -95,7 +77,36 @@ def extend_product_review_view_schema(view):
             },
             summary='Delete Product Review DELETE',
         ),
-        put=_extend_update_product_review_schema(method='PUT'),
-        patch=_extend_update_product_review_schema(method='PATCH'),
+        put=extend_schema(
+            parameters=[jwt_header_parameter()],
+            request=UpdateProductReviewInSerializer,
+            responses={
+                status.HTTP_200_OK: successful_response(response=ProductReviewOutSerializer),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(
+                    UserNotFoundError,
+                    ProductNotFoundByIdError,
+                    ProductReviewNotFoundError,
+                ),
+            },
+            summary='Update Product Review PUT',
+        ),
+        patch=extend_schema(
+            parameters=[jwt_header_parameter()],
+            request=UpdateProductReviewInSerializer,
+            responses={
+                status.HTTP_200_OK: successful_response(response=ProductReviewOutSerializer),
+                status.HTTP_400_BAD_REQUEST: bad_request_response(NothingToUpdateError),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(
+                    UserNotFoundError,
+                    ProductNotFoundByIdError,
+                    ProductReviewNotFoundError,
+                ),
+            },
+            summary='Update Product Review PATCH',
+        ),
     )
     return decorator(view)
