@@ -47,7 +47,6 @@ class ProductVariant(TimedBaseModel):
     is_visible = models.BooleanField(
         verbose_name=_('is visible'),
         default=True,
-        db_index=True,
         help_text=_('Is product variant visible'),
     )
 

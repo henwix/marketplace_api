@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'src.apps.users.apps.UsersConfig',
     'src.apps.sellers.apps.SellersConfig',
     'src.apps.products.apps.ProductsConfig',
+    'src.apps.cart.apps.CartConfig',
     'src.apps.common.apps.CommonConfig',
     'src.apps.authentication.apps.AuthenticationConfig',
 ]
@@ -61,10 +62,9 @@ MIDDLEWARE = [
 
 REST_FRAMEWORK = {
     'EXCEPTION_HANDLER': 'src.api.v1.exception_handler.api_exception_handler',
-    'DEFAULT_AUTHENTICATION_CLASSES': (
+    'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTStatelessUserAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-    ),
+    ],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_RENDERER_CLASSES': ['rest_framework.renderers.JSONRenderer'],
     'SEARCH_PARAM': 'q',
