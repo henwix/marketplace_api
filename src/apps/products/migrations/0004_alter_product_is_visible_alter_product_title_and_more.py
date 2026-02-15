@@ -6,8 +6,8 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
+        ('common', '0001_create_trgm_extension'),
         ('products', '0003_rename_uuid_product_id_rename_uuid_productvariant_id'),
         ('sellers', '0001_initial'),
     ]
@@ -33,14 +33,29 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name='product',
-            index=django.contrib.postgres.indexes.GinIndex(django.contrib.postgres.indexes.OpClass(django.db.models.functions.text.Upper('title'), name='gin_trgm_ops'), name='product_title_trgm_gin_idx'),
+            index=django.contrib.postgres.indexes.GinIndex(
+                django.contrib.postgres.indexes.OpClass(
+                    django.db.models.functions.text.Upper('title'), name='gin_trgm_ops'
+                ),
+                name='product_title_trgm_gin_idx',
+            ),
         ),
         migrations.AddIndex(
             model_name='product',
-            index=django.contrib.postgres.indexes.GinIndex(django.contrib.postgres.indexes.OpClass(django.db.models.functions.text.Upper('description'), name='gin_trgm_ops'), name='product_desc_trgm_gin_idx'),
+            index=django.contrib.postgres.indexes.GinIndex(
+                django.contrib.postgres.indexes.OpClass(
+                    django.db.models.functions.text.Upper('description'), name='gin_trgm_ops'
+                ),
+                name='product_desc_trgm_gin_idx',
+            ),
         ),
         migrations.AddIndex(
             model_name='product',
-            index=django.contrib.postgres.indexes.GinIndex(django.contrib.postgres.indexes.OpClass(django.db.models.functions.text.Upper('short_description'), name='gin_trgm_ops'), name='product_short_desc_trgm_idx'),
+            index=django.contrib.postgres.indexes.GinIndex(
+                django.contrib.postgres.indexes.OpClass(
+                    django.db.models.functions.text.Upper('short_description'), name='gin_trgm_ops'
+                ),
+                name='product_short_desc_trgm_idx',
+            ),
         ),
     ]

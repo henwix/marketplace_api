@@ -51,6 +51,7 @@ class ORMProductRepository(BaseProductRepository):
         if global_search:
             qs = Product.objects.annotate(
                 has_valid_variants=Exists(queryset=subquery),
+                # TODO: price denormalization + price filters using FilterSet
                 price=Subquery(subquery.order_by('price').values('price')[:1]),
             )
         else:

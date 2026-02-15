@@ -15,7 +15,7 @@ class SearchProductCursorPagination(CursorPagination):
     page_size_query_param = 'page_size'
 
 
-class ProductReviewPagination(PageNumberPagination):
+class ProductReviewPagePagination(PageNumberPagination):
     page_size = 25
     page_query_param = 'page'
     max_page_size = 50

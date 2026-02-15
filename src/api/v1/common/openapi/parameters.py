@@ -40,7 +40,7 @@ def cursor_query_parameter(paginator: type[CursorPagination]) -> OpenApiParamete
     )
 
 
-def page_query_parameter(paginator: type[BasePagination]) -> OpenApiParameter:
+def page_query_parameter(paginator: type[PageNumberPagination]) -> OpenApiParameter:
     return query_parameter(
         name=paginator.page_query_param,
         type=int,
@@ -48,7 +48,7 @@ def page_query_parameter(paginator: type[BasePagination]) -> OpenApiParameter:
     )
 
 
-def page_size_query_parameter(paginator: type[PageNumberPagination]) -> OpenApiParameter:
+def page_size_query_parameter(paginator: type[BasePagination]) -> OpenApiParameter:
     return query_parameter(
         name=paginator.page_size_query_param,
         type=int,

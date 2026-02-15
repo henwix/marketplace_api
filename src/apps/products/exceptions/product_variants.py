@@ -35,3 +35,19 @@ class ProductVariantsLimitError(ServiceException):
     product_id: UUID
     variants_count: int
     variants_limit: int
+
+
+@dataclass(eq=False)
+class ProductVariantOutOfStockError(ServiceException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    message = 'Product variant out of stock'
+    product_variant_id: UUID
+
+
+@dataclass(eq=False)
+class QuantityGreaterThanStockError(ServiceException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    message = 'Quantity greater than product variant stock'
+    product_variant_id: UUID
+    quantity: int
+    stock: int

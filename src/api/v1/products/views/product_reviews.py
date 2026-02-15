@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from src.api.v1.common.mixins import LazyAuthViewMixin, PaginationViewMixin
 from src.api.v1.products.openapi.product_reviews.decorators import extend_product_review_view_schema
-from src.api.v1.products.pagination import ProductReviewPagination
+from src.api.v1.products.pagination import ProductReviewPagePagination
 from src.api.v1.products.serializers.product_reviews import (
     CreateProductReviewInSerializer,
     ProductReviewOutSerializer,
@@ -51,7 +51,7 @@ class ProductReviewView(
         reviews = use_case.execute(command=command)
         return self.paginate(
             queryset=reviews,
-            paginator=ProductReviewPagination,
+            paginator=ProductReviewPagePagination,
             serializer=RetrieveProductReviewOutSerializer,
         )
 

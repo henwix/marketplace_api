@@ -12,8 +12,14 @@ from src.apps.products.services.product_reviews import (
 from src.apps.products.services.product_variants import (
     BaseProductVariantAccessValidatorService,
     BaseProductVariantService,
+    BaseProductVariantStockValidatorService,
+    BaseProductVariantVisibilityValidatorService,
+    ComposedProductVariantStockValidatorService,
     ProductVariantAccessValidatorService,
+    ProductVariantAvailableQuantityValidatorService,
+    ProductVariantPositiveStockValidatorService,
     ProductVariantService,
+    ProductVariantVisibilityValidatorService,
 )
 from src.apps.products.services.products import (
     BaseProductAccessValidatorService,
@@ -43,7 +49,15 @@ from src.apps.products.use_cases.products.update import UpdateProductUseCase
 
 
 def init_products(container: Container) -> None:
-    # use cases
+    def _build_product_variant_stock_validator() -> BaseProductVariantStockValidatorService:
+        return ComposedProductVariantStockValidatorService(
+            validators=[
+                container.resolve(ProductVariantPositiveStockValidatorService),
+                container.resolve(ProductVariantAvailableQuantityValidatorService),
+            ]
+        )
+
+    # Products use cases
     container.register(CreateProductUseCase)
     container.register(GetProductByIdUseCase)
     container.register(GetProductBySlugUseCase)
@@ -52,25 +66,36 @@ def init_products(container: Container) -> None:
     container.register(UpdateProductUseCase)
     container.register(DeleteProductUseCase)
 
+    # Product Variants use cases
     container.register(CreateProductVariantUseCase)
     container.register(GetProductVariantsUseCase)
     container.register(UpdateProductVariantUseCase)
     container.register(DeleteProductVariantUseCase)
 
+    # Product Reviews use cases
     container.register(CreateProductReviewUseCase)
     container.register(GetProductReviewsUseCase)
     container.register(DeleteProductReviewUseCase)
     container.register(UpdateProductReviewUseCase)
 
-    # services
+    # Products services
     container.register(BaseProductService, ProductService)
     container.register(BaseProductAccessValidatorService, ProductAccessValidatorService)
     container.register(BaseProductHasVariantsValidatorService, ProductHasVariantsValidatorService)
     container.register(BaseProductVariantsLimitValidatorService, ProductVariantsLimitValidatorService)
 
+    # Product Variants services
     container.register(BaseProductVariantService, ProductVariantService)
     container.register(BaseProductVariantAccessValidatorService, ProductVariantAccessValidatorService)
+    container.register(BaseProductVariantVisibilityValidatorService, ProductVariantVisibilityValidatorService)
+    container.register(ProductVariantPositiveStockValidatorService)
+    container.register(ProductVariantAvailableQuantityValidatorService)
+    container.register(
+        BaseProductVariantStockValidatorService,
+        factory=_build_product_variant_stock_validator,
+    )
 
+    # Product Reviews services
     container.register(BaseProductReviewService, ProductReviewService)
     container.register(BaseSingleProductReviewValidatorService, SingleProductReviewValidatorService)
 

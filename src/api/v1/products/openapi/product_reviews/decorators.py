@@ -16,7 +16,7 @@ from src.api.v1.common.openapi.responses import (
     successful_response,
 )
 from src.api.v1.products.openapi.product_reviews.enums import GetProductReviewsOrderingEnum
-from src.api.v1.products.pagination import ProductReviewPagination
+from src.api.v1.products.pagination import ProductReviewPagePagination
 from src.api.v1.products.serializers.product_reviews import (
     CreateProductReviewInSerializer,
     ProductReviewOutSerializer,
@@ -49,14 +49,14 @@ def extend_product_review_view_schema(view):
         get=extend_schema(
             parameters=[
                 ordering_query_parameter(enum=GetProductReviewsOrderingEnum),
-                page_query_parameter(paginator=ProductReviewPagination),
-                page_size_query_parameter(paginator=ProductReviewPagination),
+                page_query_parameter(paginator=ProductReviewPagePagination),
+                page_size_query_parameter(paginator=ProductReviewPagePagination),
             ],
             request=None,
             responses={
                 status.HTTP_200_OK: successful_page_response(
                     response=RetrieveProductReviewOutSerializer,
-                    paginator=ProductReviewPagination,
+                    paginator=ProductReviewPagePagination,
                 ),
                 status.HTTP_404_NOT_FOUND: not_found_response(ProductNotFoundByIdError),
             },

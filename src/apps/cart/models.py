@@ -76,3 +76,9 @@ class CartItem(models.Model):
     class Meta:
         verbose_name = _('CartItem')
         verbose_name_plural = _('CartItems')
+        constraints = [
+            models.UniqueConstraint(
+                fields=['cart', 'product_variant'],
+                name='unique_cart_item',
+            )
+        ]
