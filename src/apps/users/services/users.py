@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from django.db import IntegrityError
 
 from src.apps.common.types import UNSET, Unset
-from src.apps.users.converters import user_from_entity, user_to_entity
+from src.apps.users.converters import user_to_entity
 from src.apps.users.entities import UserEntity
 from src.apps.users.exceptions.users import (
     UserNotActiveError,
@@ -97,22 +97,19 @@ class UserService(BaseUserService):
         password: str,
     ) -> UserEntity:
         try:
-            dto = self.repository.create(
+            return self.repository.create(
                 first_name=first_name,
                 last_name=last_name,
                 email=email,
                 phone=phone,
                 password=password,
             )
-            return user_to_entity(dto=dto)
         except IntegrityError:
             raise UserWithDataAlreadyExistsError
 
     def save(self, user: UserEntity, update: bool = False) -> UserEntity:
         try:
-            dto = user_from_entity(entity=user)
-            dto = self.repository.save(user=dto, update=update)
-            return user_to_entity(dto=dto)
+            return self.repository.save(user=user, update=update)
         except IntegrityError:
             raise UserWithDataAlreadyExistsError
 
@@ -125,8 +122,7 @@ class UserService(BaseUserService):
         return self._validate_dto_and_convert_to_entity(dto=dto, user_id=id)
 
     def set_password(self, user: UserEntity, password: str) -> None:
-        dto = user_from_entity(entity=user)
-        return self.repository.set_password(user=dto, password=password)
+        return self.repository.set_password(user=user, password=password)
 
     def delete(self, id: int) -> None:
         self.repository.delete(id=id)

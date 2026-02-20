@@ -3,7 +3,6 @@ from punq import Container
 
 from src.apps.sellers.converters.sellers import seller_from_entity
 from src.apps.sellers.entities.sellers import SellerEntity
-from src.apps.sellers.models import Seller
 from src.apps.sellers.repositories.sellers import BaseSellerRepository
 from src.apps.users.models import User
 from tests.v1.sellers.test_data.create_seller import CREATE_SELLER_ARGNAMES, CREATE_SELLER_ARGVALUES
@@ -28,7 +27,7 @@ def test_create_seller_created(
         user_id=user.pk,
     )
     seller = seller_repository.save(seller=seller_from_entity(entity=entity), update=False)
-    assert isinstance(seller, Seller)
+    assert isinstance(seller, SellerEntity)
     assert seller.user_id == user.pk
     assert seller.name == expected_name
     assert seller.description == expected_description

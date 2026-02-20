@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from django.db import IntegrityError
 from psycopg2.errors import ForeignKeyViolation, UniqueViolation
 
-from src.apps.cart.converters import cart_item_from_entity, cart_item_to_entity, cart_to_entity
 from src.apps.cart.entities import CartEntity, CartItemEntity
 from src.apps.cart.exceptions import ItemAlreadyInCartError, ItemProductVariantOrSellerNotFoundError
 from src.apps.cart.repositories.cart import BaseCartRepository
@@ -21,7 +20,7 @@ class CartItemMustNotExistInCartValidatorService(BaseCartItemMustNotExistInCartV
     repository: BaseCartRepository
 
     def validate(self, cart: CartEntity, product_variant: ProductVariantEntity) -> None:
-        if self.repository.is_item_exists(cart_id=cart.id, product_variant_id=product_variant.id):
+        if self.repository.is_cart_item_exists(cart_id=cart.id, product_variant_id=product_variant.id):
             raise ItemAlreadyInCartError(cart_id=cart.id, product_variant_id=product_variant.id)
 
 
@@ -38,14 +37,11 @@ class CartService(BaseCartService):
     repository: BaseCartRepository
 
     def get_or_create_cart(self, user_id: int) -> CartEntity:
-        dto = self.repository.get_or_create_cart(user_id=user_id)
-        return cart_to_entity(dto=dto)
+        return self.repository.get_or_create_cart(user_id=user_id)
 
     def save_cart_item(self, cart_item: CartItemEntity, update: bool = False) -> CartItemEntity:
         try:
-            dto = cart_item_from_entity(entity=cart_item)
-            dto = self.repository.save_cart_item(cart_item=dto, update=update)
-            return cart_item_to_entity(dto=dto)
+            return self.repository.save_cart_item(cart_item=cart_item, update=update)
         except IntegrityError as error:
             cause = error.__cause__
             if isinstance(cause, UniqueViolation):

@@ -82,12 +82,12 @@ def test_add_item_not_added_and_product_variant_not_found_error_raised(
     add_item_to_cart_use_case: AddItemToCartUseCase,
     user: User,
 ):
+    command = AddItemToCartCommand(
+        user_id=user.id,
+        product_variant_id=uuid7(),
+        quantity=1,
+    )
     with pytest.raises(ProductVariantNotFoundError):
-        command = AddItemToCartCommand(
-            user_id=user.id,
-            product_variant_id=uuid7(),
-            quantity=1,
-        )
         add_item_to_cart_use_case.execute(command=command)
 
 

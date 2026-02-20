@@ -2,6 +2,8 @@ import pytest
 from django.core.exceptions import ValidationError
 
 from src.apps.sellers.models import Seller
+from src.apps.users.converters import user_from_entity, user_to_entity
+from src.apps.users.entities import UserEntity
 from src.apps.users.models import User
 from src.apps.users.repositories.users import BaseUserRepository
 from tests.v1.users.factories import UserModelFactory
@@ -32,12 +34,16 @@ def test_create_user_created(
         password=expected_password,
     )
 
-    assert isinstance(created_user, User)
+    assert isinstance(created_user, UserEntity)
     assert created_user.first_name == expected_first_name
     assert created_user.last_name == expected_last_name
     assert created_user.email == expected_email
     assert created_user.phone == expected_phone
-    assert created_user.check_password(expected_password) is True
+    assert created_user.seller_profile is None
+    assert created_user.avatar is None
+    assert created_user.is_staff is False
+    assert created_user.is_active is True
+    assert user_from_entity(entity=created_user).check_password(expected_password) is True
 
 
 @pytest.mark.parametrize(argnames=CREATE_USER_ARGNAMES, argvalues=CREATE_USER_WITH_NONE_ARGVALUES)
@@ -69,7 +75,8 @@ def test_update_password_updated(
 ):
     """Test that the password is updated successfully"""
     assert user.check_password(expected_password) is False
-    user_repository.set_password(user=user, password=expected_password)
+    user_repository.set_password(user=user_to_entity(dto=user), password=expected_password)
+    user.refresh_from_db()
     assert user.check_password(expected_password) is True
 
 
@@ -109,9 +116,9 @@ def test_delete_user_deleted(user_repository: BaseUserRepository, user: User):
 def test_save_user_saved_for_creation(user_repository: BaseUserRepository):
     user = UserModelFactory.build()
     assert not User.objects.filter(pk=user.pk).exists()
-    saved_user = user_repository.save(user=user, update=False)
-    assert isinstance(saved_user, User)
-    db_user = User.objects.get(pk=user.pk)
+    saved_user = user_repository.save(user=user_to_entity(dto=user), update=False)
+    assert isinstance(saved_user, UserEntity)
+    db_user = User.objects.get(pk=saved_user.id)
     assert db_user.first_name == saved_user.first_name
     assert db_user.last_name == saved_user.last_name
     assert db_user.email == saved_user.email
@@ -125,8 +132,8 @@ def test_save_user_saved_for_update(user_repository: BaseUserRepository, user: U
     user.email = 'newtestemail@test.com'
     user.phone = '+129125575125125'
 
-    saved_user = user_repository.save(user=user, update=True)
-    assert isinstance(saved_user, User)
+    saved_user = user_repository.save(user=user_to_entity(dto=user), update=True)
+    assert isinstance(saved_user, UserEntity)
     db_user = User.objects.get(pk=user.pk)
     assert db_user.first_name == saved_user.first_name
     assert db_user.last_name == saved_user.last_name

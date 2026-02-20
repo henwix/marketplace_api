@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 from django.db.models import Q
 
+from src.apps.users.converters import user_from_entity, user_to_entity
+from src.apps.users.entities import UserEntity
 from src.apps.users.models import User
 
 
@@ -14,10 +16,10 @@ class BaseUserRepository(ABC):
         email: str,
         phone: str,
         password: str,
-    ) -> User: ...
+    ) -> UserEntity: ...
 
     @abstractmethod
-    def save(self, user: User, update: bool) -> User: ...
+    def save(self, user: User, update: bool) -> UserEntity: ...
 
     @abstractmethod
     def set_password(self, user: User, password: str) -> None: ...
@@ -49,22 +51,25 @@ class ORMUserRepository(BaseUserRepository):
         email: str,
         phone: str,
         password: str,
-    ) -> User:
-        return User.objects.create_user(
+    ) -> UserEntity:
+        dto = User.objects.create_user(
             first_name=first_name,
             last_name=last_name,
             email=email,
             phone=phone,
             password=password,
         )
+        return user_to_entity(dto=dto)
 
-    def save(self, user: User, update: bool) -> User:
-        user.save(force_update=update)
-        return user
+    def save(self, user: User, update: bool) -> UserEntity:
+        dto = user_from_entity(entity=user)
+        dto.save(force_update=update)
+        return user_to_entity(dto=dto)
 
     def set_password(self, user: User, password: str) -> None:
-        user.set_password(password)
-        user.save()
+        dto = user_from_entity(entity=user)
+        dto.set_password(password)
+        dto.save()
 
     def get_by_id_with_loaded_seller(self, id: int) -> User | None:
         return User.objects.select_related('seller_profile').filter(pk=id).first()

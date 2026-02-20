@@ -4,7 +4,10 @@ from punq import Container
 from src.apps.products.converters.product_variants import product_variant_to_entity
 from src.apps.products.exceptions.product_variants import ProductVariantAccessForbiddenError
 from src.apps.products.models.product_variants import ProductVariant
-from src.apps.products.services.product_variants import BaseProductVariantAccessValidatorService
+from src.apps.products.services.product_variants import (
+    BaseProductVariantAccessValidatorService,
+    BaseProductVariantService,
+)
 from src.apps.sellers.converters.sellers import seller_to_entity
 from src.apps.sellers.models import Seller
 from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory
@@ -41,10 +44,12 @@ def test_validator_exception_raised_if_seller_is_not_author(
 @pytest.mark.django_db
 def test_validator_exception_not_raised_if_validated(
     variant_access_validator_service: BaseProductVariantAccessValidatorService,
+    variant_service: BaseProductVariantService,
     seller: Seller,
 ):
     product = ProductModelFactory.create(seller=seller)
     product_variant = ProductVariantModelFactory.create(product=product)
+    product_variant_entity = variant_service.try_get_by_id_with_loaded_product(id=product_variant.id)
     variant_access_validator_service.validate(
-        seller=seller_to_entity(dto=seller), product_variant=product_variant_to_entity(dto=product_variant)
+        seller=seller_to_entity(dto=seller), product_variant=product_variant_entity
     )

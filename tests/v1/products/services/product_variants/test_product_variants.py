@@ -2,7 +2,6 @@ from decimal import Decimal
 from uuid import uuid7
 
 import pytest
-from punq import Container
 
 from src.apps.products.converters.product_variants import product_variant_to_entity
 from src.apps.products.entities.product_variants import ProductVariantEntity
@@ -11,11 +10,6 @@ from src.apps.products.models.product_variants import ProductVariant
 from src.apps.products.models.products import Product
 from src.apps.products.services.product_variants import BaseProductVariantService
 from tests.v1.products.factories import ProductVariantModelFactory
-
-
-@pytest.fixture
-def variant_service(container: Container) -> BaseProductVariantService:
-    return container.resolve(BaseProductVariantService)
 
 
 @pytest.mark.django_db

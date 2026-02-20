@@ -3,7 +3,6 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from uuid import UUID
 
-from src.apps.products.converters.product_reviews import product_review_from_entity, product_review_to_entity
 from src.apps.products.entities.product_reviews import ProductReviewEntity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.exceptions.product_reviews import (
@@ -54,15 +53,13 @@ class ProductReviewService(BaseProductReviewService):
         return self.repository.check_review_exists(user_id=user_id, product_id=product_id)
 
     def save(self, product_review: ProductReviewEntity, update: bool = False) -> ProductReviewEntity:
-        dto = product_review_from_entity(entity=product_review)
-        dto = self.repository.save(review=dto, update=update)
-        return product_review_to_entity(dto=dto)
+        return self.repository.save(review=product_review, update=update)
 
     def try_get_by_user_id_and_product_id(self, user_id: int, product_id: UUID) -> ProductReviewEntity:
-        dto = self.repository.get_by_user_id_and_product_id(user_id=user_id, product_id=product_id)
-        if dto is None:
+        review = self.repository.get_by_user_id_and_product_id(user_id=user_id, product_id=product_id)
+        if review is None:
             raise ProductReviewNotFoundError(user_id=user_id, product_id=product_id)
-        return product_review_to_entity(dto=dto)
+        return review
 
     def get_many_by_product_id_with_loaded_user(self, product_id: UUID) -> Iterable[ProductReview]:
         return self.repository.get_many_by_product_id_with_loaded_user(product_id=product_id)

@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from src.apps.products.constants import PRODUCT_VARIANTS_LIMIT
-from src.apps.products.converters.products import product_from_entity, product_to_entity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.exceptions.product_variants import ProductVariantsLimitError, ProductVariantsNotFoundError
 from src.apps.products.exceptions.products import (
@@ -92,40 +91,38 @@ class BaseProductService(ABC):
 class ProductService(BaseProductService):
     repository: BaseProductRepository
 
-    def _validate_dto(self, dto: Product | None, id: UUID) -> None:
-        if dto is None:
+    def _validate(self, product: ProductEntity | None, id: UUID) -> None:
+        if product is None:
             raise ProductNotFoundByIdError(id=id)
 
     def save(self, product: ProductEntity, update: bool = False) -> ProductEntity:
-        dto = product_from_entity(entity=product)
-        dto = self.repository.save(product=dto, update=update)
-        return product_to_entity(dto=dto)
+        return self.repository.save(product=product, update=update)
 
     def try_get_for_update_by_id(self, id: UUID) -> ProductEntity:
-        dto = self.repository.get_for_update_by_id(id=id)
-        self._validate_dto(dto=dto, id=id)
-        return product_to_entity(dto=dto)
+        product = self.repository.get_for_update_by_id(id=id)
+        self._validate(product=product, id=id)
+        return product
 
     def try_get_by_id(self, id: UUID) -> ProductEntity:
-        dto = self.repository.get_by_id(id=id)
-        self._validate_dto(dto=dto, id=id)
-        return product_to_entity(dto=dto)
+        product = self.repository.get_by_id(id=id)
+        self._validate(product=product, id=id)
+        return product
 
     def try_get_by_id_for_retrieve(self, id: UUID) -> ProductEntity:
-        dto = self.repository.get_by_id_for_retrieve(id=id)
-        self._validate_dto(dto=dto, id=id)
-        return product_to_entity(dto=dto)
+        product = self.repository.get_by_id_for_retrieve(id=id)
+        self._validate(product=product, id=id)
+        return product
 
     def try_get_by_id_with_loaded_variants(self, id: UUID) -> ProductEntity:
-        dto = self.repository.get_by_id_with_loaded_variants(id=id)
-        self._validate_dto(dto=dto, id=id)
-        return product_to_entity(dto=dto)
+        product = self.repository.get_by_id_with_loaded_variants(id=id)
+        self._validate(product=product, id=id)
+        return product
 
     def try_get_by_slug_for_retrieve(self, slug: str) -> ProductEntity:
-        dto = self.repository.get_by_slug_for_retrieve(slug=slug)
-        if dto is None:
+        product = self.repository.get_by_slug_for_retrieve(slug=slug)
+        if product is None:
             raise ProductNotFoundBySlugError(slug=slug)
-        return product_to_entity(dto=dto)
+        return product
 
     def get_many_for_global_search(self) -> Iterable[Product]:
         return self.repository.get_many_for_global_search()

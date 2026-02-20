@@ -8,6 +8,7 @@ class AddItemToCartInSerializer(serializers.Serializer):
     quantity = serializers.IntegerField(min_value=1, max_value=2147483647)
 
 
+# TODO: use serializers.Serializer
 class CartItemOutSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem

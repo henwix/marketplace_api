@@ -3,7 +3,6 @@ from django.db.models import Prefetch
 from punq import Container
 
 from src.apps.products.commands.products import GetProductBySlugCommand
-from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.exceptions.products import (
     ProductAccessForbiddenError,
@@ -39,7 +38,19 @@ def test_get_visible_product_retrieved_by_anonymous_user(
     )
 
     assert isinstance(retrieved_product, ProductEntity)
-    assert product_to_entity(dto=db_product) == retrieved_product
+    assert len(retrieved_product.variants) == 0
+    assert retrieved_product.seller == seller_to_entity(dto=db_product.seller)
+    assert db_product.id == retrieved_product.id
+    assert db_product.slug == retrieved_product.slug
+    assert db_product.seller_id == retrieved_product.seller_id
+    assert db_product.title == retrieved_product.title
+    assert db_product.description == retrieved_product.description
+    assert db_product.short_description == retrieved_product.short_description
+    assert db_product.is_visible == retrieved_product.is_visible
+    assert db_product.created_at == retrieved_product.created_at
+    assert db_product.updated_at == retrieved_product.updated_at
+    assert db_product.reviews_count == retrieved_product.reviews_count
+    assert db_product.reviews_avg_rating == retrieved_product.reviews_avg_rating
 
 
 @pytest.mark.django_db
@@ -56,7 +67,19 @@ def test_get_visible_product_retrieved_by_authorized_user_with_seller_profile(
     )
 
     assert isinstance(retrieved_product, ProductEntity)
-    assert product_to_entity(dto=db_product) == retrieved_product
+    assert len(retrieved_product.variants) == 0
+    assert retrieved_product.seller == seller_to_entity(dto=db_product.seller)
+    assert db_product.id == retrieved_product.id
+    assert db_product.slug == retrieved_product.slug
+    assert db_product.seller_id == retrieved_product.seller_id
+    assert db_product.title == retrieved_product.title
+    assert db_product.description == retrieved_product.description
+    assert db_product.short_description == retrieved_product.short_description
+    assert db_product.is_visible == retrieved_product.is_visible
+    assert db_product.created_at == retrieved_product.created_at
+    assert db_product.updated_at == retrieved_product.updated_at
+    assert db_product.reviews_count == retrieved_product.reviews_count
+    assert db_product.reviews_avg_rating == retrieved_product.reviews_avg_rating
 
 
 @pytest.mark.django_db
@@ -104,7 +127,19 @@ def test_get_invisible_product_retrieved_by_author(
     )
 
     assert isinstance(retrieved_product, ProductEntity)
-    assert product_to_entity(dto=db_product) == retrieved_product
+    assert len(retrieved_product.variants) == 0
+    assert retrieved_product.seller == seller_to_entity(dto=db_product.seller)
+    assert db_product.id == retrieved_product.id
+    assert db_product.slug == retrieved_product.slug
+    assert db_product.seller_id == retrieved_product.seller_id
+    assert db_product.title == retrieved_product.title
+    assert db_product.description == retrieved_product.description
+    assert db_product.short_description == retrieved_product.short_description
+    assert db_product.is_visible == retrieved_product.is_visible
+    assert db_product.created_at == retrieved_product.created_at
+    assert db_product.updated_at == retrieved_product.updated_at
+    assert db_product.reviews_count == retrieved_product.reviews_count
+    assert db_product.reviews_avg_rating == retrieved_product.reviews_avg_rating
 
 
 @pytest.mark.django_db
@@ -125,7 +160,17 @@ def test_get_invisible_product_retrieved_with_correct_relations(
     assert isinstance(retrieved_product, ProductEntity)
     assert retrieved_product.seller == seller_to_entity(dto=product.seller)
     assert len(retrieved_product.variants) == expected_variants
-    assert product_to_entity(dto=db_product) == retrieved_product
+    assert db_product.id == retrieved_product.id
+    assert db_product.slug == retrieved_product.slug
+    assert db_product.seller_id == retrieved_product.seller_id
+    assert db_product.title == retrieved_product.title
+    assert db_product.description == retrieved_product.description
+    assert db_product.short_description == retrieved_product.short_description
+    assert db_product.is_visible == retrieved_product.is_visible
+    assert db_product.created_at == retrieved_product.created_at
+    assert db_product.updated_at == retrieved_product.updated_at
+    assert db_product.reviews_count == retrieved_product.reviews_count
+    assert db_product.reviews_avg_rating == retrieved_product.reviews_avg_rating
 
 
 @pytest.mark.django_db
@@ -148,7 +193,17 @@ def test_get_invisible_product_retrieved_with_correct_relations_and_invisible_va
     assert isinstance(retrieved_product, ProductEntity)
     assert retrieved_product.seller == seller_to_entity(dto=product.seller)
     assert len(retrieved_product.variants) == expected_variants
-    assert product_to_entity(dto=db_product) == retrieved_product
+    assert db_product.id == retrieved_product.id
+    assert db_product.slug == retrieved_product.slug
+    assert db_product.seller_id == retrieved_product.seller_id
+    assert db_product.title == retrieved_product.title
+    assert db_product.description == retrieved_product.description
+    assert db_product.short_description == retrieved_product.short_description
+    assert db_product.is_visible == retrieved_product.is_visible
+    assert db_product.created_at == retrieved_product.created_at
+    assert db_product.updated_at == retrieved_product.updated_at
+    assert db_product.reviews_count == retrieved_product.reviews_count
+    assert db_product.reviews_avg_rating == retrieved_product.reviews_avg_rating
 
 
 @pytest.mark.django_db

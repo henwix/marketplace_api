@@ -1,11 +1,9 @@
 import pytest
 from django.db.models import Count
 
-from src.apps.products.converters.product_variants import product_variant_to_entity
 from src.apps.products.converters.products import product_from_entity, product_to_entity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.models.products import Product
-from src.apps.sellers.converters.sellers import seller_to_entity
 from tests.v1.products.factories import ProductVariantModelFactory
 
 
@@ -25,10 +23,8 @@ def test_convert_product_to_entity(product: Product):
     assert converted_entity.id == db_product.pk
     assert converted_entity.slug == db_product.slug
     assert converted_entity.seller_id == db_product.seller_id
-    assert converted_entity.seller == seller_to_entity(dto=db_product.seller)
-    assert converted_entity.variants == [
-        product_variant_to_entity(dto=variant) for variant in db_product.variants.all()
-    ]
+    assert converted_entity.seller is None
+    assert converted_entity.variants is None
     assert converted_entity.variants_count == db_product.variants_count
     assert converted_entity.title == db_product.title
     assert converted_entity.description == db_product.description

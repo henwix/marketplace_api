@@ -16,7 +16,7 @@ def product_variant_from_entity(entity: ProductVariantEntity) -> ProductVariant:
 
 
 def product_variant_to_entity(dto: ProductVariant) -> ProductVariantEntity:
-    entity = ProductVariantEntity(
+    return ProductVariantEntity(
         id=dto.pk,
         product_id=dto.product_id,
         title=dto.title,
@@ -26,11 +26,3 @@ def product_variant_to_entity(dto: ProductVariant) -> ProductVariantEntity:
         created_at=dto.created_at,
         updated_at=dto.updated_at,
     )
-
-    # TODO: либо маппить целый объект продукта и сохранять его в энтити, а потом уже из него получать seller_id, либо
-    # сделать как-то ещё. Потому что сейчас у нас грузится по сути объект продукта, но сам его entity не сохраняется,
-    # а сохраняется в отдельное поле только product_seller_id, что не логично исходя из названия самого метода, где он
-    # загружается. Поменять на полный маппинг prodyct в entity и последующий его сейв в entity варианта.
-    if 'product' in dto._state.fields_cache:
-        entity.product_seller_id = dto.product.seller_id
-    return entity

@@ -4,6 +4,8 @@ from uuid import uuid7
 import pytest
 from punq import Container
 
+from src.apps.products.converters.product_variants import product_variant_to_entity
+from src.apps.products.entities.product_variants import ProductVariantEntity
 from src.apps.products.models.product_variants import ProductVariant
 from src.apps.products.models.products import Product
 from src.apps.products.repositories.product_variants import BaseProductVariantRepository
@@ -20,16 +22,18 @@ def test_save_variant_saved_for_creation(variant_repository: BaseProductVariantR
     product_variant = ProductVariantModelFactory.build(product=product)
     assert not ProductVariant.objects.filter(pk=product_variant.pk).exists()
 
-    created_product_variant = variant_repository.save(product_variant=product_variant, update=False)
+    created_product_variant = variant_repository.save(
+        product_variant=product_variant_to_entity(dto=product_variant), update=False
+    )
     db_product_variant = ProductVariant.objects.get(pk=product_variant.pk)
 
-    assert isinstance(created_product_variant, ProductVariant)
-    assert product_variant == db_product_variant
-    assert created_product_variant.pk == db_product_variant.pk
+    assert isinstance(created_product_variant, ProductVariantEntity)
+    assert created_product_variant == product_variant_to_entity(dto=db_product_variant)
+    assert created_product_variant.id == db_product_variant.pk
     assert created_product_variant.title == db_product_variant.title
     assert created_product_variant.price == db_product_variant.price
     assert created_product_variant.stock == db_product_variant.stock
-    assert created_product_variant.product == db_product_variant.product
+    assert created_product_variant.product_id == db_product_variant.product.id
     assert created_product_variant.is_visible == db_product_variant.is_visible
     assert created_product_variant.created_at == db_product_variant.created_at
     assert created_product_variant.updated_at == db_product_variant.updated_at
@@ -50,16 +54,18 @@ def test_save_variant_saved_for_update(
     product_variant.stock = 572
     product_variant.is_visible = False
 
-    updated_product_variant = variant_repository.save(product_variant=product_variant, update=True)
+    updated_product_variant = variant_repository.save(
+        product_variant=product_variant_to_entity(dto=product_variant), update=True
+    )
     db_product_variant = ProductVariant.objects.get(pk=product_variant.pk)
 
-    assert isinstance(updated_product_variant, ProductVariant)
-    assert product_variant == db_product_variant
-    assert updated_product_variant.pk == db_product_variant.pk
+    assert isinstance(updated_product_variant, ProductVariantEntity)
+    assert updated_product_variant == product_variant_to_entity(dto=db_product_variant)
+    assert updated_product_variant.id == db_product_variant.pk
     assert updated_product_variant.title == db_product_variant.title
     assert updated_product_variant.price == db_product_variant.price
     assert updated_product_variant.stock == db_product_variant.stock
-    assert updated_product_variant.product == db_product_variant.product
+    assert updated_product_variant.product_id == db_product_variant.product.id
     assert updated_product_variant.is_visible == db_product_variant.is_visible
     assert updated_product_variant.created_at == db_product_variant.created_at
     assert updated_product_variant.updated_at == db_product_variant.updated_at
@@ -95,13 +101,13 @@ def test_get_by_id_with_loaded_product_retrieved(
     product_variant: ProductVariant,
 ):
     retrieved_variant = variant_repository.get_by_id_with_loaded_product(id=product_variant.pk)
-    assert isinstance(retrieved_variant, ProductVariant)
-    assert product_variant.pk == retrieved_variant.pk
+    assert isinstance(retrieved_variant, ProductVariantEntity)
+    assert product_variant.pk == retrieved_variant.id
     assert product_variant.title == retrieved_variant.title
     assert product_variant.price == retrieved_variant.price
     assert product_variant.stock == retrieved_variant.stock
     assert product_variant.is_visible == retrieved_variant.is_visible
-    assert retrieved_variant._state.fields_cache.get('product') == product_variant.product
+    assert product_variant.product.seller_id == retrieved_variant.product_seller_id
 
 
 @pytest.mark.django_db

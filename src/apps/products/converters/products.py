@@ -1,7 +1,5 @@
-from src.apps.products.converters.product_variants import product_variant_to_entity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.models.products import Product
-from src.apps.sellers.converters.sellers import seller_to_entity
 
 
 def product_from_entity(entity: ProductEntity) -> Product:
@@ -21,7 +19,7 @@ def product_from_entity(entity: ProductEntity) -> Product:
 
 
 def product_to_entity(dto: Product) -> ProductEntity:
-    entity = ProductEntity(
+    return ProductEntity(
         id=dto.pk,
         slug=dto.slug,
         seller_id=dto.seller_id,
@@ -35,12 +33,3 @@ def product_to_entity(dto: Product) -> ProductEntity:
         reviews_count=dto.reviews_count,
         reviews_avg_rating=dto.reviews_avg_rating,
     )
-
-    if 'seller' in dto._state.fields_cache:
-        entity.seller = seller_to_entity(dto=dto.seller)
-
-    prefetched_cache = getattr(dto, '_prefetched_objects_cache', {})
-    if 'variants' in prefetched_cache:
-        entity.variants = [product_variant_to_entity(dto=variant) for variant in dto.variants.all()]
-
-    return entity
