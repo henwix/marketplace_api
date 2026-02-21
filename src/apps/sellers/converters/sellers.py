@@ -2,10 +2,7 @@ from src.apps.sellers.entities.sellers import SellerEntity
 from src.apps.sellers.models import Seller
 
 
-def seller_to_entity(dto: Seller | None) -> SellerEntity | None:
-    if dto is None:
-        return None
-
+def seller_to_entity(dto: Seller | None) -> SellerEntity:
     return SellerEntity(
         id=dto.pk,
         user_id=dto.user_id,

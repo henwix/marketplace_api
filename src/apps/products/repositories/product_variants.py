@@ -34,6 +34,7 @@ class ORMProductVariantRepository(BaseProductVariantRepository):
         if dto is None:
             return None
         entity = product_variant_to_entity(dto=dto)
+        # FIXME: use product entity instead of "product_seller_id"
         entity.product_seller_id = dto.product.seller_id
         return entity
 

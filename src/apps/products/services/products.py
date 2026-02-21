@@ -91,7 +91,7 @@ class BaseProductService(ABC):
 class ProductService(BaseProductService):
     repository: BaseProductRepository
 
-    def _validate(self, product: ProductEntity | None, id: UUID) -> None:
+    def _validate_product(self, product: ProductEntity | None, id: UUID) -> None:
         if product is None:
             raise ProductNotFoundByIdError(id=id)
 
@@ -100,22 +100,22 @@ class ProductService(BaseProductService):
 
     def try_get_for_update_by_id(self, id: UUID) -> ProductEntity:
         product = self.repository.get_for_update_by_id(id=id)
-        self._validate(product=product, id=id)
+        self._validate_product(product=product, id=id)
         return product
 
     def try_get_by_id(self, id: UUID) -> ProductEntity:
         product = self.repository.get_by_id(id=id)
-        self._validate(product=product, id=id)
+        self._validate_product(product=product, id=id)
         return product
 
     def try_get_by_id_for_retrieve(self, id: UUID) -> ProductEntity:
         product = self.repository.get_by_id_for_retrieve(id=id)
-        self._validate(product=product, id=id)
+        self._validate_product(product=product, id=id)
         return product
 
     def try_get_by_id_with_loaded_variants(self, id: UUID) -> ProductEntity:
         product = self.repository.get_by_id_with_loaded_variants(id=id)
-        self._validate(product=product, id=id)
+        self._validate_product(product=product, id=id)
         return product
 
     def try_get_by_slug_for_retrieve(self, slug: str) -> ProductEntity:

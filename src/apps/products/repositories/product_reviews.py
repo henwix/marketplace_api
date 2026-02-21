@@ -34,8 +34,8 @@ class ORMProductReviewRepository(BaseProductReviewRepository):
         return product_review_to_entity(dto=dto)
 
     def get_by_user_id_and_product_id(self, user_id: int, product_id: UUID) -> ProductReviewEntity | None:
-        review = ProductReview.objects.filter(user_id=user_id, product_id=product_id).first()
-        return product_review_to_entity(dto=review) if review else None
+        dto = ProductReview.objects.filter(user_id=user_id, product_id=product_id).first()
+        return product_review_to_entity(dto=dto) if dto else None
 
     def get_many_by_product_id_with_loaded_user(self, product_id: UUID) -> Iterable[ProductReview]:
         return ProductReview.objects.select_related('user').filter(product_id=product_id)

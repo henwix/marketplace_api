@@ -1,6 +1,7 @@
 import pytest
 from django.core.exceptions import ValidationError
 
+from src.apps.sellers.converters.sellers import seller_to_entity
 from src.apps.sellers.models import Seller
 from src.apps.users.converters import user_from_entity, user_to_entity
 from src.apps.users.entities import UserEntity
@@ -83,21 +84,38 @@ def test_update_password_updated(
 @pytest.mark.django_db
 def test_get_user_by_id_retrieved(user_repository: BaseUserRepository, user: User):
     retrieved_user = user_repository.get_by_id(id=user.pk)
-    assert isinstance(retrieved_user, User)
-    assert retrieved_user == user
+    assert isinstance(retrieved_user, UserEntity)
+    assert retrieved_user.id == user.id
+    assert retrieved_user.first_name == user.first_name
+    assert retrieved_user.last_name == user.last_name
+    assert retrieved_user.email == user.email
+    assert retrieved_user.phone == user.phone
+    assert retrieved_user.avatar == user.avatar
+    assert retrieved_user.is_staff == user.is_staff
+    assert retrieved_user.is_active == user.is_active
+    assert retrieved_user.date_joined == user.date_joined
+    assert retrieved_user.seller_profile is None
 
 
 @pytest.mark.django_db
-def test_get_user_by_id_not_retrieved_if_not_exists(user_repository: BaseUserRepository, user: User):
+def test_get_user_by_id_not_retrieved_if_not_exists(user_repository: BaseUserRepository):
     assert user_repository.get_by_id(id=1) is None
 
 
 @pytest.mark.django_db
 def test_get_user_with_loaded_seller_by_id_retrieved(user_repository: BaseUserRepository, seller: Seller):
     retrieved_user = user_repository.get_by_id_with_loaded_seller(id=seller.user_id)
-    assert isinstance(retrieved_user, User)
-    assert retrieved_user == seller.user
-    assert retrieved_user._state.fields_cache.get('seller_profile') == seller
+    assert isinstance(retrieved_user, UserEntity)
+    assert retrieved_user.id == seller.user.id
+    assert retrieved_user.first_name == seller.user.first_name
+    assert retrieved_user.last_name == seller.user.last_name
+    assert retrieved_user.email == seller.user.email
+    assert retrieved_user.phone == seller.user.phone
+    assert retrieved_user.avatar == seller.user.avatar
+    assert retrieved_user.is_staff == seller.user.is_staff
+    assert retrieved_user.is_active == seller.user.is_active
+    assert retrieved_user.date_joined == seller.user.date_joined
+    assert retrieved_user.seller_profile == seller_to_entity(dto=seller)
 
 
 @pytest.mark.django_db

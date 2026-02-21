@@ -1,6 +1,5 @@
 import pytest
 
-from src.apps.sellers.converters.sellers import seller_to_entity
 from src.apps.sellers.models import Seller
 from src.apps.users.converters import user_from_entity, user_to_entity
 from src.apps.users.entities import UserEntity
@@ -14,7 +13,7 @@ def test_convert_user_to_entity(seller: Seller):
 
     assert isinstance(converted_entity, UserEntity)
     assert converted_entity.id == user.pk
-    assert converted_entity.seller_profile == seller_to_entity(dto=user.seller_profile)
+    assert converted_entity.seller_profile is None
     assert converted_entity.first_name == user.first_name
     assert converted_entity.last_name == user.last_name
     assert converted_entity.email == user.email

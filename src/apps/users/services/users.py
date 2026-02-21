@@ -1,19 +1,14 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from django.db import IntegrityError
-
 from src.apps.common.types import UNSET, Unset
-from src.apps.users.converters import user_to_entity
 from src.apps.users.entities import UserEntity
 from src.apps.users.exceptions.users import (
     UserNotActiveError,
     UserNotFoundError,
-    UserWithDataAlreadyExistsError,
     UserWithEmailAlreadyExistsError,
     UserWithPhoneAlreadyExistsError,
 )
-from src.apps.users.models import User
 from src.apps.users.repositories.users import BaseUserRepository
 
 
@@ -80,13 +75,11 @@ class BaseUserService(ABC):
 class UserService(BaseUserService):
     repository: BaseUserRepository
 
-    def _validate_dto_and_convert_to_entity(self, dto: User | None, user_id: int) -> UserEntity:
-        if dto is None:
+    def _validate_user(self, user: UserEntity | None, user_id: int) -> None:
+        if user is None:
             raise UserNotFoundError(user_id=user_id)
-        user = user_to_entity(dto=dto)
         if not user.is_active:
             raise UserNotActiveError(user_id=user_id)
-        return user
 
     def create(
         self,
@@ -96,30 +89,26 @@ class UserService(BaseUserService):
         phone: str,
         password: str,
     ) -> UserEntity:
-        try:
-            return self.repository.create(
-                first_name=first_name,
-                last_name=last_name,
-                email=email,
-                phone=phone,
-                password=password,
-            )
-        except IntegrityError:
-            raise UserWithDataAlreadyExistsError
+        return self.repository.create(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            phone=phone,
+            password=password,
+        )
 
     def save(self, user: UserEntity, update: bool = False) -> UserEntity:
-        try:
-            return self.repository.save(user=user, update=update)
-        except IntegrityError:
-            raise UserWithDataAlreadyExistsError
+        return self.repository.save(user=user, update=update)
 
     def try_get_by_id_with_loaded_seller(self, id: int) -> UserEntity:
-        dto = self.repository.get_by_id_with_loaded_seller(id=id)
-        return self._validate_dto_and_convert_to_entity(dto=dto, user_id=id)
+        user = self.repository.get_by_id_with_loaded_seller(id=id)
+        self._validate_user(user=user, user_id=id)
+        return user
 
     def try_get_by_id(self, id: int) -> UserEntity:
-        dto = self.repository.get_by_id(id=id)
-        return self._validate_dto_and_convert_to_entity(dto=dto, user_id=id)
+        user = self.repository.get_by_id(id=id)
+        self._validate_user(user=user, user_id=id)
+        return user
 
     def set_password(self, user: UserEntity, password: str) -> None:
         return self.repository.set_password(user=user, password=password)

@@ -1,9 +1,12 @@
 from abc import ABC, abstractmethod
 
+from django.db import IntegrityError
 from django.db.models import Q
 
+from src.apps.sellers.converters.sellers import seller_to_entity
 from src.apps.users.converters import user_from_entity, user_to_entity
 from src.apps.users.entities import UserEntity
+from src.apps.users.exceptions.users import UserWithDataAlreadyExistsError
 from src.apps.users.models import User
 
 
@@ -25,10 +28,10 @@ class BaseUserRepository(ABC):
     def set_password(self, user: User, password: str) -> None: ...
 
     @abstractmethod
-    def get_by_id_with_loaded_seller(self, id: int) -> User | None: ...
+    def get_by_id_with_loaded_seller(self, id: int) -> UserEntity | None: ...
 
     @abstractmethod
-    def get_by_id(self, id: int) -> User | None: ...
+    def get_by_id(self, id: int) -> UserEntity | None: ...
 
     @abstractmethod
     def delete(self, id: int) -> None: ...
@@ -52,30 +55,42 @@ class ORMUserRepository(BaseUserRepository):
         phone: str,
         password: str,
     ) -> UserEntity:
-        dto = User.objects.create_user(
-            first_name=first_name,
-            last_name=last_name,
-            email=email,
-            phone=phone,
-            password=password,
-        )
-        return user_to_entity(dto=dto)
+        try:
+            dto = User.objects.create_user(
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                phone=phone,
+                password=password,
+            )
+            return user_to_entity(dto=dto)
+        except IntegrityError:
+            raise UserWithDataAlreadyExistsError
 
     def save(self, user: User, update: bool) -> UserEntity:
-        dto = user_from_entity(entity=user)
-        dto.save(force_update=update)
-        return user_to_entity(dto=dto)
+        try:
+            dto = user_from_entity(entity=user)
+            dto.save(force_update=update)
+            return user_to_entity(dto=dto)
+        except IntegrityError:
+            raise UserWithDataAlreadyExistsError
 
     def set_password(self, user: User, password: str) -> None:
         dto = user_from_entity(entity=user)
         dto.set_password(password)
         dto.save()
 
-    def get_by_id_with_loaded_seller(self, id: int) -> User | None:
-        return User.objects.select_related('seller_profile').filter(pk=id).first()
+    def get_by_id_with_loaded_seller(self, id: int) -> UserEntity | None:
+        dto = User.objects.select_related('seller_profile').filter(pk=id).first()
+        if dto is None:
+            return None
+        entity = user_to_entity(dto=dto)
+        entity.seller_profile = seller_to_entity(dto=dto.seller_profile) if hasattr(dto, 'seller_profile') else None
+        return entity
 
-    def get_by_id(self, id: int) -> User | None:
-        return User.objects.filter(pk=id).first()
+    def get_by_id(self, id: int) -> UserEntity | None:
+        dto = User.objects.filter(pk=id).first()
+        return user_to_entity(dto=dto) if dto else None
 
     def delete(self, id: int) -> None:
         User.objects.filter(pk=id).delete()

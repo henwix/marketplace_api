@@ -109,7 +109,15 @@ def test_get_user_by_id_not_retrieved_if_not_active_and_not_active_error_raised(
 def test_get_user_with_loaded_seller_by_id_retrieved(user_service: BaseUserService, seller: Seller):
     retrieved_user = user_service.try_get_by_id_with_loaded_seller(id=seller.user_id)
     assert isinstance(retrieved_user, UserEntity)
-    assert retrieved_user == user_to_entity(dto=seller.user)
+    assert retrieved_user.id == seller.user.id
+    assert retrieved_user.first_name == seller.user.first_name
+    assert retrieved_user.last_name == seller.user.last_name
+    assert retrieved_user.email == seller.user.email
+    assert retrieved_user.phone == seller.user.phone
+    assert retrieved_user.avatar == seller.user.avatar
+    assert retrieved_user.is_staff == seller.user.is_staff
+    assert retrieved_user.is_active == seller.user.is_active
+    assert retrieved_user.date_joined == seller.user.date_joined
     assert retrieved_user.seller_profile == seller_to_entity(dto=seller)
 
 
