@@ -5,9 +5,9 @@ from rest_framework.views import APIView
 
 from src.api.v1.cart.openapi.decorators import extend_cart_view_schema
 from src.api.v1.cart.serializers import AddItemToCartInSerializer, CartItemOutSerializer
-from src.apps.cart.commands import AddItemToCartCommand
-from src.apps.cart.models import Cart, CartItem
+from src.apps.cart.commands import AddItemToCartCommand, GetCartCommand
 from src.apps.cart.use_cases.add_item_to_cart import AddItemToCartUseCase
+from src.apps.cart.use_cases.get_cart import GetCartUseCase
 from src.project.containers import resolve_depends
 
 
@@ -22,11 +22,17 @@ class CartView(APIView):
         return Response(CartItemOutSerializer(cart_item).data, status=status.HTTP_201_CREATED)
 
     def get(self, request: Request) -> Response:
-        cart = Cart.objects.filter(user_id=request.user.id).first()
-        if cart is not None:
-            items = CartItem.objects.filter(cart=cart).order_by('-created_at')
-            return Response(CartItemOutSerializer(items, many=True).data)
-        return Response({'detail': 'Cart not found'})
+        use_case: GetCartUseCase = resolve_depends(GetCartUseCase)
+        command = GetCartCommand(user_id=request.user.id)
+        cart_items, total_cart_price, cart_items_count = use_case.execute(command=command)
+        return Response(
+            data={
+                'total_cart_price': total_cart_price,
+                'cart_items_count': cart_items_count,
+                'results': CartItemOutSerializer(cart_items, many=True).data,
+            },
+            status=status.HTTP_200_OK,
+        )
 
     def delete(self, request: Request) -> Response:
         return Response({'delete': True})

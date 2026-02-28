@@ -6,7 +6,7 @@ from punq import Container
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
 from src.apps.cart.commands import AddItemToCartCommand
 from src.apps.cart.converters import cart_item_to_entity
-from src.apps.cart.exceptions import ItemAlreadyInCartError
+from src.apps.cart.exceptions import CartLimitError, ItemAlreadyInCartError
 from src.apps.cart.models import Cart, CartItem
 from src.apps.cart.use_cases.add_item_to_cart import AddItemToCartUseCase
 from src.apps.products.exceptions.product_variants import (
@@ -15,8 +15,10 @@ from src.apps.products.exceptions.product_variants import (
     ProductVariantOutOfStockError,
     QuantityGreaterThanStockError,
 )
+from src.apps.products.models.product_variants import ProductVariant
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError
 from src.apps.users.models import User
+from tests.v1.cart.factories import CartItemModelFactory
 from tests.v1.products.factories import ProductVariantModelFactory
 from tests.v1.users.factories import UserModelFactory
 
@@ -152,6 +154,18 @@ def test_add_item_not_added_and_quantity_greater_than_stock_error_raised(
         quantity=expected_quantity,
     )
     with pytest.raises(QuantityGreaterThanStockError):
+        add_item_to_cart_use_case.execute(command=command)
+
+
+@pytest.mark.django_db
+def test_add_item_not_added_and_cart_limit_error_raised(
+    add_item_to_cart_use_case: AddItemToCartUseCase,
+    cart: Cart,
+    product_variant: ProductVariant,
+):
+    CartItemModelFactory.create_batch(size=50, cart=cart)
+    with pytest.raises(CartLimitError):
+        command = AddItemToCartCommand(user_id=cart.user_id, product_variant_id=product_variant.id, quantity=1)
         add_item_to_cart_use_case.execute(command=command)
 
 

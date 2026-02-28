@@ -16,13 +16,13 @@ from src.apps.users.models import User
 @pytest.mark.django_db
 def test_get_cart_retrieved(cart_service: BaseCartService, user: User):
     db_cart = Cart.objects.create(user=user)
-    retrieved_cart = cart_service.get_or_create_cart(user_id=user.id)
+    retrieved_cart = cart_service.get_or_create_cart_for_update(user_id=user.id)
     assert retrieved_cart == cart_to_entity(dto=db_cart)
 
 
 @pytest.mark.django_db
 def test_create_cart_created(cart_service: BaseCartService, user: User):
-    created_cart = cart_service.get_or_create_cart(user_id=user.id)
+    created_cart = cart_service.get_or_create_cart_for_update(user_id=user.id)
     db_cart = Cart.objects.get(user=user)
     assert created_cart == cart_to_entity(dto=db_cart)
 

@@ -7,3 +7,8 @@ class AddItemToCartCommand:
     user_id: int | None
     product_variant_id: UUID
     quantity: int
+
+
+@dataclass(frozen=True, eq=False)
+class GetCartCommand:
+    user_id: int | None
