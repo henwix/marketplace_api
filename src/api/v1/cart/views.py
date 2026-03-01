@@ -4,9 +4,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from src.api.v1.cart.openapi.decorators import extend_cart_view_schema
-from src.api.v1.cart.serializers import AddItemToCartInSerializer, CartItemOutSerializer
-from src.apps.cart.commands import AddItemToCartCommand, GetCartCommand
+from src.api.v1.cart.serializers import AddItemToCartInSerializer, CartItemOutSerializer, DeleteCartItemInSerializer
+from src.apps.cart.commands import AddItemToCartCommand, DeleteCartItemCommand, GetCartCommand
 from src.apps.cart.use_cases.add_item_to_cart import AddItemToCartUseCase
+from src.apps.cart.use_cases.delete_cart_item import DeleteCartItemUseCase
 from src.apps.cart.use_cases.get_cart import GetCartUseCase
 from src.project.containers import resolve_depends
 
@@ -35,4 +36,14 @@ class CartView(APIView):
         )
 
     def delete(self, request: Request) -> Response:
-        return Response({'delete': True})
+        serializer = DeleteCartItemInSerializer(data=request.query_params)
+        serializer.is_valid(raise_exception=True)
+        use_case: DeleteCartItemUseCase = resolve_depends(DeleteCartItemUseCase)
+        command = DeleteCartItemCommand(user_id=request.user.id, **serializer.validated_data)
+        use_case.execute(command=command)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ClearCartView(APIView):
+    def delete(self, request: Request) -> Response:
+        return Response(data={'hello': 'world'})

@@ -13,5 +13,5 @@ class GetUserUseCase:
 
     def execute(self, command: GetUserCommand) -> UserEntity:
         self.auth_validator_service.validate(user_id=command.user_id)
-        user = self.user_service.try_get_by_id(id=command.user_id)
+        user = self.user_service.try_get_active_by_id(id=command.user_id)
         return user

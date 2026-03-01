@@ -12,5 +12,5 @@ class SetPasswordUserUseCase:
 
     def execute(self, command: SetPasswordUserCommand) -> None:
         self.auth_validator_service.validate(user_id=command.user_id)
-        user = self.user_service.try_get_by_id(id=command.user_id)
+        user = self.user_service.try_get_active_by_id(id=command.user_id)
         self.user_service.set_password(user=user, password=command.password)

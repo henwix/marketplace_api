@@ -4,7 +4,7 @@ from pytest_django.fixtures import SettingsWrapper
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from src.apps.cart.models import Cart
+from src.apps.cart.models import Cart, CartItem
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.models.product_variants import ProductVariant
@@ -12,7 +12,7 @@ from src.apps.products.models.products import Product
 from src.apps.sellers.models import Seller
 from src.apps.users.models import User
 from src.project.containers import get_container
-from tests.v1.cart.factories import CartModelFactory
+from tests.v1.cart.factories import CartItemModelFactory, CartModelFactory
 from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory
 from tests.v1.sellers.factories import SellerModelFactory
 from tests.v1.users.factories import UserModelFactory
@@ -41,6 +41,11 @@ def user() -> User:
 @pytest.fixture
 def cart() -> Cart:
     return CartModelFactory.create()
+
+
+@pytest.fixture
+def cart_item() -> CartItem:
+    return CartItemModelFactory.create()
 
 
 @pytest.fixture

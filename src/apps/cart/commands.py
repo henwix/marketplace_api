@@ -10,5 +10,11 @@ class AddItemToCartCommand:
 
 
 @dataclass(frozen=True, eq=False)
+class DeleteCartItemCommand:
+    user_id: int | None
+    product_variant_id: UUID
+
+
+@dataclass(frozen=True, eq=False)
 class GetCartCommand:
     user_id: int | None

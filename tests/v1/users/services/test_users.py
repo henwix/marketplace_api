@@ -87,7 +87,7 @@ def test_create_user_not_created_and_phone_already_exists_error_raised(
 
 @pytest.mark.django_db
 def test_get_user_by_id_retrieved(user_service: BaseUserService, user: User):
-    retrieved_user = user_service.try_get_by_id(id=user.pk)
+    retrieved_user = user_service.try_get_active_by_id(id=user.pk)
     assert isinstance(retrieved_user, UserEntity)
     assert retrieved_user == user_to_entity(dto=user)
 
@@ -95,14 +95,14 @@ def test_get_user_by_id_retrieved(user_service: BaseUserService, user: User):
 @pytest.mark.django_db
 def test_get_user_by_id_not_retrieved_if_not_exists_and_not_found_error_raised(user_service: BaseUserService):
     with pytest.raises(UserNotFoundError):
-        user_service.try_get_by_id(id=1)
+        user_service.try_get_active_by_id(id=1)
 
 
 @pytest.mark.django_db
 def test_get_user_by_id_not_retrieved_if_not_active_and_not_active_error_raised(user_service: BaseUserService):
     user = UserModelFactory.create(is_active=False)
     with pytest.raises(UserNotActiveError):
-        user_service.try_get_by_id(id=user.pk)
+        user_service.try_get_active_by_id(id=user.pk)
 
 
 @pytest.mark.django_db

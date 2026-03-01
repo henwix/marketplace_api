@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
 from decimal import Decimal
 from uuid import UUID
 
@@ -18,10 +17,13 @@ class BaseCartRepository(ABC):
     def get_or_create_cart_for_update(self, user_id: int) -> CartEntity: ...
 
     @abstractmethod
+    def get_or_create_cart(self, user_id: int) -> CartEntity: ...
+
+    @abstractmethod
     def save_cart_item(self, cart_item: CartItemEntity, update: bool) -> CartItemEntity: ...
 
     @abstractmethod
-    def get_cart_items_by_cart_id(self, cart_id: int) -> Iterable[CartItem]: ...
+    def get_cart_items_by_cart_id(self, cart_id: int) -> list[CartItemEntity]: ...
 
     @abstractmethod
     def get_total_cart_price(self, cart_id: int) -> Decimal | None: ...
@@ -30,12 +32,19 @@ class BaseCartRepository(ABC):
     def get_cart_items_count(self, cart_id: int) -> int: ...
 
     @abstractmethod
-    def is_cart_item_exists(self, cart_id: int, product_variant_id: UUID) -> bool: ...
+    def cart_item_exists(self, cart_id: int, product_variant_id: UUID) -> bool: ...
+
+    @abstractmethod
+    def delete_cart_item(self, cart_id: int, product_variant_id: UUID) -> bool: ...
 
 
 class CartRepository(BaseCartRepository):
     def get_or_create_cart_for_update(self, user_id: int) -> CartEntity:
-        cart, _ = Cart.objects.select_for_update().get_or_create(user_id=user_id)
+        cart = Cart.objects.select_for_update().get_or_create(user_id=user_id)[0]
+        return cart_to_entity(dto=cart)
+
+    def get_or_create_cart(self, user_id: int) -> CartEntity:
+        cart = Cart.objects.get_or_create(user_id=user_id)[0]
         return cart_to_entity(dto=cart)
 
     def save_cart_item(self, cart_item: CartItemEntity, update: bool) -> CartItemEntity:
@@ -57,16 +66,21 @@ class CartRepository(BaseCartRepository):
                     seller_id=cart_item.seller_id,
                 )
 
-    def get_cart_items_by_cart_id(self, cart_id: int) -> Iterable[CartItem]:
-        return CartItem.objects.filter(cart_id=cart_id)
+    def get_cart_items_by_cart_id(self, cart_id: int) -> list[CartItemEntity]:
+        items = CartItem.objects.filter(cart_id=cart_id).order_by('-created_at')
+        return [cart_item_to_entity(dto=item) for item in items] if items else []
 
-    def get_total_cart_price(self, cart_id: int) -> Decimal | None:
-        return CartItem.objects.filter(cart_id=cart_id).aggregate(total_price=Sum(F('price_snapshot') * F('quantity')))[
-            'total_price'
-        ]
+    def get_total_cart_price(self, cart_id: int) -> Decimal:
+        total_price = CartItem.objects.filter(cart_id=cart_id).aggregate(
+            total_price=Sum(F('price_snapshot') * F('quantity'))
+        )['total_price']
+        return total_price if total_price is not None else Decimal('0')
 
     def get_cart_items_count(self, cart_id: int) -> int:
         return CartItem.objects.filter(cart_id=cart_id).aggregate(items_count=Count('id'))['items_count']
 
-    def is_cart_item_exists(self, cart_id: int, product_variant_id: UUID) -> bool:
+    def cart_item_exists(self, cart_id: int, product_variant_id: UUID) -> bool:
         return CartItem.objects.filter(cart_id=cart_id, product_variant_id=product_variant_id).exists()
+
+    def delete_cart_item(self, cart_id: int, product_variant_id: UUID) -> bool:
+        return CartItem.objects.filter(cart_id=cart_id, product_variant_id=product_variant_id).delete()[0] > 0

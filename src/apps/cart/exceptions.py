@@ -15,10 +15,19 @@ class ItemAlreadyInCartError(ServiceException):
 
 
 @dataclass
-class CartIsEmptyError(ServiceException):
+class ItemNotFoundInCartError(ServiceException):
+    status_code = status.HTTP_404_NOT_FOUND
+    message = 'Item not found in cart'
+    cart_id: int
+    product_variant_id: UUID
+
+
+@dataclass
+class CartEmptyError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     message = 'Cart is empty'
     cart_id: int
+    user_id: int
 
 
 @dataclass

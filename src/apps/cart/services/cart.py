@@ -1,12 +1,11 @@
 from abc import ABC, abstractmethod
-from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal
+from uuid import UUID
 
 from src.apps.cart.constants import CART_ITEMS_LIMIT
 from src.apps.cart.entities import CartEntity, CartItemEntity
-from src.apps.cart.exceptions import CartLimitError, ItemAlreadyInCartError
-from src.apps.cart.models import CartItem
+from src.apps.cart.exceptions import CartLimitError, ItemAlreadyInCartError, ItemNotFoundInCartError
 from src.apps.cart.repositories.cart import BaseCartRepository
 from src.apps.products.entities.product_variants import ProductVariantEntity
 
@@ -21,7 +20,7 @@ class CartItemMustNotExistInCartValidatorService(BaseCartItemMustNotExistInCartV
     repository: BaseCartRepository
 
     def validate(self, cart: CartEntity, product_variant: ProductVariantEntity) -> None:
-        if self.repository.is_cart_item_exists(cart_id=cart.id, product_variant_id=product_variant.id):
+        if self.repository.cart_item_exists(cart_id=cart.id, product_variant_id=product_variant.id):
             raise ItemAlreadyInCartError(cart_id=cart.id, product_variant_id=product_variant.id)
 
 
@@ -46,16 +45,22 @@ class BaseCartService(ABC):
     def get_or_create_cart_for_update(self, user_id: int) -> CartEntity: ...
 
     @abstractmethod
+    def get_or_create_cart(self, user_id: int) -> CartEntity: ...
+
+    @abstractmethod
     def get_total_cart_price(self, cart_id: int) -> Decimal | None: ...
 
     @abstractmethod
     def save_cart_item(self, cart_item: CartItemEntity, update: bool = False) -> CartItemEntity: ...
 
     @abstractmethod
-    def get_cart_items_by_cart_id(self, cart_id: int) -> Iterable[CartItem]: ...
+    def get_cart_items_by_cart_id(self, cart_id: int) -> list[CartItemEntity]: ...
 
     @abstractmethod
     def get_cart_items_count(self, cart_id: int) -> int: ...
+
+    @abstractmethod
+    def try_delete_cart_item(self, cart_id: int, product_variant_id: UUID) -> None: ...
 
 
 @dataclass
@@ -65,14 +70,22 @@ class CartService(BaseCartService):
     def get_or_create_cart_for_update(self, user_id: int) -> CartEntity:
         return self.repository.get_or_create_cart_for_update(user_id=user_id)
 
+    def get_or_create_cart(self, user_id: int) -> CartEntity:
+        return self.repository.get_or_create_cart(user_id=user_id)
+
     def get_total_cart_price(self, cart_id: int) -> Decimal | None:
         return self.repository.get_total_cart_price(cart_id=cart_id)
 
     def save_cart_item(self, cart_item: CartItemEntity, update: bool = False) -> CartItemEntity:
         return self.repository.save_cart_item(cart_item=cart_item, update=update)
 
-    def get_cart_items_by_cart_id(self, cart_id: int) -> Iterable[CartItem]:
+    def get_cart_items_by_cart_id(self, cart_id: int) -> list[CartItemEntity]:
         return self.repository.get_cart_items_by_cart_id(cart_id=cart_id)
 
     def get_cart_items_count(self, cart_id: int) -> int:
         return self.repository.get_cart_items_count(cart_id=cart_id)
+
+    def try_delete_cart_item(self, cart_id: int, product_variant_id: UUID) -> None:
+        is_deleted = self.repository.delete_cart_item(cart_id=cart_id, product_variant_id=product_variant_id)
+        if not is_deleted:
+            raise ItemNotFoundInCartError(cart_id=cart_id, product_variant_id=product_variant_id)

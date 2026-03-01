@@ -31,7 +31,7 @@ class AddItemToCartUseCase:
 
     def execute(self, command: AddItemToCartCommand) -> CartItemEntity:
         self.auth_validator_service.validate(user_id=command.user_id)
-        user = self.user_service.try_get_by_id(id=command.user_id)
+        user = self.user_service.try_get_active_by_id(id=command.user_id)
         product_variant = self.product_variant_service.try_get_by_id_with_loaded_product(id=command.product_variant_id)
         self.product_variant_visiblity_validator_service.validate(product_variant=product_variant)
         self.product_variant_stock_validator_service.validate(

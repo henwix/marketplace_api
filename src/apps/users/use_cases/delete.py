@@ -12,5 +12,5 @@ class DeleteUserUseCase:
 
     def execute(self, command: DeleteUserCommand) -> None:
         self.auth_validator_service.validate(user_id=command.user_id)
-        user = self.user_service.try_get_by_id(id=command.user_id)
+        user = self.user_service.try_get_active_by_id(id=command.user_id)
         self.user_service.delete(id=user.id)

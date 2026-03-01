@@ -62,7 +62,7 @@ class BaseUserService(ABC):
     def try_get_by_id_with_loaded_seller(self, id: int) -> UserEntity: ...
 
     @abstractmethod
-    def try_get_by_id(self, id: int) -> UserEntity: ...
+    def try_get_active_by_id(self, id: int) -> UserEntity: ...
 
     @abstractmethod
     def set_password(self, user: UserEntity, password: str) -> None: ...
@@ -105,7 +105,7 @@ class UserService(BaseUserService):
         self._validate_user(user=user, user_id=id)
         return user
 
-    def try_get_by_id(self, id: int) -> UserEntity:
+    def try_get_active_by_id(self, id: int) -> UserEntity:
         user = self.repository.get_by_id(id=id)
         self._validate_user(user=user, user_id=id)
         return user

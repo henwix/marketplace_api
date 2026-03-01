@@ -18,7 +18,7 @@ class DeleteProductReviewUseCase:
 
     def execute(self, command: DeleteProductReviewCommand) -> None:
         self.auth_validator_service.validate(user_id=command.user_id)
-        user = self.user_service.try_get_by_id(id=command.user_id)
+        user = self.user_service.try_get_active_by_id(id=command.user_id)
         with transaction.atomic():
             product = self.product_service.try_get_for_update_by_id(id=command.product_id)
             product_review = self.product_review_service.try_get_by_user_id_and_product_id(
