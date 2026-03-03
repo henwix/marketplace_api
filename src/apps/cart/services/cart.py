@@ -5,7 +5,7 @@ from uuid import UUID
 
 from src.apps.cart.constants import CART_ITEMS_LIMIT
 from src.apps.cart.entities import CartEntity, CartItemEntity
-from src.apps.cart.exceptions import CartLimitError, ItemAlreadyInCartError, ItemNotFoundInCartError
+from src.apps.cart.exceptions import CartEmptyError, CartLimitError, ItemAlreadyInCartError, ItemNotFoundInCartError
 from src.apps.cart.repositories.cart import BaseCartRepository
 from src.apps.products.entities.product_variants import ProductVariantEntity
 
@@ -42,10 +42,7 @@ class CartLimitValidatorService(BaseCartLimitValidatorService):
 
 class BaseCartService(ABC):
     @abstractmethod
-    def get_or_create_cart_for_update(self, user_id: int) -> CartEntity: ...
-
-    @abstractmethod
-    def get_or_create_cart(self, user_id: int) -> CartEntity: ...
+    def get_or_create_cart_by_user_id_for_update(self, user_id: int) -> CartEntity: ...
 
     @abstractmethod
     def get_total_cart_price(self, cart_id: int) -> Decimal | None: ...
@@ -62,16 +59,16 @@ class BaseCartService(ABC):
     @abstractmethod
     def try_delete_cart_item(self, cart_id: int, product_variant_id: UUID) -> None: ...
 
+    @abstractmethod
+    def try_clear_cart(self, cart_id: int) -> None: ...
+
 
 @dataclass
 class CartService(BaseCartService):
     repository: BaseCartRepository
 
-    def get_or_create_cart_for_update(self, user_id: int) -> CartEntity:
-        return self.repository.get_or_create_cart_for_update(user_id=user_id)
-
-    def get_or_create_cart(self, user_id: int) -> CartEntity:
-        return self.repository.get_or_create_cart(user_id=user_id)
+    def get_or_create_cart_by_user_id_for_update(self, user_id: int) -> CartEntity:
+        return self.repository.get_or_create_cart_by_user_id_for_update(user_id=user_id)
 
     def get_total_cart_price(self, cart_id: int) -> Decimal | None:
         return self.repository.get_total_cart_price(cart_id=cart_id)
@@ -89,3 +86,8 @@ class CartService(BaseCartService):
         is_deleted = self.repository.delete_cart_item(cart_id=cart_id, product_variant_id=product_variant_id)
         if not is_deleted:
             raise ItemNotFoundInCartError(cart_id=cart_id, product_variant_id=product_variant_id)
+
+    def try_clear_cart(self, cart_id: int) -> None:
+        is_cleared = self.repository.clear_cart(cart_id)
+        if not is_cleared:
+            raise CartEmptyError(cart_id=cart_id)

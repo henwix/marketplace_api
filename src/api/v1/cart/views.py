@@ -3,10 +3,11 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from src.api.v1.cart.openapi.decorators import extend_cart_view_schema
-from src.api.v1.cart.serializers import AddItemToCartInSerializer, CartItemOutSerializer, DeleteCartItemInSerializer
-from src.apps.cart.commands import AddItemToCartCommand, DeleteCartItemCommand, GetCartCommand
-from src.apps.cart.use_cases.add_item_to_cart import AddItemToCartUseCase
+from src.api.v1.cart.openapi.decorators import extend_cart_view_schema, extend_clear_cart_view_schema
+from src.api.v1.cart.serializers import AddCartItemInSerializer, CartItemOutSerializer, DeleteCartItemInSerializer
+from src.apps.cart.commands import AddCartItemCommand, ClearCartCommand, DeleteCartItemCommand, GetCartCommand
+from src.apps.cart.use_cases.add_cart_item import AddCartItemUseCase
+from src.apps.cart.use_cases.clear_cart import ClearCartUseCase
 from src.apps.cart.use_cases.delete_cart_item import DeleteCartItemUseCase
 from src.apps.cart.use_cases.get_cart import GetCartUseCase
 from src.project.containers import resolve_depends
@@ -15,10 +16,10 @@ from src.project.containers import resolve_depends
 @extend_cart_view_schema
 class CartView(APIView):
     def post(self, request: Request) -> Response:
-        serializer = AddItemToCartInSerializer(data=request.data)
+        serializer = AddCartItemInSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        use_case: AddItemToCartUseCase = resolve_depends(AddItemToCartUseCase)
-        command = AddItemToCartCommand(user_id=request.user.id, **serializer.validated_data)
+        use_case: AddCartItemUseCase = resolve_depends(AddCartItemUseCase)
+        command = AddCartItemCommand(user_id=request.user.id, **serializer.validated_data)
         cart_item = use_case.execute(command=command)
         return Response(CartItemOutSerializer(cart_item).data, status=status.HTTP_201_CREATED)
 
@@ -44,6 +45,10 @@ class CartView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@extend_clear_cart_view_schema
 class ClearCartView(APIView):
     def delete(self, request: Request) -> Response:
-        return Response(data={'hello': 'world'})
+        use_case: ClearCartUseCase = resolve_depends(ClearCartUseCase)
+        command = ClearCartCommand(user_id=request.user.id)
+        use_case.execute(command=command)
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from django.db import transaction
 
 from src.apps.authentication.services.auth import BaseAuthValidatorService
-from src.apps.cart.commands import AddItemToCartCommand
+from src.apps.cart.commands import AddCartItemCommand
 from src.apps.cart.entities import CartItemEntity
 from src.apps.cart.services.cart import (
     BaseCartItemMustNotExistInCartValidatorService,
@@ -19,7 +19,7 @@ from src.apps.users.services.users import BaseUserService
 
 
 @dataclass
-class AddItemToCartUseCase:
+class AddCartItemUseCase:
     user_service: BaseUserService
     product_variant_service: BaseProductVariantService
     product_variant_visiblity_validator_service: BaseProductVariantVisibilityValidatorService
@@ -29,16 +29,17 @@ class AddItemToCartUseCase:
     cart_item_must_not_exist_validator_service: BaseCartItemMustNotExistInCartValidatorService
     auth_validator_service: BaseAuthValidatorService
 
-    def execute(self, command: AddItemToCartCommand) -> CartItemEntity:
+    def execute(self, command: AddCartItemCommand) -> CartItemEntity:
         self.auth_validator_service.validate(user_id=command.user_id)
         user = self.user_service.try_get_active_by_id(id=command.user_id)
+        # FIXME: product loading refactoring
         product_variant = self.product_variant_service.try_get_by_id_with_loaded_product(id=command.product_variant_id)
         self.product_variant_visiblity_validator_service.validate(product_variant=product_variant)
         self.product_variant_stock_validator_service.validate(
             product_variant=product_variant, quantity=command.quantity
         )
         with transaction.atomic():
-            cart = self.cart_service.get_or_create_cart_for_update(user_id=user.id)
+            cart = self.cart_service.get_or_create_cart_by_user_id_for_update(user_id=user.id)
             self.cart_limit_validator_service.validate(cart=cart)
             self.cart_item_must_not_exist_validator_service.validate(cart=cart, product_variant=product_variant)
             cart_item_entity = CartItemEntity.create(

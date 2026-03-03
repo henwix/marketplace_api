@@ -14,10 +14,7 @@ from src.apps.cart.models import Cart, CartItem
 
 class BaseCartRepository(ABC):
     @abstractmethod
-    def get_or_create_cart_for_update(self, user_id: int) -> CartEntity: ...
-
-    @abstractmethod
-    def get_or_create_cart(self, user_id: int) -> CartEntity: ...
+    def get_or_create_cart_by_user_id_for_update(self, user_id: int) -> CartEntity: ...
 
     @abstractmethod
     def save_cart_item(self, cart_item: CartItemEntity, update: bool) -> CartItemEntity: ...
@@ -37,14 +34,13 @@ class BaseCartRepository(ABC):
     @abstractmethod
     def delete_cart_item(self, cart_id: int, product_variant_id: UUID) -> bool: ...
 
+    @abstractmethod
+    def clear_cart(self, cart_id: int) -> bool: ...
+
 
 class CartRepository(BaseCartRepository):
-    def get_or_create_cart_for_update(self, user_id: int) -> CartEntity:
+    def get_or_create_cart_by_user_id_for_update(self, user_id: int) -> CartEntity:
         cart = Cart.objects.select_for_update().get_or_create(user_id=user_id)[0]
-        return cart_to_entity(dto=cart)
-
-    def get_or_create_cart(self, user_id: int) -> CartEntity:
-        cart = Cart.objects.get_or_create(user_id=user_id)[0]
         return cart_to_entity(dto=cart)
 
     def save_cart_item(self, cart_item: CartItemEntity, update: bool) -> CartItemEntity:
@@ -84,3 +80,6 @@ class CartRepository(BaseCartRepository):
 
     def delete_cart_item(self, cart_id: int, product_variant_id: UUID) -> bool:
         return CartItem.objects.filter(cart_id=cart_id, product_variant_id=product_variant_id).delete()[0] > 0
+
+    def clear_cart(self, cart_id: int) -> bool:
+        return CartItem.objects.filter(cart_id=cart_id).delete()[0] > 0

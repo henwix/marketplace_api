@@ -4,7 +4,7 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_
 from rest_framework import serializers, status
 
 from src.api.v1.authentication.openapi.responses import unauthorized_user_response
-from src.api.v1.cart.serializers import AddItemToCartInSerializer, CartItemOutSerializer
+from src.api.v1.cart.serializers import AddCartItemInSerializer, CartItemOutSerializer
 from src.api.v1.common.openapi.parameters import jwt_header_parameter, query_parameter
 from src.api.v1.common.openapi.responses import (
     bad_request_response,
@@ -31,7 +31,7 @@ from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundErro
 def extend_cart_view_schema(view):
     decorator = extend_schema_view(
         post=extend_schema(
-            request=AddItemToCartInSerializer,
+            request=AddCartItemInSerializer,
             parameters=[jwt_header_parameter()],
             responses={
                 status.HTTP_201_CREATED: successful_response(response=CartItemOutSerializer),
@@ -52,7 +52,7 @@ def extend_cart_view_schema(view):
                     ItemProductVariantOrSellerNotFoundError,
                 ),
             },
-            summary='Add Product To Cart POST',
+            summary='Add Cart Item POST',
         ),
         get=extend_schema(
             request=None,
@@ -96,8 +96,27 @@ def extend_cart_view_schema(view):
                     ItemNotFoundInCartError,
                 ),
             },
-            summary='Delete Product From Cart DELETE',
+            summary='Delete Cart Item DELETE',
         ),
     )
 
+    return decorator(view)
+
+
+def extend_clear_cart_view_schema(view):
+    decorator = extend_schema_view(
+        delete=extend_schema(
+            parameters=[jwt_header_parameter()],
+            responses={
+                status.HTTP_204_NO_CONTENT: None,
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: bad_request_response(UserNotActiveError),
+                status.HTTP_404_NOT_FOUND: not_found_response(
+                    UserNotFoundError,
+                    CartEmptyError,
+                ),
+            },
+            summary='Clear Cart DELETE',
+        )
+    )
     return decorator(view)

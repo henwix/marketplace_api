@@ -27,7 +27,6 @@ class CartEmptyError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     message = 'Cart is empty'
     cart_id: int
-    user_id: int
 
 
 @dataclass

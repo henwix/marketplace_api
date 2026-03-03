@@ -21,10 +21,10 @@ class GetCartUseCase:
         self.auth_validator_service.validate(user_id=command.user_id)
         user = self.user_service.try_get_active_by_id(id=command.user_id)
         with transaction.atomic():
-            cart = self.cart_service.get_or_create_cart_for_update(user_id=user.id)
+            cart = self.cart_service.get_or_create_cart_by_user_id_for_update(user_id=user.id)
             cart_items = self.cart_service.get_cart_items_by_cart_id(cart_id=cart.id)
             if not cart_items:
-                raise CartEmptyError(cart_id=cart.id, user_id=user.id)
+                raise CartEmptyError(cart_id=cart.id)
             total_cart_price = self.cart_service.get_total_cart_price(cart_id=cart.id)
             cart_items_count = self.cart_service.get_cart_items_count(cart_id=cart.id)
             return cart_items, total_cart_price, cart_items_count

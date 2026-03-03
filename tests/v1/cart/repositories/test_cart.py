@@ -1,4 +1,5 @@
 from decimal import Decimal
+from uuid import uuid7
 
 import pytest
 
@@ -15,7 +16,7 @@ from tests.v1.cart.factories import CartItemModelFactory
 @pytest.mark.django_db
 def test_get_or_create_cart_returns_existing_cart(cart_repository: BaseCartRepository, cart: Cart):
     assert Cart.objects.filter(user_id=cart.user_id).exists()
-    retrieved_cart = cart_repository.get_or_create_cart_for_update(user_id=cart.user_id)
+    retrieved_cart = cart_repository.get_or_create_cart_by_user_id_for_update(user_id=cart.user_id)
     assert isinstance(retrieved_cart, CartEntity)
     assert cart_to_entity(dto=cart) == retrieved_cart
 
@@ -23,7 +24,7 @@ def test_get_or_create_cart_returns_existing_cart(cart_repository: BaseCartRepos
 @pytest.mark.django_db
 def test_get_or_create_cart_creates_cart_when_not_exists(cart_repository: BaseCartRepository, user: User):
     assert not Cart.objects.filter(user_id=user.id).exists()
-    created_cart = cart_repository.get_or_create_cart_for_update(user_id=user.id)
+    created_cart = cart_repository.get_or_create_cart_by_user_id_for_update(user_id=user.id)
     db_cart = Cart.objects.get(user_id=user.id)
     assert created_cart == cart_to_entity(dto=db_cart)
 
@@ -91,3 +92,39 @@ def test_cart_item_exists_returns_false_if_item_does_not_exist(
     cart_repository: BaseCartRepository, cart: Cart, product_variant: ProductVariant
 ):
     assert cart_repository.cart_item_exists(cart_id=cart.id, product_variant_id=product_variant.id) is False
+
+
+@pytest.mark.django_db
+def test_delete_cart_item_returns_true_if_deleted(cart_repository: BaseCartRepository, cart_item: CartItem):
+    assert CartItem.objects.filter(id=cart_item.id).exists()
+    result = cart_repository.delete_cart_item(
+        cart_id=cart_item.cart_id, product_variant_id=cart_item.product_variant_id
+    )
+    assert not CartItem.objects.filter(id=cart_item.id).exists()
+    assert result is True
+
+
+@pytest.mark.django_db
+def test_delete_cart_item_returns_false_if_item_does_not_exist(cart_repository: BaseCartRepository, cart: Cart):
+    result = cart_repository.delete_cart_item(cart_id=cart.id, product_variant_id=uuid7())
+    assert result is False
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('expected_items_count', [1, 4, 6, 10, 20, 25, 29, 35, 43, 48, 50])
+def test_clear_cart_returns_true_if_cleared(
+    cart_repository: BaseCartRepository, cart: Cart, seller: Seller, expected_items_count: int
+):
+    CartItemModelFactory.create_batch(size=expected_items_count, cart=cart, seller=seller)
+    assert CartItem.objects.filter(cart_id=cart.id).count() == expected_items_count
+    result = cart_repository.clear_cart(cart_id=cart.id)
+    assert CartItem.objects.filter(cart_id=cart.id).count() == 0
+    assert result is True
+
+
+@pytest.mark.django_db
+def test_clear_cart_returns_false_if_not_cleared(cart_repository: BaseCartRepository, cart: Cart):
+    assert CartItem.objects.filter(cart_id=cart.id).count() == 0
+    result = cart_repository.clear_cart(cart_id=cart.id)
+    assert CartItem.objects.filter(cart_id=cart.id).count() == 0
+    assert result is False
