@@ -51,8 +51,8 @@
   * [ ] Searching by category
   * [ ] Products wishlist/favorites
 * [ ] Cart
-  * [ ] Models
-  * [ ] CRUD
-  * [ ] CRUD tests
+  * [x] Models
+  * [x] CRUD
+  * [x] CRUD tests
 * [ ] Buyer and Seller orders
 * [ ] Payments with delivery addresses

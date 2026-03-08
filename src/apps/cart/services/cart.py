@@ -88,6 +88,6 @@ class CartService(BaseCartService):
             raise ItemNotFoundInCartError(cart_id=cart_id, product_variant_id=product_variant_id)
 
     def try_clear_cart(self, cart_id: int) -> None:
-        is_cleared = self.repository.clear_cart(cart_id)
+        is_cleared = self.repository.clear_cart(cart_id=cart_id)
         if not is_cleared:
             raise CartEmptyError(cart_id=cart_id)
