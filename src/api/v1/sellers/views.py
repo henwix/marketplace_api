@@ -26,10 +26,9 @@ from src.project.containers import resolve_depends
 @extend_seller_view_schema
 class SellerView(APIView):
     def post(self, request: Request) -> Response:
-        serializer = CreateSellerInSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        request_data = CreateSellerInSerializer.validate_data(data=request.data)
         use_case: CreateSellerUseCase = resolve_depends(CreateSellerUseCase)
-        command = CreateSellerCommand(user_id=request.user.id, **serializer.validated_data)
+        command = CreateSellerCommand(user_id=request.user.id, **request_data)
         seller = use_case.execute(command=command)
         return Response(data=SellerOutSerializer(seller).data, status=status.HTTP_201_CREATED)
 
@@ -46,10 +45,9 @@ class SellerView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def _update(self, request: Request, partial: bool) -> Response:
-        serializer = UpdateSellerInSerializer(data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
+        request_data = UpdateSellerInSerializer.validate_data(data=request.data, partial=partial)
         use_case: UpdateSellerUseCase = resolve_depends(UpdateSellerUseCase)
-        command = UpdateSellerCommand(user_id=request.user.id, **serializer.validated_data)
+        command = UpdateSellerCommand(user_id=request.user.id, **request_data)
         seller = use_case.execute(command=command)
         return Response(data=SellerOutSerializer(seller).data, status=status.HTTP_200_OK)
 

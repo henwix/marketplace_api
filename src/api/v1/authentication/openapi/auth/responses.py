@@ -1,10 +1,10 @@
 from drf_spectacular.utils import OpenApiResponse, PolymorphicProxySerializer
 
-from src.api.v1.authentication.openapi.examples import (
+from src.api.v1.authentication.openapi.auth.examples import (
     unauthorized_token_expired_response_example,
     unauthorized_token_invalid_response_example,
 )
-from src.api.v1.authentication.serializers import DetailTokenOutSerializer
+from src.api.v1.authentication.serializers.auth import DetailTokenOutSerializer
 from src.api.v1.common.openapi.examples import (
     build_response_example_from_error,
 )

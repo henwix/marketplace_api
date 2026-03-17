@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from src.apps.authentication.services.auth import BaseAuthValidatorService
-from src.apps.common.exceptions import NothingToUpdateError
+from src.apps.common.exceptions.commands import NothingToUpdateError
 from src.apps.sellers.commands import UpdateSellerCommand
 from src.apps.sellers.entities.sellers import SellerEntity
 from src.apps.sellers.services.sellers import BaseSellerMustExistValidatorService, BaseSellerService

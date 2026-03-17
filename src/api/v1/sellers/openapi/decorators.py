@@ -1,7 +1,7 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 
-from src.api.v1.authentication.openapi.responses import unauthorized_user_response
+from src.api.v1.authentication.openapi.auth.responses import unauthorized_user_response
 from src.api.v1.common.openapi.parameters import jwt_header_parameter
 from src.api.v1.common.openapi.responses import (
     bad_request_response,
@@ -10,7 +10,7 @@ from src.api.v1.common.openapi.responses import (
     successful_response,
 )
 from src.api.v1.sellers.serializers import CreateSellerInSerializer, SellerOutSerializer, UpdateSellerInSerializer
-from src.apps.common.exceptions import NothingToUpdateError
+from src.apps.common.exceptions.commands import NothingToUpdateError
 from src.apps.sellers.exceptions import SellerAlreadyExistsError, SellerNotFoundByIdError, SellerNotFoundError
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError
 

@@ -14,7 +14,7 @@ from src.apps.users.repositories.users import BaseUserRepository
 
 class BaseUserValidatorService(ABC):
     @abstractmethod
-    def validate(self, email: str | Unset, phone: str | Unset) -> None: ...
+    def validate(self, email: str | Unset, phone: str | None | Unset) -> None: ...
 
 
 @dataclass
@@ -30,8 +30,8 @@ class UserUniqueEmailValidatorService(BaseUserValidatorService):
 class UserUniquePhoneValidatorService(BaseUserValidatorService):
     user_repository: BaseUserRepository
 
-    def validate(self, phone: str | Unset, *args, **kwargs) -> None:
-        if phone is not UNSET and self.user_repository.check_user_with_phone_exists(phone=phone):
+    def validate(self, phone: str | None | Unset, *args, **kwargs) -> None:
+        if isinstance(phone, str) and self.user_repository.check_user_with_phone_exists(phone=phone):
             raise UserWithPhoneAlreadyExistsError
 
 
@@ -39,7 +39,7 @@ class UserUniquePhoneValidatorService(BaseUserValidatorService):
 class ComposedUserValidatorService(BaseUserValidatorService):
     validators: list[BaseUserValidatorService]
 
-    def validate(self, email: str | Unset, phone: str | Unset) -> None:
+    def validate(self, email: str | Unset, phone: str | None | Unset) -> None:
         for validator in self.validators:
             validator.validate(email=email, phone=phone)
 
@@ -51,8 +51,9 @@ class BaseUserService(ABC):
         first_name: str,
         last_name: str,
         email: str,
-        phone: str,
-        password: str,
+        phone: str | None = None,
+        avatar: str | None = None,
+        password: str | None = None,
     ) -> UserEntity: ...
 
     @abstractmethod
@@ -86,14 +87,16 @@ class UserService(BaseUserService):
         first_name: str,
         last_name: str,
         email: str,
-        phone: str,
-        password: str,
+        phone: str | None = None,
+        avatar: str | None = None,
+        password: str | None = None,
     ) -> UserEntity:
         return self.repository.create(
             first_name=first_name,
             last_name=last_name,
             email=email,
             phone=phone,
+            avatar=avatar,
             password=password,
         )
 

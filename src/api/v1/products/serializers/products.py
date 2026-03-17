@@ -1,16 +1,17 @@
 from rest_framework import serializers
 
+from src.api.v1.common.serializers import BaseInSerializer
 from src.api.v1.products.serializers.product_variants import ProductVariantOutSerializer
 
 
-class CreateProductInSerializer(serializers.Serializer):
+class CreateProductInSerializer(BaseInSerializer):
     title = serializers.CharField(max_length=255)
     description = serializers.CharField(allow_blank=True, default='')
     short_description = serializers.CharField(allow_blank=True, default='', max_length=500)
     is_visible = serializers.BooleanField(default=True)
 
 
-class UpdateProductInSerializer(serializers.Serializer):
+class UpdateProductInSerializer(BaseInSerializer):
     title = serializers.CharField(max_length=255)
     description = serializers.CharField(allow_blank=True)
     short_description = serializers.CharField(allow_blank=True, max_length=500)

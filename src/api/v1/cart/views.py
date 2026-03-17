@@ -16,10 +16,9 @@ from src.project.containers import resolve_depends
 @extend_cart_view_schema
 class CartView(APIView):
     def post(self, request: Request) -> Response:
-        serializer = AddCartItemInSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        request_data = AddCartItemInSerializer.validate_data(data=request.data)
         use_case: AddCartItemUseCase = resolve_depends(AddCartItemUseCase)
-        command = AddCartItemCommand(user_id=request.user.id, **serializer.validated_data)
+        command = AddCartItemCommand(user_id=request.user.id, **request_data)
         cart_item = use_case.execute(command=command)
         return Response(CartItemOutSerializer(cart_item).data, status=status.HTTP_201_CREATED)
 
@@ -37,10 +36,9 @@ class CartView(APIView):
         )
 
     def delete(self, request: Request) -> Response:
-        serializer = DeleteCartItemInSerializer(data=request.query_params)
-        serializer.is_valid(raise_exception=True)
+        request_data = DeleteCartItemInSerializer.validate_data(data=request.query_params)
         use_case: DeleteCartItemUseCase = resolve_depends(DeleteCartItemUseCase)
-        command = DeleteCartItemCommand(user_id=request.user.id, **serializer.validated_data)
+        command = DeleteCartItemCommand(user_id=request.user.id, **request_data)
         use_case.execute(command=command)
         return Response(status=status.HTTP_204_NO_CONTENT)
 

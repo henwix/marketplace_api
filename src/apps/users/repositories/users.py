@@ -17,8 +17,9 @@ class BaseUserRepository(ABC):
         first_name: str,
         last_name: str,
         email: str,
-        phone: str,
-        password: str,
+        phone: str | None = None,
+        avatar: str | None = None,
+        password: str | None = None,
     ) -> UserEntity: ...
 
     @abstractmethod
@@ -52,8 +53,9 @@ class ORMUserRepository(BaseUserRepository):
         first_name: str,
         last_name: str,
         email: str,
-        phone: str,
-        password: str,
+        phone: str | None = None,
+        avatar: str | None = None,
+        password: str | None = None,
     ) -> UserEntity:
         try:
             dto = User.objects.create_user(
@@ -61,6 +63,7 @@ class ORMUserRepository(BaseUserRepository):
                 last_name=last_name,
                 email=email,
                 phone=phone,
+                avatar=avatar,
                 password=password,
             )
             return user_to_entity(dto=dto)

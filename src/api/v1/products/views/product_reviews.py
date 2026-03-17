@@ -38,10 +38,9 @@ class ProductReviewView(
     ordering = ['-created_at']
 
     def post(self, request: Request, id: UUID) -> Response:
-        serializer = CreateProductReviewInSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        request_data = CreateProductReviewInSerializer.validate_data(data=request.data)
         use_case: CreateProductReviewUseCase = resolve_depends(CreateProductReviewUseCase)
-        command = CreateProductReviewCommand(user_id=request.user.id, product_id=id, **serializer.validated_data)
+        command = CreateProductReviewCommand(user_id=request.user.id, product_id=id, **request_data)
         review = use_case.execute(command=command)
         return Response(data=ProductReviewOutSerializer(review).data, status=status.HTTP_201_CREATED)
 
@@ -62,10 +61,9 @@ class ProductReviewView(
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def _update(self, request: Request, id: UUID, partial: bool) -> Response:
-        serializer = UpdateProductReviewInSerializer(data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
+        request_data = UpdateProductReviewInSerializer.validate_data(data=request.data, partial=partial)
         use_case: UpdateProductReviewUseCase = resolve_depends(UpdateProductReviewUseCase)
-        command = UpdateProductReviewCommand(user_id=request.user.id, product_id=id, **serializer.validated_data)
+        command = UpdateProductReviewCommand(user_id=request.user.id, product_id=id, **request_data)
         review = use_case.execute(command=command)
         return Response(data=ProductReviewOutSerializer(review).data, status=status.HTTP_200_OK)
 

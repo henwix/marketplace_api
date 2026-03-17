@@ -12,7 +12,7 @@ class UserEntity(BaseEntity):
     first_name: str
     last_name: str
     email: str
-    phone: str
+    phone: str | None = None
     password: str | None = None
     avatar: str | None = None
     is_staff: bool = False

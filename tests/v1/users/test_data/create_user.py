@@ -19,5 +19,4 @@ CREATE_USER_WITH_NONE_ARGVALUES = [
     (None, 'World', 'test@example.com', '+978658358284', 'test_password_123456'),
     ('John', None, 'john@example.com', '+18482612425', 'johndoe82461942'),
     ('Jane', 'Doe', None, '+1234567690249238', 'JANE_DOE_PASSWORD-1029!@)$&0217501231'),
-    ('Name', 'Test', 'HelloWorld@test.test', None, 'helloworld_1234+_()*#@!@(&$%)(*!@&^%!^$%(@!($)'),
 ]

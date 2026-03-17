@@ -1,7 +1,7 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 
-from src.api.v1.authentication.openapi.responses import unauthorized_user_response
+from src.api.v1.authentication.openapi.auth.responses import unauthorized_user_response
 from src.api.v1.common.openapi.parameters import (
     jwt_header_parameter,
     ordering_query_parameter,
@@ -23,7 +23,7 @@ from src.api.v1.products.serializers.product_reviews import (
     RetrieveProductReviewOutSerializer,
     UpdateProductReviewInSerializer,
 )
-from src.apps.common.exceptions import NothingToUpdateError
+from src.apps.common.exceptions.commands import NothingToUpdateError
 from src.apps.products.exceptions.product_reviews import ProductReviewAlreadyExistsError, ProductReviewNotFoundError
 from src.apps.products.exceptions.products import ProductNotFoundByIdError
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError

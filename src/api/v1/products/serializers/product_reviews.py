@@ -1,14 +1,15 @@
 from rest_framework import serializers
 
+from src.api.v1.common.serializers import BaseInSerializer
 from src.api.v1.users.serializers import PreviewUserOutSerializer
 
 
-class CreateProductReviewInSerializer(serializers.Serializer):
+class CreateProductReviewInSerializer(BaseInSerializer):
     rating = serializers.IntegerField(min_value=1, max_value=5, default=1)
     text = serializers.CharField()
 
 
-class UpdateProductReviewInSerializer(serializers.Serializer):
+class UpdateProductReviewInSerializer(BaseInSerializer):
     rating = serializers.IntegerField(min_value=1, max_value=5)
     text = serializers.CharField()
 

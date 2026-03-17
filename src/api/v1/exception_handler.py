@@ -4,7 +4,7 @@ import orjson
 from rest_framework import status
 from rest_framework.views import Response, exception_handler
 
-from src.apps.common.exceptions import ServiceException
+from src.apps.common.exceptions.common import ServiceException
 from src.project.containers import resolve_depends
 
 

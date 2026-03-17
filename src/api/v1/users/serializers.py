@@ -1,26 +1,27 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 
+from src.api.v1.common.serializers import BaseInSerializer
 from src.apps.users.validators import user_phone_validator
 
 
-class CreateUserInSerializer(serializers.Serializer):
+class CreateUserInSerializer(BaseInSerializer):
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
     email = serializers.EmailField(max_length=254)
-    phone = serializers.CharField(max_length=20, validators=[user_phone_validator])
+    phone = serializers.CharField(max_length=20, validators=[user_phone_validator], allow_null=True, default=None)
     password = serializers.CharField(validators=[validate_password])
 
 
-class UpdateUserInSerializer(serializers.Serializer):
+class UpdateUserInSerializer(BaseInSerializer):
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
     email = serializers.EmailField(max_length=254)
-    phone = serializers.CharField(max_length=20, validators=[user_phone_validator])
+    phone = serializers.CharField(max_length=20, validators=[user_phone_validator], allow_null=True)
 
 
-class SetPasswordUserInSerializer(serializers.Serializer):
-    new_password = serializers.CharField(validators=[validate_password])
+class SetPasswordUserInSerializer(BaseInSerializer):
+    password = serializers.CharField(validators=[validate_password])
 
 
 class PreviewUserOutSerializer(serializers.Serializer):
@@ -34,5 +35,5 @@ class UserOutSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=150)
     last_name = serializers.CharField(max_length=150)
     email = serializers.EmailField(max_length=254)
-    phone = serializers.CharField(max_length=20, validators=[user_phone_validator])
+    phone = serializers.CharField(max_length=20, validators=[user_phone_validator], allow_null=True)
     avatar = serializers.CharField(allow_null=True)

@@ -37,6 +37,34 @@ def test_user_created(
 
 
 @pytest.mark.django_db
+def test_user_created_with_phone_equals_none():
+    UserModelFactory.create(phone=None)
+
+    expected_first_name = 'Alex'
+    expected_last_name = 'Johnson'
+    expected_email = 'alex@example.com'
+    expected_phone = None
+    client = get_client()
+    expected_user_data = {
+        'first_name': expected_first_name,
+        'last_name': expected_last_name,
+        'email': expected_email,
+        'phone': None,
+        'password': '1234q1234q',
+    }
+
+    response = client.post(path='/v1/users/', data=expected_user_data, content_type='application/json')
+
+    assert response.status_code == status.HTTP_201_CREATED
+    assert isinstance(response.data.get('id'), int)
+    assert response.data.get('first_name') == expected_first_name
+    assert response.data.get('last_name') == expected_last_name
+    assert response.data.get('email') == expected_email
+    assert response.data.get('phone') is expected_phone
+    assert response.data.get('avatar') is None
+
+
+@pytest.mark.django_db
 def test_user_not_created_and_returns_400_if_email_already_exists(user: User):
     client = get_client()
     expected_user_data = {

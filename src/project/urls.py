@@ -8,7 +8,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     # documentation
     path('schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('swagger/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    path('docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('redoc/', SpectacularRedocView.as_view(url_name='schema'), name='redoc'),
     # v1 api endpoints
     path('v1/', include('src.api.v1.urls')),
