@@ -18,8 +18,11 @@ class BaseSocialAccountRepository(ABC):
 
 class ORMSocialAccountRepository(BaseSocialAccountRepository):
     def get_by_provider_uid_and_name(self, provider_uid: str, provider: str) -> SocialAccountEntity | None:
-        dto = SocialAccount.objects.filter(provider_uid=provider_uid, provider=provider).first()
-        return social_account_to_entity(dto=dto) if dto else None
+        try:
+            dto = SocialAccount.objects.get(provider_uid=provider_uid, provider=provider)
+        except SocialAccount.DoesNotExist:
+            return None
+        return social_account_to_entity(dto=dto)
 
     def save(self, social_account: SocialAccountEntity, update: bool) -> SocialAccountEntity:
         dto = social_account_from_entity(entity=social_account)

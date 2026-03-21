@@ -10,7 +10,7 @@ from src.api.v1.authentication.openapi.oauth.decorators import (
 from src.api.v1.authentication.serializers.oauth import OAuthGetLoginUrlInSerializer, OAuthVerifyInSerializer
 from src.apps.authentication.commands.oauth import OAuthGetLoginUrlCommand, OAuthVerifyCommand
 from src.apps.authentication.use_cases.oauth.get_url import OAuthGetLoginUrlUseCase
-from src.apps.authentication.use_cases.oauth.verify_code import OAuthVerifyUseCase
+from src.apps.authentication.use_cases.oauth.verify import OAuthVerifyUseCase
 from src.project.containers import resolve_depends
 
 

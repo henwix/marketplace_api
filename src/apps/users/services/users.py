@@ -17,7 +17,7 @@ class BaseUserValidatorService(ABC):
     def validate(self, email: str | Unset, phone: str | None | Unset) -> None: ...
 
 
-@dataclass
+@dataclass(eq=False)
 class UserUniqueEmailValidatorService(BaseUserValidatorService):
     user_repository: BaseUserRepository
 
@@ -26,7 +26,7 @@ class UserUniqueEmailValidatorService(BaseUserValidatorService):
             raise UserWithEmailAlreadyExistsError
 
 
-@dataclass
+@dataclass(eq=False)
 class UserUniquePhoneValidatorService(BaseUserValidatorService):
     user_repository: BaseUserRepository
 
@@ -35,7 +35,7 @@ class UserUniquePhoneValidatorService(BaseUserValidatorService):
             raise UserWithPhoneAlreadyExistsError
 
 
-@dataclass
+@dataclass(eq=False)
 class ComposedUserValidatorService(BaseUserValidatorService):
     validators: list[BaseUserValidatorService]
 

@@ -66,17 +66,17 @@ class ORMUserRepository(BaseUserRepository):
                 avatar=avatar,
                 password=password,
             )
-            return user_to_entity(dto=dto)
-        except IntegrityError:
-            raise UserWithDataAlreadyExistsError
+        except IntegrityError as exc:
+            raise UserWithDataAlreadyExistsError from exc
+        return user_to_entity(dto=dto)
 
     def save(self, user: User, update: bool) -> UserEntity:
+        dto = user_from_entity(entity=user)
         try:
-            dto = user_from_entity(entity=user)
             dto.save(force_update=update)
-            return user_to_entity(dto=dto)
-        except IntegrityError:
-            raise UserWithDataAlreadyExistsError
+        except IntegrityError as exc:
+            raise UserWithDataAlreadyExistsError from exc
+        return user_to_entity(dto=dto)
 
     def set_password(self, user: User, password: str) -> None:
         dto = user_from_entity(entity=user)
@@ -84,15 +84,19 @@ class ORMUserRepository(BaseUserRepository):
         dto.save()
 
     def get_by_id_with_loaded_seller(self, id: int) -> UserEntity | None:
-        dto = User.objects.select_related('seller_profile').filter(pk=id).first()
-        if dto is None:
+        try:
+            dto = User.objects.select_related('seller_profile').get(pk=id)
+        except User.DoesNotExist:
             return None
         entity = user_to_entity(dto=dto)
         entity.seller_profile = seller_to_entity(dto=dto.seller_profile) if hasattr(dto, 'seller_profile') else None
         return entity
 
     def get_by_id(self, id: int) -> UserEntity | None:
-        dto = User.objects.filter(pk=id).first()
+        try:
+            dto = User.objects.get(pk=id)
+        except User.DoesNotExist:
+            return None
         return user_to_entity(dto=dto) if dto else None
 
     def delete(self, id: int) -> None:

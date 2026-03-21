@@ -11,3 +11,4 @@ static
 pg_backups
 db.sqlite3
 test.py
+test_oauth.html

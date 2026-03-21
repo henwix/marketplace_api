@@ -17,7 +17,7 @@ from src.apps.common.clients.http_client import BaseHTTPClient
 from src.apps.common.providers.cache import BaseCacheProvider
 
 
-@dataclass
+@dataclass(eq=False)
 class OAuthGitHubService(BaseOAuthService):
     _OAUTH_URL = 'https://github.com/login/oauth'
     _USER_API_URL = 'https://api.github.com/user'
@@ -30,7 +30,6 @@ class OAuthGitHubService(BaseOAuthService):
     http_client: BaseHTTPClient
 
     def _make_state_key(self, state: str) -> str:
-        # TODO: [?] move cache prefix to a separate file
         return f'oauth:state:github:{state}'
 
     def _get_user_names(self, name: str) -> tuple[str, str]:

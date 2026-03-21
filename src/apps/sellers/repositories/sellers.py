@@ -23,8 +23,11 @@ class ORMSellerRepository(BaseSellerRepository):
         return seller_to_entity(dto=dto)
 
     def get_by_id(self, id: int) -> SellerEntity | None:
-        dto = Seller.objects.filter(pk=id).first()
-        return seller_to_entity(dto=dto) if dto else None
+        try:
+            dto = Seller.objects.get(pk=id)
+        except Seller.DoesNotExist:
+            return None
+        return seller_to_entity(dto=dto)
 
     def delete(self, id: int) -> None:
         Seller.objects.filter(pk=id).delete()

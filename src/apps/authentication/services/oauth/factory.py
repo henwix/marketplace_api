@@ -4,7 +4,7 @@ from src.apps.authentication.exceptions.oauth import OAuthNotSupportedProviderEr
 from src.apps.authentication.services.oauth.base import BaseOAuthService
 
 
-@dataclass
+@dataclass(eq=False)
 class OAuthServiceFactory:
     services: list[BaseOAuthService]
 

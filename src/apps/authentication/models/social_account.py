@@ -1,3 +1,4 @@
+from django.contrib.postgres.indexes import Index
 from django.db import models
 
 from src.apps.authentication.constants import SocialAccountProviders
@@ -19,7 +20,6 @@ class SocialAccount(TimedBaseModel):
     )
     provider_uid = models.CharField(
         verbose_name='provider uid',
-        db_index=True,
     )
 
     def __str__(self):
@@ -31,4 +31,7 @@ class SocialAccount(TimedBaseModel):
         constraints = [
             models.UniqueConstraint(fields=['user', 'provider'], name='unique_user_provider'),
             models.UniqueConstraint(fields=['provider_uid', 'provider'], name='unique_provider_uid'),
+        ]
+        indexes = [
+            Index(fields=['provider_uid', 'provider']),
         ]

@@ -8,7 +8,7 @@ class DetailOutSerializer(serializers.Serializer):
 
 class BaseInSerializer(serializers.Serializer):
     @classmethod
-    def validate_data(cls, data: dict, partial: bool = False, raise_exception: bool = True) -> dict:
+    def validate_data(cls, data: dict, raise_exception: bool = True, partial: bool = False) -> dict:
         serializer = cls(data=data, partial=partial)
         serializer.is_valid(raise_exception=raise_exception)
         return serializer.validated_data

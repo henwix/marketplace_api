@@ -11,7 +11,7 @@ from src.apps.authentication.services.social_account import BaseSocialAccountSer
 from src.apps.users.services.users import BaseUserService, UserUniqueEmailValidatorService
 
 
-@dataclass
+@dataclass(eq=False)
 class OAuthVerifyUseCase:
     oauth_factory: OAuthServiceFactory
     user_service: BaseUserService

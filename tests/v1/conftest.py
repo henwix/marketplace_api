@@ -5,14 +5,16 @@ from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from src.apps.cart.models import Cart, CartItem
+from src.apps.common.clients.http_client import BaseHTTPClient
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.models.product_variants import ProductVariant
 from src.apps.products.models.products import Product
 from src.apps.sellers.models import Seller
 from src.apps.users.models import User
-from src.project.containers import get_container
+from src.project.containers import _initialize_container, get_container
 from tests.v1.cart.factories import CartItemModelFactory, CartModelFactory
+from tests.v1.mocks.http_client import DummyHTTPClient
 from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory
 from tests.v1.sellers.factories import SellerModelFactory
 from tests.v1.users.factories import UserModelFactory
@@ -71,6 +73,15 @@ def product_entity() -> ProductEntity:
 @pytest.fixture
 def container() -> Container:
     return get_container()
+
+
+@pytest.fixture
+def mock_container() -> Container:
+    container = _initialize_container()
+
+    container.register(BaseHTTPClient, DummyHTTPClient)
+
+    return container
 
 
 def get_client(user: User | None = None, jwt: bool = False) -> APIClient:

@@ -13,7 +13,7 @@ class BaseSocialAccountService(ABC):
     def save(self, social_account: SocialAccountEntity, update: bool) -> SocialAccountEntity: ...
 
 
-@dataclass
+@dataclass(eq=False)
 class SocialAccountService(BaseSocialAccountService):
     repository: BaseSocialAccountRepository
 

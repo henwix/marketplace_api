@@ -4,7 +4,7 @@ from src.apps.authentication.commands.oauth import OAuthGetLoginUrlCommand
 from src.apps.authentication.services.oauth.factory import OAuthServiceFactory
 
 
-@dataclass
+@dataclass(eq=False)
 class OAuthGetLoginUrlUseCase:
     oauth_factory: OAuthServiceFactory
 

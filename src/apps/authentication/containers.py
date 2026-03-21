@@ -7,7 +7,7 @@ from src.apps.authentication.services.oauth.factory import OAuthServiceFactory
 from src.apps.authentication.services.oauth.github import OAuthGitHubService
 from src.apps.authentication.services.social_account import BaseSocialAccountService, SocialAccountService
 from src.apps.authentication.use_cases.oauth.get_url import OAuthGetLoginUrlUseCase
-from src.apps.authentication.use_cases.oauth.verify_code import OAuthVerifyUseCase
+from src.apps.authentication.use_cases.oauth.verify import OAuthVerifyUseCase
 
 
 def init_auth(container: Container) -> None:
