@@ -1,24 +1,21 @@
 from dataclasses import dataclass
 from urllib.parse import urlencode
-from uuid import uuid4
 
 from django.conf import settings
 
 from src.apps.authentication.constants import SocialAccountProviders
 from src.apps.authentication.exceptions.oauth import (
     OAuthIncorrectCodeError,
-    OAuthIncorrectStateError,
     OAuthProviderEmailNotFoundError,
     OAuthProviderRequestError,
     OAuthUnverifiedProviderEmailError,
 )
-from src.apps.authentication.services.oauth.base import BaseOAuthService
+from src.apps.authentication.providers.oauth.base import BaseOAuthProvider
 from src.apps.common.clients.http_client import BaseHTTPClient
-from src.apps.common.providers.cache import BaseCacheProvider
 
 
 @dataclass(eq=False)
-class OAuthGitHubService(BaseOAuthService):
+class OAuthGitHubProvider(BaseOAuthProvider):
     _OAUTH_URL = 'https://github.com/login/oauth'
     _USER_API_URL = 'https://api.github.com/user'
     _CLIENT_ID = settings.GITHUB_CLIENT_ID
@@ -26,11 +23,7 @@ class OAuthGitHubService(BaseOAuthService):
     _REDIRECT_URI = settings.GITHUB_REDIRECT_URI
     _SCOPE = 'read:user user:email'
 
-    cache_provider: BaseCacheProvider
     http_client: BaseHTTPClient
-
-    def _make_state_key(self, state: str) -> str:
-        return f'oauth:state:github:{state}'
 
     def _get_user_names(self, name: str) -> tuple[str, str]:
         try:
@@ -44,17 +37,6 @@ class OAuthGitHubService(BaseOAuthService):
     @property
     def provider_name(self) -> str:
         return SocialAccountProviders.GITHUB
-
-    def create_state(self) -> str:
-        state = uuid4().hex
-        self.cache_provider.set(key=self._make_state_key(state=state), value=state, ttl=60 * 10)
-        return state
-
-    def validate_state(self, state: str) -> None:
-        cached_state = self.cache_provider.get(key=self._make_state_key(state=state))
-        if cached_state is None:
-            raise OAuthIncorrectStateError(state=state)
-        self.cache_provider.delete(key=self._make_state_key(state=state))
 
     def exchange_code(self, code: str) -> str:
         request_body = {
@@ -86,7 +68,7 @@ class OAuthGitHubService(BaseOAuthService):
 
         return response['access_token']
 
-    def get_user_data(self, token: str) -> dict:
+    def get_user_data(self, token: str) -> dict[str, str]:
         headers = {
             'Authorization': f'Bearer {token}',
         }
@@ -109,11 +91,11 @@ class OAuthGitHubService(BaseOAuthService):
         }
         return user_data
 
-    def get_login_url(self) -> str:
+    def get_login_url(self, state: str) -> str:
         params = {
             'client_id': self._CLIENT_ID,
             'redirect_url': self._REDIRECT_URI,
             'scope': self._SCOPE,
-            'state': self.create_state(),
+            'state': state,
         }
         return f'{self._OAUTH_URL}/authorize?{urlencode(query=params)}'

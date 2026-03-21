@@ -13,34 +13,33 @@ from src.apps.users.services.users import BaseUserService, UserUniqueEmailValida
 
 @dataclass(eq=False)
 class OAuthVerifyUseCase:
-    oauth_factory: OAuthServiceFactory
     user_service: BaseUserService
     user_unique_email_validator_service: UserUniqueEmailValidatorService
     social_account_service: BaseSocialAccountService
+    oauth_service_factory: OAuthServiceFactory
     jwt_service: BaseJWTService
 
     def execute(self, command: OAuthVerifyCommand) -> dict[str, str]:
-        oauth_service = self.oauth_factory.get(provider=command.provider)
-
+        oauth_service = self.oauth_service_factory.get(provider_name=command.provider)
         oauth_service.validate_state(state=command.state)
         token = oauth_service.exchange_code(code=command.code)
         user_data = oauth_service.get_user_data(token=token)
         provider_uid = user_data.get('provider_uid')
 
         social_account = self.social_account_service.get_by_provider_uid_and_name(
-            provider_uid=provider_uid, provider=oauth_service.provider_name
+            provider_uid=provider_uid, provider=command.provider
         )
 
         if command.user_id is not None:
             if social_account is not None:
                 raise SocialAccountProviderAlreadyConnectedError(
                     current_user_id=command.user_id,
-                    provider=oauth_service.provider_name,
+                    provider=command.provider,
                 )
             user = self.user_service.try_get_active_by_id(id=command.user_id)
             new_social_account_entity = SocialAccountEntity.create(
                 user_id=user.id,
-                provider=oauth_service.provider_name,
+                provider=command.provider,
                 provider_uid=provider_uid,
             )
             self.social_account_service.save(social_account=new_social_account_entity, update=False)
@@ -63,7 +62,7 @@ class OAuthVerifyUseCase:
             )
             new_social_account_entity = SocialAccountEntity.create(
                 user_id=user.id,
-                provider=oauth_service.provider_name,
+                provider=command.provider,
                 provider_uid=provider_uid,
             )
             self.social_account_service.save(social_account=new_social_account_entity, update=False)
