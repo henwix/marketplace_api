@@ -8,13 +8,16 @@ from src.apps.authentication.exceptions.social_account import SocialAccountProvi
 from src.apps.authentication.services.jwt import BaseJWTService
 from src.apps.authentication.services.oauth.factory import OAuthServiceFactory
 from src.apps.authentication.services.social_account import BaseSocialAccountService
-from src.apps.users.services.users import BaseUserService, UserUniqueEmailValidatorService
+from src.apps.users.services.users import (
+    BaseUserService,
+    BaseUserUniqueEmailValidatorService,
+)
 
 
 @dataclass(eq=False)
 class OAuthVerifyUseCase:
     user_service: BaseUserService
-    user_unique_email_validator_service: UserUniqueEmailValidatorService
+    user_email_validator_service: BaseUserUniqueEmailValidatorService
     social_account_service: BaseSocialAccountService
     oauth_service_factory: OAuthServiceFactory
     jwt_service: BaseJWTService
@@ -50,8 +53,7 @@ class OAuthVerifyUseCase:
             tokens = self.jwt_service.create_tokens(user=user)
             return tokens
 
-        # FIXME: create a new email validator or use email and phone validator separately
-        self.user_unique_email_validator_service.validate(email=user_data.get('email'))
+        self.user_email_validator_service.validate(email=user_data.get('email'))
 
         with transaction.atomic():
             user = self.user_service.create(

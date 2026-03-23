@@ -12,36 +12,32 @@ from src.apps.users.exceptions.users import (
 from src.apps.users.repositories.users import BaseUserRepository
 
 
-class BaseUserValidatorService(ABC):
+class BaseUserUniqueEmailValidatorService(ABC):
     @abstractmethod
-    def validate(self, email: str | Unset, phone: str | None | Unset) -> None: ...
+    def validate(self, email: str | Unset) -> None: ...
 
 
 @dataclass(eq=False)
-class UserUniqueEmailValidatorService(BaseUserValidatorService):
+class UserUniqueEmailValidatorService(BaseUserUniqueEmailValidatorService):
     user_repository: BaseUserRepository
 
-    def validate(self, email: str | Unset, *args, **kwargs) -> None:
+    def validate(self, email: str | Unset) -> None:
         if email is not UNSET and self.user_repository.check_user_with_email_exists(email=email):
             raise UserWithEmailAlreadyExistsError
 
 
+class BaseUserUniquePhoneValidatorService(ABC):
+    @abstractmethod
+    def validate(self, phone: str | None | Unset) -> None: ...
+
+
 @dataclass(eq=False)
-class UserUniquePhoneValidatorService(BaseUserValidatorService):
+class UserUniquePhoneValidatorService(BaseUserUniquePhoneValidatorService):
     user_repository: BaseUserRepository
 
-    def validate(self, phone: str | None | Unset, *args, **kwargs) -> None:
+    def validate(self, phone: str | None | Unset) -> None:
         if isinstance(phone, str) and self.user_repository.check_user_with_phone_exists(phone=phone):
             raise UserWithPhoneAlreadyExistsError
-
-
-@dataclass(eq=False)
-class ComposedUserValidatorService(BaseUserValidatorService):
-    validators: list[BaseUserValidatorService]
-
-    def validate(self, email: str | Unset, phone: str | None | Unset) -> None:
-        for validator in self.validators:
-            validator.validate(email=email, phone=phone)
 
 
 class BaseUserService(ABC):
