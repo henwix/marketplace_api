@@ -16,14 +16,31 @@ from src.apps.common.clients.http_client import BaseHTTPClient
 
 @dataclass(eq=False)
 class OAuthGitHubProvider(BaseOAuthProvider):
-    _OAUTH_URL = 'https://github.com/login/oauth'
-    _USER_API_URL = 'https://api.github.com/user'
-    _CLIENT_ID = settings.GITHUB_CLIENT_ID
-    _CLIENT_SECRET = settings.GITHUB_CLIENT_SECRET
-    _REDIRECT_URI = settings.GITHUB_REDIRECT_URI
-    _SCOPE = 'read:user user:email'
-
     http_client: BaseHTTPClient
+
+    @property
+    def _oauth_url(self) -> str:
+        return 'https://github.com/login/oauth'
+
+    @property
+    def _user_api_url(self) -> str:
+        return 'https://api.github.com/user'
+
+    @property
+    def _client_id(self) -> str:
+        return settings.GITHUB_CLIENT_ID
+
+    @property
+    def _client_secret(self) -> str:
+        return settings.GITHUB_CLIENT_SECRET
+
+    @property
+    def _redirect_uri(self) -> str:
+        return settings.GITHUB_REDIRECT_URI
+
+    @property
+    def _scope(self) -> str:
+        return 'read:user user:email'
 
     def _get_user_names(self, name: str) -> tuple[str, str]:
         try:
@@ -40,15 +57,15 @@ class OAuthGitHubProvider(BaseOAuthProvider):
 
     def exchange_code(self, code: str) -> str:
         request_body = {
-            'client_id': self._CLIENT_ID,
-            'client_secret': self._CLIENT_SECRET,
+            'client_id': self._client_id,
+            'client_secret': self._client_secret,
             'code': code,
         }
         headers = {
             'Accept': 'application/json',
         }
         response = self.http_client.post(
-            url=f'{self._OAUTH_URL}/access_token',
+            url=f'{self._oauth_url}/access_token',
             data=request_body,
             headers=headers,
         )
@@ -72,14 +89,14 @@ class OAuthGitHubProvider(BaseOAuthProvider):
         headers = {
             'Authorization': f'Bearer {token}',
         }
-        response = self.http_client.get(url=self._USER_API_URL, headers=headers)
+        response = self.http_client.get(url=self._user_api_url, headers=headers)
 
         if response.get('email', None) is None:
-            emails = self.http_client.get(url=f'{self._USER_API_URL}/emails', headers=headers)
+            emails = self.http_client.get(url=f'{self._user_api_url}/emails', headers=headers)
             primary_emails = [e for e in emails if e.get('primary') and e.get('verified')]
             if not primary_emails:
                 raise OAuthProviderEmailNotFoundError()
-            response['email'] = primary_emails[0].get('email') if primary_emails else emails[0].get('email')
+            response['email'] = primary_emails[0].get('email')
 
         first_name, last_name = self._get_user_names(name=response.get('name') or response.get('login'))
         user_data = {
@@ -93,9 +110,9 @@ class OAuthGitHubProvider(BaseOAuthProvider):
 
     def get_login_url(self, state: str) -> str:
         params = {
-            'client_id': self._CLIENT_ID,
-            'redirect_url': self._REDIRECT_URI,
-            'scope': self._SCOPE,
+            'client_id': self._client_id,
+            'redirect_url': self._redirect_uri,
+            'scope': self._scope,
             'state': state,
         }
-        return f'{self._OAUTH_URL}/authorize?{urlencode(query=params)}'
+        return f'{self._oauth_url}/authorize?{urlencode(query=params)}'

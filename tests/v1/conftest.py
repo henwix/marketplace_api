@@ -1,4 +1,5 @@
 import pytest
+from django.core.cache import cache
 from punq import Container
 from pytest_django.fixtures import SettingsWrapper
 from rest_framework.test import APIClient
@@ -33,6 +34,24 @@ def disable_silk_middleware(settings: SettingsWrapper):
 
     if silk_middleware in settings.MIDDLEWARE:
         settings.MIDDLEWARE = [i for i in settings.MIDDLEWARE if i != silk_middleware]
+
+
+@pytest.fixture(autouse=True)
+def change_redis_database_number_and_clear_cache(settings: SettingsWrapper):
+    settings.CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': 'redis://redis:6379/8',
+        },
+    }
+    cache.clear()
+
+
+@pytest.fixture(autouse=True)
+def override_secrets(settings: SettingsWrapper):
+    settings.GITHUB_CLIENT_ID = 'test_github_client_id'
+    settings.GITHUB_CLIENT_SECRET = 'test_github_client_secret'
+    settings.GITHUB_REDIRECT_URI = 'https://test_github_redirect_uri/callback'
 
 
 @pytest.fixture
