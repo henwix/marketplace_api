@@ -2,7 +2,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
-from src.apps.common.exceptions import NothingToUpdateError
+from src.apps.common.exceptions.commands import NothingToUpdateError
 from src.apps.users.commands import UpdateUserCommand
 from src.apps.users.entities import UserEntity
 from src.apps.users.exceptions.users import (
@@ -88,6 +88,21 @@ def test_update_user_updated_partial(
     command = UpdateUserCommand(user_id=user.pk, phone=expected_phone)
     updated_user = update_user_use_case.execute(command=command)
     assert updated_user.phone == expected_phone
+
+
+@pytest.mark.django_db
+def test_update_user_updated_with_phone_equals_none(
+    update_user_use_case: UpdateUserUseCase,
+    user: User,
+):
+    UserModelFactory.create(phone=None)
+
+    command = UpdateUserCommand(user_id=user.pk, phone=None)
+    updated_user = update_user_use_case.execute(command=command)
+    assert updated_user.phone is None
+    assert updated_user.email == user.email
+    assert updated_user.first_name == user.first_name
+    assert updated_user.last_name == user.last_name
 
 
 def test_update_user_not_updated_and_nothing_not_update_error_raised(update_user_use_case: UpdateUserUseCase):

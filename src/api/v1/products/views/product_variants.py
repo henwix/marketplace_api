@@ -29,10 +29,9 @@ from src.project.containers import resolve_depends
 @extend_product_variant_view_schema
 class ProductVariantView(APIView):
     def post(self, request: Request, id: UUID) -> Response:
-        serializer = CreateProductVariantInSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        request_data = CreateProductVariantInSerializer.validate_data(data=request.data)
         use_case: CreateProductVariantUseCase = resolve_depends(CreateProductVariantUseCase)
-        command = CreateProductVariantCommand(user_id=request.user.id, product_id=id, **serializer.validated_data)
+        command = CreateProductVariantCommand(user_id=request.user.id, product_id=id, **request_data)
         variant = use_case.execute(command=command)
         return Response(data=ProductVariantOutSerializer(variant).data, status=status.HTTP_201_CREATED)
 
@@ -58,14 +57,9 @@ class DetailProductVariantView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def _update(self, request: Request, id: UUID, partial: bool) -> Response:
-        serializer = UpdateProductVariantInSerializer(data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
+        request_data = UpdateProductVariantInSerializer.validate_data(data=request.data, partial=partial)
         use_case: UpdateProductVariantUseCase = resolve_depends(UpdateProductVariantUseCase)
-        command = UpdateProductVariantCommand(
-            user_id=request.user.id,
-            product_variant_id=id,
-            **serializer.validated_data,
-        )
+        command = UpdateProductVariantCommand(user_id=request.user.id, product_variant_id=id, **request_data)
         product_variant = use_case.execute(command=command)
         return Response(data=ProductVariantOutSerializer(product_variant).data, status=status.HTTP_200_OK)
 

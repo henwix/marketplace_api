@@ -1,7 +1,7 @@
 from drf_spectacular.utils import extend_schema, extend_schema_view
 from rest_framework import status
 
-from src.api.v1.authentication.openapi.responses import unauthorized_user_response
+from src.api.v1.authentication.openapi.auth.responses import unauthorized_user_response
 from src.api.v1.common.openapi.parameters import (
     cursor_query_parameter,
     jwt_header_parameter,
@@ -31,7 +31,7 @@ from src.api.v1.products.serializers.products import (
     SearchProductOutSerializer,
     UpdateProductInSerializer,
 )
-from src.apps.common.exceptions import NothingToUpdateError
+from src.apps.common.exceptions.commands import NothingToUpdateError
 from src.apps.products.exceptions.products import (
     ProductAccessForbiddenError,
     ProductNotFoundByIdError,

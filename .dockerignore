@@ -22,3 +22,5 @@ tests
 LICENSE
 scripts
 nginx.conf
+test.py
+test_oauth.html

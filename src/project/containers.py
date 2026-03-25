@@ -1,16 +1,18 @@
 from functools import lru_cache
 from logging import Logger, getLogger
+from typing import Any
 
 from punq import Container
 
 from src.apps.authentication.containers import init_auth
 from src.apps.cart.containers import init_cart
+from src.apps.common.containers import init_common
 from src.apps.products.containers import init_products
 from src.apps.sellers.containers import init_sellers
 from src.apps.users.containers import init_users
 
 
-def resolve_depends(interface):
+def resolve_depends(interface: Any) -> Any:
     return get_container().resolve(interface)
 
 
@@ -27,6 +29,7 @@ def _initialize_container() -> Container:
     init_products(container=container)
     init_cart(container=container)
     init_auth(container=container)
+    init_common(container=container)
     container.register(Logger, factory=getLogger, name='django.logger')
 
     return container

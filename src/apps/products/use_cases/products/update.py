@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from src.apps.authentication.services.auth import BaseAuthValidatorService
-from src.apps.common.exceptions import NothingToUpdateError
+from src.apps.common.exceptions.commands import NothingToUpdateError
 from src.apps.products.commands.products import UpdateProductCommand
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.services.products import BaseProductAccessValidatorService, BaseProductService

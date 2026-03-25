@@ -9,7 +9,7 @@ class CreateUserCommand:
     first_name: str
     last_name: str
     email: str
-    phone: str
+    phone: str | None
     password: str
 
 
@@ -19,7 +19,7 @@ class UpdateUserCommand(BaseUpdateCommand):
     first_name: str | Unset = UNSET
     last_name: str | Unset = UNSET
     email: str | Unset = UNSET
-    phone: str | Unset = UNSET
+    phone: str | None | Unset = UNSET
 
 
 @dataclass(frozen=True, eq=False)

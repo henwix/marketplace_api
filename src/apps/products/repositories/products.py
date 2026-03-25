@@ -43,12 +43,13 @@ class BaseProductRepository(ABC):
 
 class ORMProductRepository(BaseProductRepository):
     def _get_one_by_query_for_retrieve_with_relations(self, filters: Q) -> ProductEntity | None:
-        dto = (
-            Product.objects.filter(filters)
-            .prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True)))
-            .select_related('seller')
-        ).first()
-        if dto is None:
+        try:
+            dto = (
+                Product.objects.prefetch_related(Prefetch('variants', ProductVariant.objects.filter(is_visible=True)))
+                .select_related('seller')
+                .get(filters)
+            )
+        except Product.DoesNotExist:
             return None
         entity = product_to_entity(dto=dto)
         entity.seller = seller_to_entity(dto=dto.seller)
@@ -74,24 +75,26 @@ class ORMProductRepository(BaseProductRepository):
         return product_to_entity(dto=dto)
 
     def get_for_update_by_id(self, id: UUID) -> ProductEntity | None:
-        dto = Product.objects.select_for_update().filter(pk=id).first()
-        return product_to_entity(dto=dto) if dto else None
+        try:
+            dto = Product.objects.select_for_update().get(pk=id)
+        except Product.DoesNotExist:
+            return None
+        return product_to_entity(dto=dto)
 
     def get_by_id(self, id: UUID) -> ProductEntity | None:
-        dto = Product.objects.filter(pk=id).first()
-        return product_to_entity(dto=dto) if dto else None
+        try:
+            dto = Product.objects.get(pk=id)
+        except Product.DoesNotExist:
+            return None
+        return product_to_entity(dto=dto)
 
     def get_by_id_for_retrieve(self, id: UUID) -> Product | None:
         return self._get_one_by_query_for_retrieve_with_relations(filters=Q(pk=id))
 
     def get_by_id_with_loaded_variants(self, id: UUID) -> ProductEntity | None:
-        dto = (
-            Product.objects.annotate(variants_count=Count('variants'))
-            .filter(pk=id)
-            .prefetch_related('variants')
-            .first()
-        )
-        if dto is None:
+        try:
+            dto = Product.objects.annotate(variants_count=Count('variants')).prefetch_related('variants').get(pk=id)
+        except Product.DoesNotExist:
             return None
         entity = product_to_entity(dto=dto)
         entity.variants = [product_variant_to_entity(dto=variant) for variant in dto.variants.all()]

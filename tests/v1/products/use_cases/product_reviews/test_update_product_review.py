@@ -3,7 +3,7 @@ from uuid import uuid7
 import pytest
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
-from src.apps.common.exceptions import NothingToUpdateError
+from src.apps.common.exceptions.commands import NothingToUpdateError
 from src.apps.products.commands.product_reviews import CreateProductReviewCommand, UpdateProductReviewCommand
 from src.apps.products.converters.product_reviews import product_review_to_entity
 from src.apps.products.entities.product_reviews import ProductReviewEntity

@@ -18,7 +18,7 @@ from src.apps.products.services.product_variants import (
 from src.apps.users.services.users import BaseUserService
 
 
-@dataclass
+@dataclass(eq=False)
 class AddCartItemUseCase:
     user_service: BaseUserService
     product_variant_service: BaseProductVariantService

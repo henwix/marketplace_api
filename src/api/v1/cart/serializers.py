@@ -1,12 +1,14 @@
 from rest_framework import serializers
 
+from src.api.v1.common.serializers import BaseInSerializer
 
-class AddCartItemInSerializer(serializers.Serializer):
+
+class AddCartItemInSerializer(BaseInSerializer):
     product_variant_id = serializers.UUIDField()
     quantity = serializers.IntegerField(min_value=1, max_value=2147483647)
 
 
-class DeleteCartItemInSerializer(serializers.Serializer):
+class DeleteCartItemInSerializer(BaseInSerializer):
     product_variant_id = serializers.UUIDField()
 
 

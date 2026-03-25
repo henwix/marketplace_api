@@ -4,7 +4,7 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedError
-from src.apps.common.exceptions import NothingToUpdateError
+from src.apps.common.exceptions.commands import NothingToUpdateError
 from src.apps.products.commands.products import UpdateProductCommand
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity

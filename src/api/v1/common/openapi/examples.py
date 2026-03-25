@@ -1,6 +1,6 @@
 from drf_spectacular.utils import OpenApiExample
 
-from src.apps.common.exceptions import ServiceException
+from src.apps.common.exceptions.common import ServiceException
 
 
 def build_response_example_from_error(

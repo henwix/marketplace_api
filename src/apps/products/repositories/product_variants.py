@@ -30,8 +30,9 @@ class ORMProductVariantRepository(BaseProductVariantRepository):
         return ProductVariant.objects.filter(product_id=product_id).count()
 
     def get_by_id_with_loaded_product(self, id: UUID) -> ProductVariantEntity | None:
-        dto = ProductVariant.objects.select_related('product').filter(pk=id).first()
-        if dto is None:
+        try:
+            dto = ProductVariant.objects.select_related('product').get(pk=id)
+        except ProductVariant.DoesNotExist:
             return None
         entity = product_variant_to_entity(dto=dto)
         # FIXME: use product entity instead of "product_seller_id"

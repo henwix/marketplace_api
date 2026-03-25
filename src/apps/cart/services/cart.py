@@ -15,7 +15,7 @@ class BaseCartItemMustNotExistInCartValidatorService(ABC):
     def validate(self, cart: CartEntity, product_variant: ProductVariantEntity) -> None: ...
 
 
-@dataclass
+@dataclass(eq=False)
 class CartItemMustNotExistInCartValidatorService(BaseCartItemMustNotExistInCartValidatorService):
     repository: BaseCartRepository
 
@@ -24,13 +24,13 @@ class CartItemMustNotExistInCartValidatorService(BaseCartItemMustNotExistInCartV
             raise ItemAlreadyInCartError(cart_id=cart.id, product_variant_id=product_variant.id)
 
 
-@dataclass
+@dataclass(eq=False)
 class BaseCartLimitValidatorService(ABC):
     @abstractmethod
     def validate(self, cart: CartEntity) -> None: ...
 
 
-@dataclass
+@dataclass(eq=False)
 class CartLimitValidatorService(BaseCartLimitValidatorService):
     repository: BaseCartRepository
 
@@ -63,7 +63,7 @@ class BaseCartService(ABC):
     def try_clear_cart(self, cart_id: int) -> None: ...
 
 
-@dataclass
+@dataclass(eq=False)
 class CartService(BaseCartService):
     repository: BaseCartRepository
 

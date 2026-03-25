@@ -27,6 +27,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         verbose_name=_('phone number'),
         validators=[user_phone_validator],
         unique=True,
+        null=True,
         max_length=20,
         help_text=_('Phone number'),
     )
@@ -62,7 +63,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     EMAIL_FIELD = 'email'
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name', 'phone']
+    REQUIRED_FIELDS = ['first_name', 'last_name']
 
     objects = CustomUserManager()
 

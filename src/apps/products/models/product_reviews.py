@@ -38,6 +38,7 @@ class ProductReview(TimedBaseModel):
         indexes = [
             Index(fields=['product_id', 'created_at']),
             Index(fields=['product_id', 'rating']),
+            Index(fields=['product_id', 'user_id']),
         ]
         constraints = [
             models.UniqueConstraint(

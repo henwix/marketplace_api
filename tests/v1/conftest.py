@@ -1,18 +1,23 @@
 import pytest
+from django.core.cache import cache
 from punq import Container
 from pytest_django.fixtures import SettingsWrapper
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from src.apps.authentication.models.social_account import SocialAccount
 from src.apps.cart.models import Cart, CartItem
+from src.apps.common.clients.http_client import BaseHTTPClient
 from src.apps.products.converters.products import product_to_entity
 from src.apps.products.entities.products import ProductEntity
 from src.apps.products.models.product_variants import ProductVariant
 from src.apps.products.models.products import Product
 from src.apps.sellers.models import Seller
 from src.apps.users.models import User
-from src.project.containers import get_container
+from src.project.containers import _initialize_container, get_container
+from tests.v1.authentication.oauth.factories import SocialAccountModelFactory
 from tests.v1.cart.factories import CartItemModelFactory, CartModelFactory
+from tests.v1.mocks.http_client import DummyHTTPClient
 from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory
 from tests.v1.sellers.factories import SellerModelFactory
 from tests.v1.users.factories import UserModelFactory
@@ -31,6 +36,24 @@ def disable_silk_middleware(settings: SettingsWrapper):
 
     if silk_middleware in settings.MIDDLEWARE:
         settings.MIDDLEWARE = [i for i in settings.MIDDLEWARE if i != silk_middleware]
+
+
+@pytest.fixture(autouse=True)
+def change_redis_database_number_and_clear_cache(settings: SettingsWrapper):
+    settings.CACHES = {
+        'default': {
+            'BACKEND': 'django_redis.cache.RedisCache',
+            'LOCATION': 'redis://redis:6379/8',
+        },
+    }
+    cache.clear()
+
+
+@pytest.fixture(autouse=True)
+def override_secrets(settings: SettingsWrapper):
+    settings.GITHUB_CLIENT_ID = 'test_github_client_id'
+    settings.GITHUB_CLIENT_SECRET = 'test_github_client_secret'
+    settings.GITHUB_REDIRECT_URI = 'https://test_github_redirect_uri/callback'
 
 
 @pytest.fixture
@@ -54,6 +77,11 @@ def seller() -> Seller:
 
 
 @pytest.fixture
+def social_account() -> SocialAccount:
+    return SocialAccountModelFactory.create()
+
+
+@pytest.fixture
 def product() -> Product:
     return ProductModelFactory.create()
 
@@ -71,6 +99,15 @@ def product_entity() -> ProductEntity:
 @pytest.fixture
 def container() -> Container:
     return get_container()
+
+
+@pytest.fixture
+def mock_container() -> Container:
+    container = _initialize_container()
+
+    container.register(BaseHTTPClient, DummyHTTPClient)
+
+    return container
 
 
 def get_client(user: User | None = None, jwt: bool = False) -> APIClient:

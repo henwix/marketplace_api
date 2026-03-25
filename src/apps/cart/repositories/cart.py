@@ -44,23 +44,25 @@ class CartRepository(BaseCartRepository):
         return cart_to_entity(dto=cart)
 
     def save_cart_item(self, cart_item: CartItemEntity, update: bool) -> CartItemEntity:
+        dto = cart_item_from_entity(entity=cart_item)
         try:
-            dto = cart_item_from_entity(entity=cart_item)
             dto.save(force_update=update)
-            return cart_item_to_entity(dto=dto)
-        except IntegrityError as error:
+        except IntegrityError as exc:
             PG_UNIQUE_VIOLATION = '23505'
             PG_FOREIGN_KEY_VIOLATION = '23503'
 
-            cause = error.__cause__
+            cause = exc.__cause__
             if cause and getattr(cause, 'pgcode', None) == PG_UNIQUE_VIOLATION:
-                raise ItemAlreadyInCartError(cart_id=cart_item.cart_id, product_variant_id=cart_item.product_variant_id)
+                raise ItemAlreadyInCartError(
+                    cart_id=cart_item.cart_id, product_variant_id=cart_item.product_variant_id
+                ) from exc
             if cause and getattr(cause, 'pgcode', None) == PG_FOREIGN_KEY_VIOLATION:
                 raise ItemProductVariantOrSellerNotFoundError(
                     cart_id=cart_item.cart_id,
                     product_variant_id=cart_item.product_variant_id,
                     seller_id=cart_item.seller_id,
-                )
+                ) from exc
+        return cart_item_to_entity(dto=dto)
 
     def get_cart_items_by_cart_id(self, cart_id: int) -> list[CartItemEntity]:
         items = CartItem.objects.filter(cart_id=cart_id).order_by('-created_at')

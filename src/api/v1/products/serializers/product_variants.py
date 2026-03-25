@@ -2,15 +2,17 @@ from decimal import Decimal
 
 from rest_framework import serializers
 
+from src.api.v1.common.serializers import BaseInSerializer
 
-class CreateProductVariantInSerializer(serializers.Serializer):
+
+class CreateProductVariantInSerializer(BaseInSerializer):
     title = serializers.CharField(max_length=200)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal('0.10'))
     stock = serializers.IntegerField(min_value=0, max_value=2147483647, default=0)
     is_visible = serializers.BooleanField(default=True)
 
 
-class UpdateProductVariantInSerializer(serializers.Serializer):
+class UpdateProductVariantInSerializer(BaseInSerializer):
     title = serializers.CharField(max_length=200)
     price = serializers.DecimalField(max_digits=10, decimal_places=2, min_value=Decimal('0.10'))
     stock = serializers.IntegerField(min_value=0, max_value=2147483647)

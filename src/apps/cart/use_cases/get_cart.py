@@ -11,7 +11,7 @@ from src.apps.cart.services.cart import BaseCartService
 from src.apps.users.services.users import BaseUserService
 
 
-@dataclass
+@dataclass(eq=False)
 class GetCartUseCase:
     auth_validator_service: BaseAuthValidatorService
     user_service: BaseUserService

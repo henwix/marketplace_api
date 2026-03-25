@@ -12,6 +12,19 @@ services:
     env_file:
       - ../.env
 
+  redis:
+    container_name: mp-redis-dev
+    image: redis:8.6-alpine
+    volumes:
+      - redis_data:/data/
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
     name: mp_postgres_data
+  redis_data:
+    name: mp_redis_data

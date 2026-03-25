@@ -44,10 +44,9 @@ from src.project.containers import resolve_depends
 @extend_product_view_schema
 class ProductView(APIView):
     def post(self, request: Request) -> Response:
-        serializer = CreateProductInSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        request_data = CreateProductInSerializer.validate_data(data=request.data)
         use_case: CreateProductUseCase = resolve_depends(CreateProductUseCase)
-        command = CreateProductCommand(user_id=request.user.id, **serializer.validated_data)
+        command = CreateProductCommand(user_id=request.user.id, **request_data)
         product = use_case.execute(command=command)
         return Response(data=ProductOutSerializer(product).data, status=status.HTTP_201_CREATED)
 
@@ -82,10 +81,9 @@ class DetailProductView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def _update(self, request: Request, id: UUID, partial: bool) -> Response:
-        serializer = UpdateProductInSerializer(data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
+        request_data = UpdateProductInSerializer.validate_data(data=request.data, partial=partial)
         use_case: UpdateProductUseCase = resolve_depends(UpdateProductUseCase)
-        command = UpdateProductCommand(user_id=request.user.id, product_id=id, **serializer.validated_data)
+        command = UpdateProductCommand(user_id=request.user.id, product_id=id, **request_data)
         product = use_case.execute(command=command)
         return Response(data=ProductOutSerializer(product).data, status=status.HTTP_200_OK)
 

@@ -12,36 +12,32 @@ from src.apps.users.exceptions.users import (
 from src.apps.users.repositories.users import BaseUserRepository
 
 
-class BaseUserValidatorService(ABC):
+class BaseUserUniqueEmailValidatorService(ABC):
     @abstractmethod
-    def validate(self, email: str | Unset, phone: str | Unset) -> None: ...
+    def validate(self, email: str | Unset) -> None: ...
 
 
-@dataclass
-class UserUniqueEmailValidatorService(BaseUserValidatorService):
+@dataclass(eq=False)
+class UserUniqueEmailValidatorService(BaseUserUniqueEmailValidatorService):
     user_repository: BaseUserRepository
 
-    def validate(self, email: str | Unset, *args, **kwargs) -> None:
+    def validate(self, email: str | Unset) -> None:
         if email is not UNSET and self.user_repository.check_user_with_email_exists(email=email):
             raise UserWithEmailAlreadyExistsError
 
 
-@dataclass
-class UserUniquePhoneValidatorService(BaseUserValidatorService):
+class BaseUserUniquePhoneValidatorService(ABC):
+    @abstractmethod
+    def validate(self, phone: str | None | Unset) -> None: ...
+
+
+@dataclass(eq=False)
+class UserUniquePhoneValidatorService(BaseUserUniquePhoneValidatorService):
     user_repository: BaseUserRepository
 
-    def validate(self, phone: str | Unset, *args, **kwargs) -> None:
-        if phone is not UNSET and self.user_repository.check_user_with_phone_exists(phone=phone):
+    def validate(self, phone: str | None | Unset) -> None:
+        if isinstance(phone, str) and self.user_repository.check_user_with_phone_exists(phone=phone):
             raise UserWithPhoneAlreadyExistsError
-
-
-@dataclass
-class ComposedUserValidatorService(BaseUserValidatorService):
-    validators: list[BaseUserValidatorService]
-
-    def validate(self, email: str | Unset, phone: str | Unset) -> None:
-        for validator in self.validators:
-            validator.validate(email=email, phone=phone)
 
 
 class BaseUserService(ABC):
@@ -51,8 +47,9 @@ class BaseUserService(ABC):
         first_name: str,
         last_name: str,
         email: str,
-        phone: str,
-        password: str,
+        phone: str | None = None,
+        avatar: str | None = None,
+        password: str | None = None,
     ) -> UserEntity: ...
 
     @abstractmethod
@@ -86,14 +83,16 @@ class UserService(BaseUserService):
         first_name: str,
         last_name: str,
         email: str,
-        phone: str,
-        password: str,
+        phone: str | None = None,
+        avatar: str | None = None,
+        password: str | None = None,
     ) -> UserEntity:
         return self.repository.create(
             first_name=first_name,
             last_name=last_name,
             email=email,
             phone=phone,
+            avatar=avatar,
             password=password,
         )
 

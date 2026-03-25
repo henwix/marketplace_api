@@ -3,7 +3,7 @@ from uuid import UUID
 from drf_spectacular.utils import OpenApiResponse, extend_schema, extend_schema_view, inline_serializer
 from rest_framework import serializers, status
 
-from src.api.v1.authentication.openapi.responses import unauthorized_user_response
+from src.api.v1.authentication.openapi.auth.responses import unauthorized_user_response
 from src.api.v1.cart.serializers import AddCartItemInSerializer, CartItemOutSerializer
 from src.api.v1.common.openapi.parameters import jwt_header_parameter, query_parameter
 from src.api.v1.common.openapi.responses import (

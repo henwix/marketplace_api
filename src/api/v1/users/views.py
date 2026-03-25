@@ -30,10 +30,9 @@ from src.project.containers import resolve_depends
 @extend_user_view_schema
 class UserView(APIView):
     def post(self, request: Request) -> Response:
-        serializer = CreateUserInSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        request_data = CreateUserInSerializer.validate_data(data=request.data)
         use_case: CreateUserUseCase = resolve_depends(CreateUserUseCase)
-        command = CreateUserCommand(**serializer.validated_data)
+        command = CreateUserCommand(**request_data)
         user = use_case.execute(command=command)
         return Response(data=UserOutSerializer(user).data, status=status.HTTP_201_CREATED)
 
@@ -50,10 +49,9 @@ class UserView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def _update(self, request: Request, partial: bool) -> Response:
-        serializer = UpdateUserInSerializer(data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
+        request_data = UpdateUserInSerializer.validate_data(data=request.data, partial=partial)
         use_case: UpdateUserUseCase = resolve_depends(UpdateUserUseCase)
-        command = UpdateUserCommand(user_id=request.user.id, **serializer.validated_data)
+        command = UpdateUserCommand(user_id=request.user.id, **request_data)
         user = use_case.execute(command=command)
         return Response(data=UserOutSerializer(user).data, status=status.HTTP_200_OK)
 
@@ -67,9 +65,8 @@ class UserView(APIView):
 @extend_set_password_user_view_schema
 class SetPasswordUserView(APIView):
     def post(self, request: Request) -> Response:
-        serializer = SetPasswordUserInSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        request_data = SetPasswordUserInSerializer.validate_data(data=request.data)
         use_case: SetPasswordUserUseCase = resolve_depends(SetPasswordUserUseCase)
-        command = SetPasswordUserCommand(user_id=request.user.id, password=serializer.validated_data['new_password'])
+        command = SetPasswordUserCommand(user_id=request.user.id, **request_data)
         use_case.execute(command=command)
         return Response(status=status.HTTP_204_NO_CONTENT)
