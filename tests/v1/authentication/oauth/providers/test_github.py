@@ -53,23 +53,23 @@ def test_exchange_code_returns_access_token_and_built_request_is_correct(mock_gi
     }
 
     expected_access_token = uuid4().hex
-    mock_github_provider.http_client.EXPECTED_POST_RESPONSES = [{'access_token': expected_access_token}]
+    mock_github_provider.http_client.expected_post_responses = [{'access_token': expected_access_token}]
 
     access_token = mock_github_provider.exchange_code(code=expected_code)
 
     assert expected_access_token == access_token
     assert isinstance(access_token, str)
-    assert mock_github_provider.http_client.LAST_REQUESTS[0] == expected_request
+    assert mock_github_provider.http_client.last_requests[0] == expected_request
 
 
 def test_exchange_code_incorrect_code_error_raised(mock_github_provider: OAuthGitHubProvider):
-    mock_github_provider.http_client.EXPECTED_POST_RESPONSES = [{'error': 'bad_verification_code'}]
+    mock_github_provider.http_client.expected_post_responses = [{'error': 'bad_verification_code'}]
     with pytest.raises(OAuthIncorrectCodeError):
         mock_github_provider.exchange_code(code=uuid4().hex)
 
 
 def test_exchange_code_unverified_user_email_error_raised(mock_github_provider: OAuthGitHubProvider):
-    mock_github_provider.http_client.EXPECTED_POST_RESPONSES = [{'error': 'unverified_user_email'}]
+    mock_github_provider.http_client.expected_post_responses = [{'error': 'unverified_user_email'}]
     with pytest.raises(OAuthUnverifiedProviderEmailError):
         mock_github_provider.exchange_code(code=uuid4().hex)
 
@@ -77,7 +77,7 @@ def test_exchange_code_unverified_user_email_error_raised(mock_github_provider: 
 def test_exchange_code_provider_request_error_raised_if_incorrect_client_credentials(
     mock_github_provider: OAuthGitHubProvider,
 ):
-    mock_github_provider.http_client.EXPECTED_POST_RESPONSES = [{'error': 'incorrect_client_credentials'}]
+    mock_github_provider.http_client.expected_post_responses = [{'error': 'incorrect_client_credentials'}]
     with pytest.raises(OAuthProviderRequestError):
         mock_github_provider.exchange_code(code=uuid4().hex)
 
@@ -85,7 +85,7 @@ def test_exchange_code_provider_request_error_raised_if_incorrect_client_credent
 def test_exchange_code_provider_request_error_raised_if_redirect_uri_mismatch(
     mock_github_provider: OAuthGitHubProvider,
 ):
-    mock_github_provider.http_client.EXPECTED_POST_RESPONSES = [{'error': 'redirect_uri_mismatch'}]
+    mock_github_provider.http_client.expected_post_responses = [{'error': 'redirect_uri_mismatch'}]
     with pytest.raises(OAuthProviderRequestError):
         mock_github_provider.exchange_code(code=uuid4().hex)
 
@@ -93,7 +93,7 @@ def test_exchange_code_provider_request_error_raised_if_redirect_uri_mismatch(
 def test_exchange_code_provider_request_error_raised_if_no_error_and_access_token(
     mock_github_provider: OAuthGitHubProvider,
 ):
-    mock_github_provider.http_client.EXPECTED_POST_RESPONSES = [{}]
+    mock_github_provider.http_client.expected_post_responses = [{}]
     with pytest.raises(OAuthProviderRequestError):
         mock_github_provider.exchange_code(code=uuid4().hex)
 
@@ -129,7 +129,7 @@ def test_get_user_data_returns_correct_data_with_name_field(
             'Authorization': f'Bearer {expected_token}',
         },
     }
-    mock_github_provider.http_client.EXPECTED_GET_RESPONSES = [
+    mock_github_provider.http_client.expected_get_responses = [
         {
             'name': expected_name,
             'email': expected_email,
@@ -145,7 +145,7 @@ def test_get_user_data_returns_correct_data_with_name_field(
     assert user_data.get('email') == expected_email
     assert user_data.get('provider_uid') == expected_id
     assert user_data.get('avatar') == expected_avatar_url
-    assert mock_github_provider.http_client.LAST_REQUESTS[0] == expected_request
+    assert mock_github_provider.http_client.last_requests[0] == expected_request
 
 
 def test_get_user_data_returns_correct_data_with_login_field(
@@ -165,7 +165,7 @@ def test_get_user_data_returns_correct_data_with_login_field(
             'Authorization': f'Bearer {expected_token}',
         },
     }
-    mock_github_provider.http_client.EXPECTED_GET_RESPONSES = [
+    mock_github_provider.http_client.expected_get_responses = [
         {
             'name': None,
             'login': expected_login,
@@ -182,7 +182,7 @@ def test_get_user_data_returns_correct_data_with_login_field(
     assert user_data.get('email') == expected_email
     assert user_data.get('provider_uid') == expected_id
     assert user_data.get('avatar') == expected_avatar_url
-    assert mock_github_provider.http_client.LAST_REQUESTS[0] == expected_request
+    assert mock_github_provider.http_client.last_requests[0] == expected_request
 
 
 def test_get_user_data_returns_correct_data_with_extra_request_with_primary_email(
@@ -210,7 +210,7 @@ def test_get_user_data_returns_correct_data_with_extra_request_with_primary_emai
             'Authorization': f'Bearer {expected_token}',
         },
     }
-    mock_github_provider.http_client.EXPECTED_GET_RESPONSES = [
+    mock_github_provider.http_client.expected_get_responses = [
         {
             'name': None,
             'login': expected_login,
@@ -241,8 +241,8 @@ def test_get_user_data_returns_correct_data_with_extra_request_with_primary_emai
     assert user_data.get('email') == expected_email
     assert user_data.get('provider_uid') == expected_id
     assert user_data.get('avatar') == expected_avatar_url
-    assert mock_github_provider.http_client.LAST_REQUESTS[0] == expected_first_request
-    assert mock_github_provider.http_client.LAST_REQUESTS[1] == expected_second_request
+    assert mock_github_provider.http_client.last_requests[0] == expected_first_request
+    assert mock_github_provider.http_client.last_requests[1] == expected_second_request
 
 
 @pytest.mark.parametrize(
@@ -274,7 +274,7 @@ def test_get_user_data_provider_email_not_found_error_raised_if_not_correct_emai
             'Authorization': f'Bearer {expected_token}',
         },
     }
-    mock_github_provider.http_client.EXPECTED_GET_RESPONSES = [
+    mock_github_provider.http_client.expected_get_responses = [
         {
             'name': None,
             'login': expected_login,
@@ -288,5 +288,5 @@ def test_get_user_data_provider_email_not_found_error_raised_if_not_correct_emai
     with pytest.raises(OAuthProviderEmailNotFoundError):
         mock_github_provider.get_user_data(token=expected_token)
 
-    assert mock_github_provider.http_client.LAST_REQUESTS[0] == expected_first_request
-    assert mock_github_provider.http_client.LAST_REQUESTS[1] == expected_second_request
+    assert mock_github_provider.http_client.last_requests[0] == expected_first_request
+    assert mock_github_provider.http_client.last_requests[1] == expected_second_request

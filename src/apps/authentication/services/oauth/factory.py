@@ -1,13 +1,19 @@
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from src.apps.authentication.providers.oauth.factory import OAuthProviderFactory
+from src.apps.authentication.providers.oauth.factory import BaseOAuthProviderFactory
 from src.apps.authentication.services.oauth.service import BaseOAuthService, OAuthService
 from src.apps.common.providers.cache import BaseCacheProvider
 
 
+class BaseOAuthServiceFactory(ABC):
+    @abstractmethod
+    def get(self, provider_name: str) -> BaseOAuthService: ...
+
+
 @dataclass(eq=False)
-class OAuthServiceFactory:
-    provider_factory: OAuthProviderFactory
+class OAuthServiceFactory(BaseOAuthServiceFactory):
+    provider_factory: BaseOAuthProviderFactory
     cache_provider: BaseCacheProvider
 
     def get(self, provider_name: str) -> BaseOAuthService:

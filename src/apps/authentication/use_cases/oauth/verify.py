@@ -6,7 +6,7 @@ from src.apps.authentication.commands.oauth import OAuthVerifyCommand
 from src.apps.authentication.entities.social_account import SocialAccountEntity
 from src.apps.authentication.exceptions.social_account import SocialAccountProviderAlreadyConnectedError
 from src.apps.authentication.services.jwt import BaseJWTService
-from src.apps.authentication.services.oauth.factory import OAuthServiceFactory
+from src.apps.authentication.services.oauth.factory import BaseOAuthServiceFactory
 from src.apps.authentication.services.social_account import BaseSocialAccountService
 from src.apps.users.services.users import (
     BaseUserService,
@@ -19,7 +19,7 @@ class OAuthVerifyUseCase:
     user_service: BaseUserService
     user_email_validator_service: BaseUserUniqueEmailValidatorService
     social_account_service: BaseSocialAccountService
-    oauth_service_factory: OAuthServiceFactory
+    oauth_service_factory: BaseOAuthServiceFactory
     jwt_service: BaseJWTService
 
     def execute(self, command: OAuthVerifyCommand) -> dict[str, str]:

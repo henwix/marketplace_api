@@ -5,6 +5,7 @@ from pytest_django.fixtures import SettingsWrapper
 from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from src.apps.authentication.models.social_account import SocialAccount
 from src.apps.cart.models import Cart, CartItem
 from src.apps.common.clients.http_client import BaseHTTPClient
 from src.apps.products.converters.products import product_to_entity
@@ -14,6 +15,7 @@ from src.apps.products.models.products import Product
 from src.apps.sellers.models import Seller
 from src.apps.users.models import User
 from src.project.containers import _initialize_container, get_container
+from tests.v1.authentication.oauth.factories import SocialAccountModelFactory
 from tests.v1.cart.factories import CartItemModelFactory, CartModelFactory
 from tests.v1.mocks.http_client import DummyHTTPClient
 from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory
@@ -72,6 +74,11 @@ def cart_item() -> CartItem:
 @pytest.fixture
 def seller() -> Seller:
     return SellerModelFactory.create()
+
+
+@pytest.fixture
+def social_account() -> SocialAccount:
+    return SocialAccountModelFactory.create()
 
 
 @pytest.fixture

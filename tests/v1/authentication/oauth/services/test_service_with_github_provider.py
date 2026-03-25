@@ -3,13 +3,13 @@ from django.core.cache import cache
 from punq import Container
 
 from src.apps.authentication.exceptions.oauth import OAuthIncorrectStateError
-from src.apps.authentication.services.oauth.factory import OAuthServiceFactory
+from src.apps.authentication.services.oauth.factory import BaseOAuthServiceFactory
 from src.apps.authentication.services.oauth.service import BaseOAuthService
 
 
 @pytest.fixture
 def mock_oauth_service_with_github_provider(mock_container: Container) -> BaseOAuthService:
-    factory: OAuthServiceFactory = mock_container.resolve(OAuthServiceFactory)
+    factory: BaseOAuthServiceFactory = mock_container.resolve(BaseOAuthServiceFactory)
     return factory.get(provider_name='github')
 
 
