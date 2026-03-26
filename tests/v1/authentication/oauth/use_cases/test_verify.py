@@ -199,7 +199,7 @@ def test_oauth_verify_user_not_created_and_user_with_email_already_exists_error_
 
 
 @pytest.mark.django_db
-def test_oauth_verify_user_not_found_error_raised(mock_container: Container):
+def test_oauth_verify_user_not_found_error_raised_if_user_authorized(mock_container: Container):
     use_case = get_mock_oauth_verify_use_case(mock_container=mock_container)
     command = OAuthVerifyCommand(user_id=1, code='1', state='1', provider='test_provider')
     with pytest.raises(UserNotFoundError):
@@ -207,9 +207,30 @@ def test_oauth_verify_user_not_found_error_raised(mock_container: Container):
 
 
 @pytest.mark.django_db
-def test_oauth_verify_user_not_active_error_raised(mock_container: Container):
+def test_oauth_verify_user_not_active_error_raised_if_user_authorized(mock_container: Container):
     user = UserModelFactory.create(is_active=False)
     use_case = get_mock_oauth_verify_use_case(mock_container=mock_container)
     command = OAuthVerifyCommand(user_id=user.pk, code='1', state='1', provider='test_provider')
+    with pytest.raises(UserNotActiveError):
+        use_case.execute(command=command)
+
+
+@pytest.mark.django_db
+def test_oauth_verify_user_not_active_error_raised_if_user_not_authorized_and_social_account_exists(
+    mock_container: Container,
+):
+    user = UserModelFactory.create(is_active=False)
+    social_account: SocialAccountModelFactory = SocialAccountModelFactory.create(user=user)
+    use_case = get_mock_oauth_verify_use_case(
+        mock_container=mock_container,
+        user_data={
+            'first_name': 'First',
+            'last_name': 'Last',
+            'email': 'test@example.com',
+            'provider_uid': social_account.provider_uid,
+            'avatar': 'https://avatar.example.com',
+        },
+    )
+    command = OAuthVerifyCommand(user_id=None, code='1', state='1', provider=social_account.provider)
     with pytest.raises(UserNotActiveError):
         use_case.execute(command=command)
