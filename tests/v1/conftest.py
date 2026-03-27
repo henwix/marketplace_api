@@ -51,9 +51,9 @@ def change_redis_database_number_and_clear_cache(settings: SettingsWrapper):
 
 @pytest.fixture(autouse=True)
 def override_secrets(settings: SettingsWrapper):
-    settings.GITHUB_CLIENT_ID = 'test_github_client_id'
-    settings.GITHUB_CLIENT_SECRET = 'test_github_client_secret'
-    settings.GITHUB_REDIRECT_URI = 'https://test_github_redirect_uri/callback'
+    settings.OAUTH_GITHUB_CLIENT_ID = 'test_github_client_id'
+    settings.OAUTH_GITHUB_CLIENT_SECRET = 'test_github_client_secret'
+    settings.OAUTH_GITHUB_REDIRECT_URI = 'https://test_github_redirect_uri/callback'
 
 
 @pytest.fixture

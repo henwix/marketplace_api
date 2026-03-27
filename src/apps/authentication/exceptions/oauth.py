@@ -9,6 +9,7 @@ from src.apps.common.exceptions.common import ServiceException
 class OAuthIncorrectStateError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
     message = 'Incorrect state value'
+    provider_name: str
     state: str
 
 
@@ -16,6 +17,7 @@ class OAuthIncorrectStateError(ServiceException):
 class OAuthIncorrectCodeError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
     message = 'Code is incorrect or expired'
+    provider_name: str
     code: str
 
 
@@ -30,17 +32,27 @@ class OAuthNotSupportedProviderError(ServiceException):
 class OAuthUnverifiedProviderEmailError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
     message = 'OAuth provider account email is not verified'
+    provider_name: str
 
 
 @dataclass(eq=False)
 class OAuthProviderEmailNotFoundError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
-    message = 'No email is linked to your OAuth provider account'
+    message = 'OAuth provider account email not found'
+    provider_name: str
+
+
+@dataclass(eq=False)
+class OAuthProviderUidNotFoundError(ServiceException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    message = 'OAuth provider account uid not found'
+    provider_name: str
 
 
 @dataclass(eq=False)
 class OAuthProviderRequestError(ServiceException):
     status_code = status.HTTP_502_BAD_GATEWAY
     message = 'Exception occured during OAuth provider request'
-    error: str | None
-    code: str
+    provider_name: str
+    error: str | None = None
+    error_description: str | None = None

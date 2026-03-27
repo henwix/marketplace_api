@@ -8,6 +8,7 @@ from src.apps.authentication.exceptions.oauth import (
     OAuthIncorrectCodeError,
     OAuthProviderEmailNotFoundError,
     OAuthProviderRequestError,
+    OAuthProviderUidNotFoundError,
     OAuthUnverifiedProviderEmailError,
 )
 from src.apps.authentication.providers.oauth.base import BaseOAuthProvider
@@ -18,33 +19,17 @@ from src.apps.common.clients.http_client import BaseHTTPClient
 class OAuthGitHubProvider(BaseOAuthProvider):
     http_client: BaseHTTPClient
 
-    @property
-    def _oauth_url(self) -> str:
-        return 'https://github.com/login/oauth'
-
-    @property
-    def _user_api_url(self) -> str:
-        return 'https://api.github.com/user'
-
-    @property
-    def _client_id(self) -> str:
-        return settings.GITHUB_CLIENT_ID
-
-    @property
-    def _client_secret(self) -> str:
-        return settings.GITHUB_CLIENT_SECRET
-
-    @property
-    def _redirect_uri(self) -> str:
-        return settings.GITHUB_REDIRECT_URI
-
-    @property
-    def _scope(self) -> str:
-        return 'read:user user:email'
+    def __post_init__(self):
+        self._OAUTH_URL = 'https://github.com/login/oauth'
+        self._USER_API_URL = 'https://api.github.com/user'
+        self._CLIENT_ID = settings.OAUTH_GITHUB_CLIENT_ID
+        self._CLIENT_SECRET = settings.OAUTH_GITHUB_CLIENT_SECRET
+        self._REDIRECT_URI = settings.OAUTH_GITHUB_REDIRECT_URI
+        self._SCOPE = 'read:user user:email'
 
     def _get_user_names(self, name: str) -> tuple[str, str]:
         try:
-            first_name, last_name = name.split(' ', 1)
+            first_name, last_name = name.split(sep=' ', maxsplit=1)
         except ValueError:
             first_name = name
             last_name = name
@@ -57,31 +42,35 @@ class OAuthGitHubProvider(BaseOAuthProvider):
 
     def exchange_code(self, code: str) -> str:
         request_body = {
-            'client_id': self._client_id,
-            'client_secret': self._client_secret,
+            'client_id': self._CLIENT_ID,
+            'client_secret': self._CLIENT_SECRET,
             'code': code,
         }
         headers = {
             'Accept': 'application/json',
         }
         response = self.http_client.post(
-            url=f'{self._oauth_url}/access_token',
+            url=f'{self._OAUTH_URL}/access_token',
             data=request_body,
             headers=headers,
         )
 
-        error = response.get('error', None)
+        error = response.get('error')
 
         if error is not None:
             if error == 'bad_verification_code':
-                raise OAuthIncorrectCodeError(code=code)
+                raise OAuthIncorrectCodeError(provider_name=self.provider_name, code=code)
             elif error == 'unverified_user_email':
-                raise OAuthUnverifiedProviderEmailError()
+                raise OAuthUnverifiedProviderEmailError(provider_name=self.provider_name)
             else:
-                raise OAuthProviderRequestError(error=error, code=code)
+                raise OAuthProviderRequestError(provider_name=self.provider_name, error=error)
 
         if 'access_token' not in response:
-            raise OAuthProviderRequestError(error='invalid_oauth_response', code=code)
+            raise OAuthProviderRequestError(
+                provider_name=self.provider_name,
+                error='invalid_oauth_response',
+                error_description='access_token not found in response',
+            )
 
         return response['access_token']
 
@@ -89,13 +78,17 @@ class OAuthGitHubProvider(BaseOAuthProvider):
         headers = {
             'Authorization': f'Bearer {token}',
         }
-        response = self.http_client.get(url=self._user_api_url, headers=headers)
+        response = self.http_client.get(url=self._USER_API_URL, headers=headers)
+
+        provider_uid = response.get('id')
+        if provider_uid is None:
+            raise OAuthProviderUidNotFoundError(provider_name=self.provider_name)
 
         if response.get('email', None) is None:
-            emails = self.http_client.get(url=f'{self._user_api_url}/emails', headers=headers)
+            emails = self.http_client.get(url=f'{self._USER_API_URL}/emails', headers=headers)
             primary_emails = [e for e in emails if e.get('primary') and e.get('verified')]
             if not primary_emails:
-                raise OAuthProviderEmailNotFoundError()
+                raise OAuthProviderEmailNotFoundError(provider_name=self.provider_name)
             response['email'] = primary_emails[0].get('email')
 
         first_name, last_name = self._get_user_names(name=response.get('name') or response.get('login'))
@@ -103,16 +96,16 @@ class OAuthGitHubProvider(BaseOAuthProvider):
             'first_name': first_name,
             'last_name': last_name,
             'email': response.get('email'),
-            'provider_uid': response.get('id'),
-            'avatar': response.get('avatar_url'),
+            'provider_uid': provider_uid,
+            'avatar': response.get('avatar_url', ''),
         }
         return user_data
 
     def get_login_url(self, state: str) -> str:
         params = {
-            'client_id': self._client_id,
-            'redirect_url': self._redirect_uri,
-            'scope': self._scope,
+            'client_id': self._CLIENT_ID,
+            'redirect_url': self._REDIRECT_URI,
+            'scope': self._SCOPE,
             'state': state,
         }
-        return f'{self._oauth_url}/authorize?{urlencode(query=params)}'
+        return f'{self._OAUTH_URL}/authorize?{urlencode(query=params)}'

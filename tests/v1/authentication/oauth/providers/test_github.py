@@ -28,8 +28,8 @@ def test_get_provider_name_returns_correct_name(mock_github_provider: OAuthGitHu
 def test_get_login_url_returns_correct_url(mock_github_provider: OAuthGitHubProvider):
     expected_state = uuid4().hex
     expected_params = {
-        'client_id': settings.GITHUB_CLIENT_ID,
-        'redirect_url': settings.GITHUB_REDIRECT_URI,
+        'client_id': settings.OAUTH_GITHUB_CLIENT_ID,
+        'redirect_url': settings.OAUTH_GITHUB_REDIRECT_URI,
         'scope': 'read:user user:email',
         'state': expected_state,
     }
@@ -40,11 +40,11 @@ def test_get_login_url_returns_correct_url(mock_github_provider: OAuthGitHubProv
 def test_exchange_code_returns_access_token_and_built_request_is_correct(mock_github_provider: OAuthGitHubProvider):
     expected_code = uuid4().hex
     expected_request = {
-        'url': f'{mock_github_provider._oauth_url}/access_token',
+        'url': f'{mock_github_provider._OAUTH_URL}/access_token',
         'params': None,
         'data': {
-            'client_id': settings.GITHUB_CLIENT_ID,
-            'client_secret': settings.GITHUB_CLIENT_SECRET,
+            'client_id': settings.OAUTH_GITHUB_CLIENT_ID,
+            'client_secret': settings.OAUTH_GITHUB_CLIENT_SECRET,
             'code': expected_code,
         },
         'headers': {
@@ -122,7 +122,7 @@ def test_get_user_data_returns_correct_data_with_name_field(
 
     expected_token = uuid4().hex
     expected_request = {
-        'url': mock_github_provider._user_api_url,
+        'url': mock_github_provider._USER_API_URL,
         'params': None,
         'data': None,
         'headers': {
@@ -158,7 +158,7 @@ def test_get_user_data_returns_correct_data_with_login_field(
     expected_avatar_url = 'https://example.com'
 
     expected_request = {
-        'url': mock_github_provider._user_api_url,
+        'url': mock_github_provider._USER_API_URL,
         'params': None,
         'data': None,
         'headers': {
@@ -195,7 +195,7 @@ def test_get_user_data_returns_correct_data_with_extra_request_with_primary_emai
     expected_avatar_url = 'https://example.com'
 
     expected_first_request = {
-        'url': mock_github_provider._user_api_url,
+        'url': mock_github_provider._USER_API_URL,
         'params': None,
         'data': None,
         'headers': {
@@ -203,7 +203,7 @@ def test_get_user_data_returns_correct_data_with_extra_request_with_primary_emai
         },
     }
     expected_second_request = {
-        'url': f'{mock_github_provider._user_api_url}/emails',
+        'url': f'{mock_github_provider._USER_API_URL}/emails',
         'params': None,
         'data': None,
         'headers': {
@@ -259,7 +259,7 @@ def test_get_user_data_provider_email_not_found_error_raised_if_not_correct_emai
     expected_avatar_url = 'https://example.com'
 
     expected_first_request = {
-        'url': mock_github_provider._user_api_url,
+        'url': mock_github_provider._USER_API_URL,
         'params': None,
         'data': None,
         'headers': {
@@ -267,7 +267,7 @@ def test_get_user_data_provider_email_not_found_error_raised_if_not_correct_emai
         },
     }
     expected_second_request = {
-        'url': f'{mock_github_provider._user_api_url}/emails',
+        'url': f'{mock_github_provider._USER_API_URL}/emails',
         'params': None,
         'data': None,
         'headers': {

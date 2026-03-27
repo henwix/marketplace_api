@@ -2,6 +2,7 @@ from punq import Container
 
 from src.apps.authentication.providers.oauth.factory import BaseOAuthProviderFactory, OAuthProviderFactory
 from src.apps.authentication.providers.oauth.github import OAuthGitHubProvider
+from src.apps.authentication.providers.oauth.google import OAuthGoogleProvider
 from src.apps.authentication.repositories.social_account import BaseSocialAccountRepository, ORMSocialAccountRepository
 from src.apps.authentication.services.auth import AuthValidatorService, BaseAuthValidatorService
 from src.apps.authentication.services.jwt import BaseJWTService, JWTService
@@ -16,6 +17,7 @@ def init_auth(container: Container) -> None:
         return OAuthProviderFactory(
             providers=[
                 container.resolve(OAuthGitHubProvider),
+                container.resolve(OAuthGoogleProvider),
             ]
         )
 
@@ -33,6 +35,7 @@ def init_auth(container: Container) -> None:
 
     # providers
     container.register(OAuthGitHubProvider)
+    container.register(OAuthGoogleProvider)
 
     # provider factories
     container.register(BaseOAuthProviderFactory, factory=_build_oauth_provider_factory)

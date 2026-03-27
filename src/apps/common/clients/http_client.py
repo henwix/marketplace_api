@@ -35,8 +35,9 @@ class HTTPClient(BaseHTTPClient):
         headers: dict | None = None,
     ) -> dict:
         try:
-            response = requests.request(method=method, url=url, params=params, data=data, headers=headers)
+            response = requests.request(method=method, url=url, params=params, data=data, headers=headers, timeout=5)
             response.raise_for_status()
+            return response.json()
         except requests.RequestException as exc:
             exc_response = getattr(exc, 'response', None)
             raise HTTPClientError(
@@ -45,7 +46,6 @@ class HTTPClient(BaseHTTPClient):
                 response_status=exc_response.status_code if exc_response is not None else None,
                 error_details=str(exc),
             ) from exc
-        return response.json()
 
     def get(
         self,

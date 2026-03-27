@@ -24,8 +24,8 @@ def test_oauth_get_login_url_returns_correct_url_and_creates_state(
     state = created_url[-32:]
     cache_key = f'oauth:state:github:{state}'
     expected_params = {
-        'client_id': settings.GITHUB_CLIENT_ID,
-        'redirect_url': settings.GITHUB_REDIRECT_URI,
+        'client_id': settings.OAUTH_GITHUB_CLIENT_ID,
+        'redirect_url': settings.OAUTH_GITHUB_REDIRECT_URI,
         'scope': 'read:user user:email',
         'state': state,
     }
