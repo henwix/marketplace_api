@@ -10,6 +10,7 @@ from src.apps.authentication.exceptions.oauth import (
     OAuthIncorrectCodeError,
     OAuthProviderEmailNotFoundError,
     OAuthProviderRequestError,
+    OAuthProviderUidNotFoundError,
     OAuthUnverifiedProviderEmailError,
 )
 from src.apps.authentication.providers.oauth.github import OAuthGitHubProvider
@@ -105,6 +106,9 @@ def test_exchange_code_provider_request_error_raised_if_no_error_and_access_toke
         ('Nametest', 'name@example.com', '987654321', 'https://avatars.com/avatar.jpg'),
         ('Hello World', 'helloworld@example.com', '111222333', 'https://images.test.com/helloworld.png'),
         ('test', 'testtest@example.com', '81265871265', 'https://images.test.com/hajsfjahf1.png'),
+        ('test    name', 'testtest@example.com', '81925725', 'https://images.test.com/hajsfjahf1.png'),
+        ('   test    name', 'testtest@example.com', '81925725', 'https://images.test.com/hajsfjahf1.png'),
+        ('   test    name  ', 'testtest@example.com', '81925725', 'https://images.test.com/hajsfjahf1.png'),
     ],
 )
 def test_get_user_data_returns_correct_data_with_name_field(
@@ -115,7 +119,7 @@ def test_get_user_data_returns_correct_data_with_name_field(
     expected_avatar_url: str,
 ):
     try:
-        expected_first_name, expected_last_name = expected_name.split(' ', 1)
+        expected_first_name, expected_last_name = expected_name.strip().split(' ', 1)
     except ValueError:
         expected_first_name = expected_name
         expected_last_name = expected_name
@@ -140,18 +144,19 @@ def test_get_user_data_returns_correct_data_with_name_field(
 
     user_data = mock_github_provider.get_user_data(token=expected_token)
 
-    assert user_data.get('first_name') == expected_first_name
-    assert user_data.get('last_name') == expected_last_name
+    assert user_data.get('first_name') == expected_first_name.strip()
+    assert user_data.get('last_name') == expected_last_name.strip()
     assert user_data.get('email') == expected_email
     assert user_data.get('provider_uid') == expected_id
     assert user_data.get('avatar') == expected_avatar_url
     assert mock_github_provider.http_client.last_requests[0] == expected_request
 
 
+@pytest.mark.parametrize('expected_login', ['test', '  test', 'test   ', '  test   '])
 def test_get_user_data_returns_correct_data_with_login_field(
     mock_github_provider: OAuthGitHubProvider,
+    expected_login: str,
 ):
-    expected_login = 'testlogin'
     expected_email = 'test@example.com'
     expected_token = uuid4().hex
     expected_id = '123412341234'
@@ -177,8 +182,8 @@ def test_get_user_data_returns_correct_data_with_login_field(
 
     user_data = mock_github_provider.get_user_data(token=expected_token)
 
-    assert user_data.get('first_name') == expected_login
-    assert user_data.get('last_name') == expected_login
+    assert user_data.get('first_name') == expected_login.strip()
+    assert user_data.get('last_name') == expected_login.strip()
     assert user_data.get('email') == expected_email
     assert user_data.get('provider_uid') == expected_id
     assert user_data.get('avatar') == expected_avatar_url
@@ -290,3 +295,35 @@ def test_get_user_data_provider_email_not_found_error_raised_if_not_correct_emai
 
     assert mock_github_provider.http_client.last_requests[0] == expected_first_request
     assert mock_github_provider.http_client.last_requests[1] == expected_second_request
+
+
+def test_get_user_data_uid_not_found_error_raised_if_no_provider_id(
+    mock_github_provider: OAuthGitHubProvider,
+):
+    expected_login = 'testlogin'
+    expected_email = 'test@example.com'
+    expected_token = uuid4().hex
+    expected_avatar_url = 'https://example.com'
+
+    expected_first_request = {
+        'url': mock_github_provider._USER_API_URL,
+        'params': None,
+        'data': None,
+        'headers': {
+            'Authorization': f'Bearer {expected_token}',
+        },
+    }
+    mock_github_provider.http_client.expected_get_responses = [
+        {
+            'name': None,
+            'login': expected_login,
+            'email': expected_email,
+            'id': None,
+            'avatar_url': expected_avatar_url,
+        }
+    ]
+
+    with pytest.raises(OAuthProviderUidNotFoundError):
+        mock_github_provider.get_user_data(token=expected_token)
+
+    assert mock_github_provider.http_client.last_requests[0] == expected_first_request

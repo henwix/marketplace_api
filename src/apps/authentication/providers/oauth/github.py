@@ -28,6 +28,7 @@ class OAuthGitHubProvider(BaseOAuthProvider):
         self._SCOPE = 'read:user user:email'
 
     def _get_user_names(self, name: str) -> tuple[str, str]:
+        name = name.strip()
         try:
             first_name, last_name = name.split(sep=' ', maxsplit=1)
         except ValueError:

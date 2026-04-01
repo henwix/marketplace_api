@@ -54,6 +54,9 @@ def override_secrets(settings: SettingsWrapper):
     settings.OAUTH_GITHUB_CLIENT_ID = 'test_github_client_id'
     settings.OAUTH_GITHUB_CLIENT_SECRET = 'test_github_client_secret'
     settings.OAUTH_GITHUB_REDIRECT_URI = 'https://test_github_redirect_uri/callback'
+    settings.OAUTH_GOOGLE_CLIENT_ID = 'test_google_client_id'
+    settings.OAUTH_GOOGLE_CLIENT_SECRET = 'test_google_client_secret'
+    settings.OAUTH_GOOGLE_REDIRECT_URI = 'https://test_google_redirect_uri/callback'
 
 
 @pytest.fixture

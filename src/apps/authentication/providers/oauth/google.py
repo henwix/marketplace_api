@@ -31,6 +31,8 @@ class OAuthGoogleProvider(BaseOAuthProvider):
         self._REDIRECT_URI = settings.OAUTH_GOOGLE_REDIRECT_URI
         self._SCOPE = 'openid profile email'
         self._GRANT_TYPE = 'authorization_code'
+        self._RESPONSE_TYPE = 'code'
+        self._ACCESS_TYPE = 'offline'
 
     def _get_user_names(
         self,
@@ -42,13 +44,22 @@ class OAuthGoogleProvider(BaseOAuthProvider):
             return given_name.strip(), family_name.strip()
 
         if fullname:
+            fullname = fullname.strip()
             try:
                 first_name, last_name = fullname.split(sep=' ', maxsplit=1)
-                return first_name, last_name
+                return first_name.strip(), last_name.strip()
             except ValueError:
                 return fullname, fullname
 
         return 'User', uuid4().hex[:10]
+
+    def _validate_token_response(self, response: dict) -> None:
+        if 'id_token' not in response:
+            raise OAuthProviderRequestError(
+                provider_name=self.provider_name,
+                error='invalid_oauth_response',
+                error_description='id_token not found in response',
+            )
 
     @property
     def provider_name(self) -> str:
@@ -86,15 +97,11 @@ class OAuthGoogleProvider(BaseOAuthProvider):
                 ) from exc
             raise
 
-        if 'id_token' not in response:
-            raise OAuthProviderRequestError(
-                provider_name=self.provider_name,
-                error='invalid_oauth_response',
-                error_description='id_token not found in response',
-            )
+        self._validate_token_response(response=response)
         return response['id_token']
 
     def get_user_data(self, token: str) -> dict:
+        # FIXME: handle JWT exception and raise OAuth Exception
         decoded_token = self.jwt_service.decode_unverified(token=token)
 
         email = decoded_token.get('email')
@@ -124,8 +131,8 @@ class OAuthGoogleProvider(BaseOAuthProvider):
         params = {
             'client_id': self._CLIENT_ID,
             'scope': self._SCOPE,
-            'response_type': 'code',
-            'access_type': 'offline',
+            'response_type': self._RESPONSE_TYPE,
+            'access_type': self._ACCESS_TYPE,
             'state': state,
             'redirect_uri': self._REDIRECT_URI,
         }
