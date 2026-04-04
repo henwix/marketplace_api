@@ -254,7 +254,7 @@ def test_get_user_data_returns_correct_data_with_extra_request_with_primary_emai
     argnames='expected_second_get_response',
     argvalues=[[{'email': '123@example.com', 'verified': True, 'primary': False, 'visibility': 'private'}], []],
 )
-def test_get_user_data_provider_email_not_found_error_raised_if_not_correct_email(
+def test_get_user_data_provider_email_not_found_error_raised_if_no_correct_email(
     mock_github_provider: OAuthGitHubProvider,
     expected_second_get_response: dict | list,
 ):

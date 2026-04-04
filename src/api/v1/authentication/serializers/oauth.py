@@ -8,6 +8,10 @@ class OAuthGetLoginUrlInSerializer(BaseInSerializer):
     provider = serializers.ChoiceField(choices=SocialAccountProviders.choices)
 
 
+class OAuthGetLoginUrlOutSerializer(BaseInSerializer):
+    url = serializers.CharField()
+
+
 class OAuthVerifyInSerializer(BaseInSerializer):
     code = serializers.CharField()
     state = serializers.CharField(min_length=32, max_length=32)

@@ -6,3 +6,8 @@ class DetailTokenOutSerializer(serializers.Serializer):
     detail = serializers.CharField(max_length=255, help_text=_('Detailed response message'))
     code = serializers.CharField(max_length=255, help_text=_('Error code'))
     messages = serializers.ListField(help_text=_('Messages list'))
+
+
+class TokenOutSerializer(serializers.Serializer):
+    access = serializers.CharField()
+    refresh = serializers.CharField()

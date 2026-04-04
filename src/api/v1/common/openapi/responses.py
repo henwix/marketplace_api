@@ -64,6 +64,10 @@ def bad_request_response(*errors: Exception) -> OpenApiResponse:
     return _build_openapi_error_response(*errors, description='Bad Request Error')
 
 
+def bad_gateway_response(*errors: Exception) -> OpenApiResponse:
+    return _build_openapi_error_response(*errors, description='Bad Gateway Error')
+
+
 def unauthorized_response(*errors: Exception) -> OpenApiResponse:
     return _build_openapi_error_response(*errors, description='Unauthorized Error')
 

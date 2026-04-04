@@ -22,6 +22,14 @@ class OAuthIncorrectCodeError(ServiceException):
 
 
 @dataclass(eq=False)
+class OAuthInvalidTokenError(ServiceException):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    message = 'Invalid OAuth authorization token'
+    provider_name: str
+    error_description: str
+
+
+@dataclass(eq=False)
 class OAuthNotSupportedProviderError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
     message = 'OAuth provider is not supported'
@@ -37,14 +45,14 @@ class OAuthUnverifiedProviderEmailError(ServiceException):
 
 @dataclass(eq=False)
 class OAuthProviderEmailNotFoundError(ServiceException):
-    status_code = status.HTTP_400_BAD_REQUEST
+    status_code = status.HTTP_401_UNAUTHORIZED
     message = 'OAuth provider account email not found'
     provider_name: str
 
 
 @dataclass(eq=False)
 class OAuthProviderUidNotFoundError(ServiceException):
-    status_code = status.HTTP_400_BAD_REQUEST
+    status_code = status.HTTP_401_UNAUTHORIZED
     message = 'OAuth provider account uid not found'
     provider_name: str
 

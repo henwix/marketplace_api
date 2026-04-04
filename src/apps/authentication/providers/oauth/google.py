@@ -6,8 +6,10 @@ from django.conf import settings
 from requests import HTTPError, Response
 
 from src.apps.authentication.constants import SocialAccountProviders
+from src.apps.authentication.exceptions.jwt import JWTTokenInvalidError
 from src.apps.authentication.exceptions.oauth import (
     OAuthIncorrectCodeError,
+    OAuthInvalidTokenError,
     OAuthProviderEmailNotFoundError,
     OAuthProviderRequestError,
     OAuthProviderUidNotFoundError,
@@ -101,8 +103,13 @@ class OAuthGoogleProvider(BaseOAuthProvider):
         return response['id_token']
 
     def get_user_data(self, token: str) -> dict:
-        # FIXME: handle JWT exception and raise OAuth Exception
-        decoded_token = self.jwt_service.decode_unverified(token=token)
+        try:
+            decoded_token = self.jwt_service.decode_unverified(token=token)
+        except JWTTokenInvalidError as exc:
+            raise OAuthInvalidTokenError(
+                provider_name=self.provider_name,
+                error_description='Invalid Google id_token',
+            ) from exc
 
         email = decoded_token.get('email')
         if email is None:
