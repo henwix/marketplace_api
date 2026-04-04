@@ -6,12 +6,15 @@ from drf_spectacular.utils import (
 )
 from rest_framework import serializers, status
 
+from src.api.v1.authentication.openapi.auth.responses import unauthorized_user_response
 from src.api.v1.authentication.serializers.auth import TokenOutSerializer
 from src.api.v1.authentication.serializers.oauth import OAuthGetLoginUrlOutSerializer, OAuthVerifyInSerializer
+from src.api.v1.authentication.serializers.social_account import SocialAccountOutSerializer
 from src.api.v1.common.openapi.parameters import build_enum_query_parameter
 from src.api.v1.common.openapi.responses import (
     bad_gateway_response,
     bad_request_response,
+    forbidden_response,
     not_found_response,
     successful_response,
     unauthorized_response,
@@ -94,6 +97,8 @@ def extend_oauth_verify_view_schema(view):
                     OAuthInvalidTokenError,
                     OAuthProviderEmailNotFoundError,
                     OAuthProviderUidNotFoundError,
+                ),
+                status.HTTP_403_FORBIDDEN: forbidden_response(
                     UserNotActiveError,
                 ),
                 status.HTTP_404_NOT_FOUND: not_found_response(
@@ -106,5 +111,26 @@ def extend_oauth_verify_view_schema(view):
             },
             summary='Verify OAuth POST',
         ),
+    )
+    return decorator(view)
+
+
+def extend_oauth_get_connected_providers_view_schema(view):
+    decorator = extend_schema_view(
+        get=extend_schema(
+            responses={
+                status.HTTP_200_OK: successful_response(
+                    response=SocialAccountOutSerializer(many=True),
+                ),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: unauthorized_response(
+                    UserNotActiveError,
+                ),
+                status.HTTP_404_NOT_FOUND: not_found_response(
+                    UserNotFoundError,
+                ),
+            },
+            summary='Get Connected Providers GET',
+        )
     )
     return decorator(view)

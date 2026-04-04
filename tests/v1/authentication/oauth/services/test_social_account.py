@@ -8,6 +8,7 @@ from src.apps.authentication.exceptions.social_account import SocialAccountProvi
 from src.apps.authentication.models.social_account import SocialAccount
 from src.apps.authentication.services.social_account import BaseSocialAccountService
 from src.apps.users.models import User
+from tests.v1.authentication.oauth.factories import SocialAccountModelFactory
 
 
 @pytest.fixture
@@ -92,3 +93,37 @@ def test_social_account_not_saved_with_same_name_and_social_account_provider_alr
     )
     with pytest.raises(SocialAccountProviderAlreadyConnectedError):
         social_account_service.save(social_account=new_social_account_entity, update=False)
+
+
+@pytest.mark.django_db
+def test_get_many_by_user_id_returns_empty_list_if_no_connected_providers(
+    social_account_service: BaseSocialAccountService,
+    user: User,
+):
+    result = social_account_service.get_many_by_user_id(user_id=user.pk)
+    assert isinstance(result, list)
+    assert len(result) == 0
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('expected_providers_number', [1, 3, 5, 6, 7, 8, 10, 13, 17])
+def test_get_many_by_user_id_returns_correct_data_(
+    social_account_service: BaseSocialAccountService,
+    user: User,
+    expected_providers_number: int,
+):
+    social_accounts = SocialAccountModelFactory.create_batch(size=expected_providers_number, user=user)
+
+    retrieved_social_accounts = social_account_service.get_many_by_user_id(user_id=user.pk)
+    assert isinstance(retrieved_social_accounts, list)
+    assert len(retrieved_social_accounts) == expected_providers_number
+
+    for expected_social_account, retrieved_social_account in zip(
+        social_accounts, retrieved_social_accounts, strict=True
+    ):
+        assert expected_social_account.provider == retrieved_social_account.provider
+        assert expected_social_account.user_id == retrieved_social_account.user_id
+        assert expected_social_account.id == retrieved_social_account.id
+        assert expected_social_account.provider_uid == retrieved_social_account.provider_uid
+        assert expected_social_account.created_at == retrieved_social_account.created_at
+        assert expected_social_account.updated_at == retrieved_social_account.updated_at

@@ -5,7 +5,7 @@ from src.api.v1.authentication.views.auth import (
     CustomTokenRefreshView,
     CustomTokenVerifyView,
 )
-from src.api.v1.authentication.views.oauth import OAuthGetLoginUrlView, OAuthVerifyView
+from src.api.v1.authentication.views.oauth import OAuthGetConnectedProvidersView, OAuthGetLoginUrlView, OAuthVerifyView
 
 app_name = 'auth'
 
@@ -16,4 +16,5 @@ urlpatterns = [
     path('auth/token_verify/', CustomTokenVerifyView.as_view(), name='token-verify'),
     path('oauth/login_url/', OAuthGetLoginUrlView.as_view(), name='oauth-login-url'),
     path('oauth/verify/', OAuthVerifyView.as_view(), name='oauth-verify'),
+    path('oauth/connected/', OAuthGetConnectedProvidersView.as_view(), name='oauth-connected'),
 ]

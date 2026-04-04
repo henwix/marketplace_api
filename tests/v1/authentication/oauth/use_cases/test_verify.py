@@ -58,18 +58,19 @@ def test_oauth_verify_creates_new_user_and_returns_tokens_if_social_account_does
         provider=expected_provider_name,
     )
     tokens = use_case.execute(command=command)
+    created_user = User.objects.get(
+        first_name=expected_first_name,
+        last_name=expected_last_name,
+        email=expected_email,
+        avatar=expected_avatar,
+    )
 
     assert isinstance(tokens, dict)
     assert 'access' in tokens
     assert 'refresh' in tokens
     assert User.objects.count() == 1
     assert SocialAccount.objects.count() == 1
-    assert User.objects.filter(
-        first_name=expected_first_name,
-        last_name=expected_last_name,
-        email=expected_email,
-        avatar=expected_avatar,
-    ).exists()
+    assert not created_user.has_usable_password()
     assert SocialAccount.objects.filter(
         provider=expected_provider_name,
         user__first_name=expected_first_name,

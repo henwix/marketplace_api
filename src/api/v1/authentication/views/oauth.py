@@ -4,11 +4,18 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from src.api.v1.authentication.openapi.oauth.decorators import (
+    extend_oauth_get_connected_providers_view_schema,
     extend_oauth_get_login_url_view_schema,
     extend_oauth_verify_view_schema,
 )
-from src.api.v1.authentication.serializers.oauth import OAuthGetLoginUrlInSerializer, OAuthVerifyInSerializer
-from src.apps.authentication.commands.oauth import OAuthGetLoginUrlCommand, OAuthVerifyCommand
+from src.api.v1.authentication.serializers.oauth import OAuthProviderInSerializer, OAuthVerifyInSerializer
+from src.api.v1.authentication.serializers.social_account import SocialAccountOutSerializer
+from src.apps.authentication.commands.oauth import (
+    OAuthGetConnectedProvidersCommand,
+    OAuthGetLoginUrlCommand,
+    OAuthVerifyCommand,
+)
+from src.apps.authentication.use_cases.oauth.get_connected_providers import OAuthGetConnectedProvidersUseCase
 from src.apps.authentication.use_cases.oauth.get_url import OAuthGetLoginUrlUseCase
 from src.apps.authentication.use_cases.oauth.verify import OAuthVerifyUseCase
 from src.project.containers import resolve_depends
@@ -17,7 +24,7 @@ from src.project.containers import resolve_depends
 @extend_oauth_get_login_url_view_schema
 class OAuthGetLoginUrlView(APIView):
     def get(self, request: Request) -> Response:
-        request_data = OAuthGetLoginUrlInSerializer.validate_data(data=request.query_params)
+        request_data = OAuthProviderInSerializer.validate_data(data=request.query_params)
         use_case: OAuthGetLoginUrlUseCase = resolve_depends(OAuthGetLoginUrlUseCase)
         command = OAuthGetLoginUrlCommand(**request_data)
         url = use_case.execute(command=command)
@@ -32,3 +39,15 @@ class OAuthVerifyView(APIView):
         command = OAuthVerifyCommand(user_id=request.user.id, **request_data)
         result = use_case.execute(command=command)
         return Response(data=result, status=status.HTTP_201_CREATED)
+
+
+@extend_oauth_get_connected_providers_view_schema
+class OAuthGetConnectedProvidersView(APIView):
+    def get(self, request: Request) -> Response:
+        use_case: OAuthGetConnectedProvidersUseCase = resolve_depends(OAuthGetConnectedProvidersUseCase)
+        command = OAuthGetConnectedProvidersCommand(user_id=request.user.id)
+        result = use_case.execute(command=command)
+        return Response(data=SocialAccountOutSerializer(result, many=True).data, status=status.HTTP_200_OK)
+
+
+# OAuthDisconnectProviderView

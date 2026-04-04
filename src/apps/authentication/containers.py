@@ -8,6 +8,7 @@ from src.apps.authentication.services.auth import AuthValidatorService, BaseAuth
 from src.apps.authentication.services.jwt import BaseJWTService, JWTService
 from src.apps.authentication.services.oauth.factory import BaseOAuthServiceFactory, OAuthServiceFactory
 from src.apps.authentication.services.social_account import BaseSocialAccountService, SocialAccountService
+from src.apps.authentication.use_cases.oauth.get_connected_providers import OAuthGetConnectedProvidersUseCase
 from src.apps.authentication.use_cases.oauth.get_url import OAuthGetLoginUrlUseCase
 from src.apps.authentication.use_cases.oauth.verify import OAuthVerifyUseCase
 
@@ -24,6 +25,7 @@ def init_auth(container: Container) -> None:
     # use_cases
     container.register(OAuthGetLoginUrlUseCase)
     container.register(OAuthVerifyUseCase)
+    container.register(OAuthGetConnectedProvidersUseCase)
 
     # services
     container.register(BaseAuthValidatorService, AuthValidatorService)

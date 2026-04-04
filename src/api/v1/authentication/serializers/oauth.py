@@ -4,7 +4,7 @@ from src.api.v1.common.serializers import BaseInSerializer
 from src.apps.authentication.constants import SocialAccountProviders
 
 
-class OAuthGetLoginUrlInSerializer(BaseInSerializer):
+class OAuthProviderInSerializer(BaseInSerializer):
     provider = serializers.ChoiceField(choices=SocialAccountProviders.choices)
 
 

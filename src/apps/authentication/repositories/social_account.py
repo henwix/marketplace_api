@@ -13,6 +13,9 @@ class BaseSocialAccountRepository(ABC):
     def get_by_provider_uid_and_name(self, provider_uid: str, provider: str) -> SocialAccountEntity | None: ...
 
     @abstractmethod
+    def get_many_by_user_id(self, user_id: int) -> list[SocialAccountEntity]: ...
+
+    @abstractmethod
     def save(self, social_account: SocialAccountEntity, update: bool) -> SocialAccountEntity: ...
 
 
@@ -23,6 +26,12 @@ class ORMSocialAccountRepository(BaseSocialAccountRepository):
         except SocialAccount.DoesNotExist:
             return None
         return social_account_to_entity(dto=dto)
+
+    def get_many_by_user_id(self, user_id: int) -> list[SocialAccountEntity]:
+        social_accounts = SocialAccount.objects.filter(user_id=user_id)
+        if social_accounts:
+            return [social_account_to_entity(dto=dto) for dto in social_accounts]
+        return []
 
     def save(self, social_account: SocialAccountEntity, update: bool) -> SocialAccountEntity:
         dto = social_account_from_entity(entity=social_account)
