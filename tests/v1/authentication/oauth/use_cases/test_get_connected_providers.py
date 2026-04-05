@@ -6,7 +6,7 @@ from src.apps.authentication.exceptions.auth import AuthCredentialsNotProvidedEr
 from src.apps.authentication.use_cases.auth_providers.get_connected_providers import GetConnectedAuthProvidersUseCase
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError
 from src.apps.users.models import User
-from tests.v1.authentication.oauth.factories import SocialAccountModelFactory
+from tests.v1.authentication.oauth.factories import AuthProviderModelFactory
 from tests.v1.users.factories import UserModelFactory
 
 
@@ -33,20 +33,20 @@ def test_get_connected_providers_returns_correct_data_(
     user: User,
     expected_providers_number: int,
 ):
-    social_accounts = SocialAccountModelFactory.create_batch(size=expected_providers_number, user=user)
+    auth_providers = AuthProviderModelFactory.create_batch(size=expected_providers_number, user=user)
 
     command = GetConnectedAuthProvidersCommand(user_id=user.pk)
     retrieved_providers = oauth_get_connected_providers_use_case.execute(command=command)
     assert isinstance(retrieved_providers, list)
     assert len(retrieved_providers) == expected_providers_number
 
-    for expected_social_account, retrieved_provider in zip(social_accounts, retrieved_providers, strict=True):
-        assert expected_social_account.provider == retrieved_provider.provider
-        assert expected_social_account.user_id == retrieved_provider.user_id
-        assert expected_social_account.id == retrieved_provider.id
-        assert expected_social_account.provider_uid == retrieved_provider.provider_uid
-        assert expected_social_account.created_at == retrieved_provider.created_at
-        assert expected_social_account.updated_at == retrieved_provider.updated_at
+    for expected_auth_provider, retrieved_provider in zip(auth_providers, retrieved_providers, strict=True):
+        assert expected_auth_provider.provider == retrieved_provider.provider
+        assert expected_auth_provider.user_id == retrieved_provider.user_id
+        assert expected_auth_provider.id == retrieved_provider.id
+        assert expected_auth_provider.provider_uid == retrieved_provider.provider_uid
+        assert expected_auth_provider.created_at == retrieved_provider.created_at
+        assert expected_auth_provider.updated_at == retrieved_provider.updated_at
 
 
 @pytest.mark.django_db

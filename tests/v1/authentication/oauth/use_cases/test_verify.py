@@ -6,7 +6,7 @@ from src.apps.authentication.exceptions.auth_providers import AuthProviderAlread
 from src.apps.authentication.models.auth_provider import AuthProvider
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError, UserWithEmailAlreadyExistsError
 from src.apps.users.models import User
-from tests.v1.authentication.oauth.factories import SocialAccountModelFactory
+from tests.v1.authentication.oauth.factories import AuthProviderModelFactory
 from tests.v1.authentication.oauth.use_cases.conftest import get_mock_oauth_verify_use_case
 from tests.v1.users.factories import UserModelFactory
 
@@ -28,7 +28,7 @@ from tests.v1.users.factories import UserModelFactory
         ('twitter', 'Twitter', 'Name', 'twitter@example.com', '125482175', 'https://twitter.avatar.com'),
     ],
 )
-def test_oauth_verify_creates_new_user_and_returns_tokens_if_social_account_does_not_exist_and_user_not_authorized(
+def test_oauth_verify_creates_new_user_and_returns_tokens_if_auth_provider_does_not_exist_and_user_not_authorized(
     mock_container: Container,
     expected_provider_name: str,
     expected_first_name: str,
@@ -81,7 +81,7 @@ def test_oauth_verify_creates_new_user_and_returns_tokens_if_social_account_does
 
 
 @pytest.mark.django_db
-def test_oauth_verify_new_social_account_created_if_does_not_exists_and_user_authorized(
+def test_oauth_verify_new_auth_provider_created_if_does_not_exists_and_user_authorized(
     mock_container: Container,
     user: User,
 ):
@@ -104,9 +104,7 @@ def test_oauth_verify_provider_already_connected_error_raised_if_provider_alread
     expected_provider_uid = '123123123'
     expected_provider_name = 'test_provider'
 
-    social_account = SocialAccountModelFactory.create(
-        provider=expected_provider_name, provider_uid=expected_provider_uid
-    )
+    auth_provider = AuthProviderModelFactory.create(provider=expected_provider_name, provider_uid=expected_provider_uid)
 
     use_case = get_mock_oauth_verify_use_case(
         mock_container=mock_container,
@@ -118,7 +116,7 @@ def test_oauth_verify_provider_already_connected_error_raised_if_provider_alread
             'avatar': 'https://avatar.example.com',
         },
     )
-    command = OAuthVerifyCommand(user_id=social_account.user.pk, code='1', state='1', provider=expected_provider_name)
+    command = OAuthVerifyCommand(user_id=auth_provider.user.pk, code='1', state='1', provider=expected_provider_name)
 
     with pytest.raises(AuthProviderAlreadyConnectedError):
         use_case.execute(command=command)
@@ -127,7 +125,7 @@ def test_oauth_verify_provider_already_connected_error_raised_if_provider_alread
 @pytest.mark.django_db
 def test_oauth_verify_provider_already_connected_error_raised_if_same_provider_already_connected_to_current_user(
     mock_container: Container,
-    social_account: AuthProvider,
+    auth_provider: AuthProvider,
 ):
     use_case = get_mock_oauth_verify_use_case(
         mock_container=mock_container,
@@ -140,10 +138,10 @@ def test_oauth_verify_provider_already_connected_error_raised_if_same_provider_a
         },
     )
     command = OAuthVerifyCommand(
-        user_id=social_account.user.pk,
+        user_id=auth_provider.user.pk,
         code='1',
         state='1',
-        provider=social_account.provider,
+        provider=auth_provider.provider,
     )
     with pytest.raises(AuthProviderAlreadyConnectedError):
         use_case.execute(command=command)
@@ -155,7 +153,7 @@ def test_oauth_verify_returns_tokens_if_provider_already_connected_and_user_not_
 ):
     expected_provider_uid = '123123123'
     expected_provider_name = 'test_provider'
-    SocialAccountModelFactory.create(provider=expected_provider_name, provider_uid=expected_provider_uid)
+    AuthProviderModelFactory.create(provider=expected_provider_name, provider_uid=expected_provider_uid)
 
     use_case = get_mock_oauth_verify_use_case(
         mock_container=mock_container,
@@ -217,21 +215,21 @@ def test_oauth_verify_user_not_active_error_raised_if_user_authorized(mock_conta
 
 
 @pytest.mark.django_db
-def test_oauth_verify_user_not_active_error_raised_if_user_not_authorized_and_social_account_exists(
+def test_oauth_verify_user_not_active_error_raised_if_user_not_authorized_and_auth_provider_exists(
     mock_container: Container,
 ):
     user = UserModelFactory.create(is_active=False)
-    social_account: SocialAccountModelFactory = SocialAccountModelFactory.create(user=user)
+    auth_provider: AuthProviderModelFactory = AuthProviderModelFactory.create(user=user)
     use_case = get_mock_oauth_verify_use_case(
         mock_container=mock_container,
         user_data={
             'first_name': 'First',
             'last_name': 'Last',
             'email': 'test@example.com',
-            'provider_uid': social_account.provider_uid,
+            'provider_uid': auth_provider.provider_uid,
             'avatar': 'https://avatar.example.com',
         },
     )
-    command = OAuthVerifyCommand(user_id=None, code='1', state='1', provider=social_account.provider)
+    command = OAuthVerifyCommand(user_id=None, code='1', state='1', provider=auth_provider.provider)
     with pytest.raises(UserNotActiveError):
         use_case.execute(command=command)

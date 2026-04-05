@@ -9,7 +9,7 @@ from tests.v1.users.factories import UserModelFactory
 fake = Faker()
 
 
-class SocialAccountModelFactory(DjangoModelFactory):
+class AuthProviderModelFactory(DjangoModelFactory):
     class Meta:
         model = AuthProvider
 
