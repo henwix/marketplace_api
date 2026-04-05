@@ -40,7 +40,7 @@ class OAuthService(BaseOAuthService):
     def validate_state(self, state: str) -> None:
         cached_state = self.cache_provider.get(key=self._make_state_key(state=state))
         if cached_state is None:
-            raise OAuthIncorrectStateError(provider_name=self.oauth_provider.provider_name, state=state)
+            raise OAuthIncorrectStateError(provider=self.oauth_provider.provider_name, state=state)
         self.cache_provider.delete(key=self._make_state_key(state=state))
 
     def exchange_code(self, code: str) -> str:

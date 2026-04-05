@@ -3,7 +3,7 @@ from urllib.parse import urlencode
 
 from django.conf import settings
 
-from src.apps.authentication.constants import SocialAccountProviders
+from src.apps.authentication.constants import SupportedOAuthProviders
 from src.apps.authentication.exceptions.oauth import (
     OAuthIncorrectCodeError,
     OAuthProviderEmailNotFoundError,
@@ -39,7 +39,7 @@ class OAuthGitHubProvider(BaseOAuthProvider):
 
     @property
     def provider_name(self) -> str:
-        return SocialAccountProviders.GITHUB
+        return SupportedOAuthProviders.GITHUB
 
     def exchange_code(self, code: str) -> str:
         request_body = {
@@ -60,15 +60,15 @@ class OAuthGitHubProvider(BaseOAuthProvider):
 
         if error is not None:
             if error == 'bad_verification_code':
-                raise OAuthIncorrectCodeError(provider_name=self.provider_name, code=code)
+                raise OAuthIncorrectCodeError(provider=self.provider_name, code=code)
             elif error == 'unverified_user_email':
-                raise OAuthUnverifiedProviderEmailError(provider_name=self.provider_name)
+                raise OAuthUnverifiedProviderEmailError(provider=self.provider_name)
             else:
-                raise OAuthProviderRequestError(provider_name=self.provider_name, error=error)
+                raise OAuthProviderRequestError(provider=self.provider_name, error=error)
 
         if 'access_token' not in response:
             raise OAuthProviderRequestError(
-                provider_name=self.provider_name,
+                provider=self.provider_name,
                 error='invalid_oauth_response',
                 error_description='access_token not found in response',
             )
@@ -83,13 +83,13 @@ class OAuthGitHubProvider(BaseOAuthProvider):
 
         provider_uid = response.get('id')
         if provider_uid is None:
-            raise OAuthProviderUidNotFoundError(provider_name=self.provider_name)
+            raise OAuthProviderUidNotFoundError(provider=self.provider_name)
 
         if response.get('email', None) is None:
             emails = self.http_client.get(url=f'{self._USER_API_URL}/emails', headers=headers)
             primary_emails = [e for e in emails if e.get('primary') and e.get('verified')]
             if not primary_emails:
-                raise OAuthProviderEmailNotFoundError(provider_name=self.provider_name)
+                raise OAuthProviderEmailNotFoundError(provider=self.provider_name)
             response['email'] = primary_emails[0].get('email')
 
         first_name, last_name = self._get_user_names(name=response.get('name') or response.get('login'))

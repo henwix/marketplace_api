@@ -5,7 +5,7 @@ import pytest
 from django.conf import settings
 from punq import Container
 
-from src.apps.authentication.constants import SocialAccountProviders
+from src.apps.authentication.constants import SupportedOAuthProviders
 from src.apps.authentication.exceptions.oauth import (
     OAuthIncorrectCodeError,
     OAuthProviderEmailNotFoundError,
@@ -22,7 +22,7 @@ def mock_github_provider(mock_container: Container) -> OAuthGitHubProvider:
 
 
 def test_get_provider_name_returns_correct_name(mock_github_provider: OAuthGitHubProvider):
-    expected_provider_name = SocialAccountProviders.GITHUB
+    expected_provider_name = SupportedOAuthProviders.GITHUB
     assert expected_provider_name == mock_github_provider.provider_name
 
 

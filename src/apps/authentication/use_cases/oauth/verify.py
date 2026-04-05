@@ -3,11 +3,11 @@ from dataclasses import dataclass
 from django.db import transaction
 
 from src.apps.authentication.commands.oauth import OAuthVerifyCommand
-from src.apps.authentication.entities.social_account import SocialAccountEntity
-from src.apps.authentication.exceptions.social_account import SocialAccountProviderAlreadyConnectedError
+from src.apps.authentication.entities.auth_providers import AuthProviderEntity
+from src.apps.authentication.exceptions.auth_providers import AuthProviderAlreadyConnectedError
+from src.apps.authentication.services.auth_providers import BaseAuthProviderService
 from src.apps.authentication.services.jwt import BaseJWTService
 from src.apps.authentication.services.oauth.factory import BaseOAuthServiceFactory
-from src.apps.authentication.services.social_account import BaseSocialAccountService
 from src.apps.users.services.users import (
     BaseUserService,
     BaseUserUniqueEmailValidatorService,
@@ -18,9 +18,9 @@ from src.apps.users.services.users import (
 class OAuthVerifyUseCase:
     user_service: BaseUserService
     user_email_validator_service: BaseUserUniqueEmailValidatorService
-    social_account_service: BaseSocialAccountService
-    oauth_service_factory: BaseOAuthServiceFactory
+    auth_provider_service: BaseAuthProviderService
     jwt_service: BaseJWTService
+    oauth_service_factory: BaseOAuthServiceFactory
     _MAX_NAME_LENGTH: int = 150  # FIXME: add name length validation in entity
 
     def execute(self, command: OAuthVerifyCommand) -> dict[str, str]:
@@ -30,27 +30,27 @@ class OAuthVerifyUseCase:
         user_data = oauth_service.get_user_data(token=token)
         provider_uid = user_data.get('provider_uid')
 
-        social_account = self.social_account_service.get_by_provider_uid_and_name(
+        auth_provider = self.auth_provider_service.get_by_provider_uid_and_name(
             provider_uid=provider_uid, provider=command.provider
         )
 
         if command.user_id is not None:
-            if social_account is not None:
-                raise SocialAccountProviderAlreadyConnectedError(
+            if auth_provider is not None:
+                raise AuthProviderAlreadyConnectedError(
                     current_user_id=command.user_id,
                     provider=command.provider,
                 )
             user = self.user_service.try_get_active_by_id(id=command.user_id)
-            new_social_account_entity = SocialAccountEntity.create(
+            new_auth_provider_entity = AuthProviderEntity.create(
                 user_id=user.id,
                 provider=command.provider,
                 provider_uid=provider_uid,
             )
-            self.social_account_service.save(social_account=new_social_account_entity, update=False)
+            self.auth_provider_service.save(auth_provider=new_auth_provider_entity, update=False)
             return {'detail': 'Provider successfully connected to your account'}
 
-        if social_account is not None:
-            user = self.user_service.try_get_active_by_id(id=social_account.user_id)
+        if auth_provider is not None:
+            user = self.user_service.try_get_active_by_id(id=auth_provider.user_id)
             tokens = self.jwt_service.create_tokens(user=user)
             return tokens
 
@@ -63,11 +63,11 @@ class OAuthVerifyUseCase:
                 email=user_data.get('email'),
                 avatar=user_data.get('avatar'),
             )
-            new_social_account_entity = SocialAccountEntity.create(
+            new_auth_provider_entity = AuthProviderEntity.create(
                 user_id=user.id,
                 provider=command.provider,
                 provider_uid=provider_uid,
             )
-            self.social_account_service.save(social_account=new_social_account_entity, update=False)
+            self.auth_provider_service.save(auth_provider=new_auth_provider_entity, update=False)
         tokens = self.jwt_service.create_tokens(user=user)
         return tokens

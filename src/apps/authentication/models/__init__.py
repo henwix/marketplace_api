@@ -1,1 +1,1 @@
-from .social_account import SocialAccount  # noqa
+from .auth_provider import AuthProvider  # noqa

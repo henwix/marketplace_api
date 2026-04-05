@@ -5,7 +5,7 @@ from src.apps.common.entities import BaseEntity
 
 
 @dataclass(kw_only=True)
-class SocialAccountEntity(BaseEntity):
+class AuthProviderEntity(BaseEntity):
     id: int | None = None
     user_id: int
     provider: str
@@ -14,8 +14,8 @@ class SocialAccountEntity(BaseEntity):
     updated_at: datetime | None = None
 
     @staticmethod
-    def create(user_id: int, provider: str, provider_uid: str) -> SocialAccountEntity:
-        return SocialAccountEntity(
+    def create(user_id: int, provider: str, provider_uid: str) -> AuthProviderEntity:
+        return AuthProviderEntity(
             user_id=user_id,
             provider=provider,
             provider_uid=provider_uid,

@@ -18,4 +18,4 @@ class OAuthProviderFactory(BaseOAuthProviderFactory):
         for provider in self.providers:
             if provider.provider_name == provider_name:
                 return provider
-        raise OAuthNotSupportedProviderError(provider_name=provider_name)
+        raise OAuthNotSupportedProviderError(provider=provider_name)

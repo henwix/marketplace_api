@@ -18,7 +18,7 @@ def test_convert_user_to_entity(seller: Seller):
     assert converted_entity.last_name == user.last_name
     assert converted_entity.email == user.email
     assert converted_entity.phone == user.phone
-    assert converted_entity.password == user.password
+    assert converted_entity.password_hash == user.password
     assert converted_entity.avatar == user.avatar
     assert converted_entity.is_staff == user.is_staff
     assert converted_entity.is_active == user.is_active

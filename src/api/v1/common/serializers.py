@@ -12,3 +12,7 @@ class BaseInSerializer(serializers.Serializer):
         serializer = cls(data=data, partial=partial)
         serializer.is_valid(raise_exception=raise_exception)
         return serializer.validated_data
+
+
+class UrlOutSerializer(BaseInSerializer):
+    url = serializers.CharField()

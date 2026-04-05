@@ -2,7 +2,7 @@ import factory
 from factory.django import DjangoModelFactory
 from faker import Faker
 
-from src.apps.authentication.models.social_account import SocialAccount
+from src.apps.authentication.models.auth_provider import AuthProvider
 from tests.v1.factories import lazy_function_factory
 from tests.v1.users.factories import UserModelFactory
 
@@ -11,7 +11,7 @@ fake = Faker()
 
 class SocialAccountModelFactory(DjangoModelFactory):
     class Meta:
-        model = SocialAccount
+        model = AuthProvider
 
     user = factory.SubFactory(factory=UserModelFactory)
     provider = lazy_function_factory(value=fake.uuid4, max_length=32)

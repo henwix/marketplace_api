@@ -5,7 +5,7 @@ import pytest
 from django.conf import settings
 from punq import Container
 
-from src.apps.authentication.constants import SocialAccountProviders
+from src.apps.authentication.constants import SupportedOAuthProviders
 from src.apps.authentication.exceptions.oauth import (
     OAuthInvalidTokenError,
     OAuthProviderEmailNotFoundError,
@@ -23,7 +23,7 @@ def mock_google_provider(mock_container: Container) -> OAuthGoogleProvider:
 
 
 def test_get_provider_name_returns_correct_name(mock_google_provider: OAuthGoogleProvider):
-    expected_provider_name = SocialAccountProviders.GOOGLE
+    expected_provider_name = SupportedOAuthProviders.GOOGLE
     assert expected_provider_name == mock_google_provider.provider_name
 
 

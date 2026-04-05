@@ -5,7 +5,7 @@ from uuid import uuid4
 from django.conf import settings
 from requests import HTTPError, Response
 
-from src.apps.authentication.constants import SocialAccountProviders
+from src.apps.authentication.constants import SupportedOAuthProviders
 from src.apps.authentication.exceptions.jwt import JWTTokenInvalidError
 from src.apps.authentication.exceptions.oauth import (
     OAuthIncorrectCodeError,
@@ -58,14 +58,14 @@ class OAuthGoogleProvider(BaseOAuthProvider):
     def _validate_token_response(self, response: dict) -> None:
         if 'id_token' not in response:
             raise OAuthProviderRequestError(
-                provider_name=self.provider_name,
+                provider=self.provider_name,
                 error='invalid_oauth_response',
                 error_description='id_token not found in response',
             )
 
     @property
     def provider_name(self) -> str:
-        return SocialAccountProviders.GOOGLE
+        return SupportedOAuthProviders.GOOGLE
 
     def exchange_code(self, code: str) -> str:
         request_body = {
@@ -91,9 +91,9 @@ class OAuthGoogleProvider(BaseOAuthProvider):
 
                 if error is not None:
                     if error == 'invalid_grant':
-                        raise OAuthIncorrectCodeError(provider_name=self.provider_name, code=code) from exc
+                        raise OAuthIncorrectCodeError(provider=self.provider_name, code=code) from exc
                 raise OAuthProviderRequestError(
-                    provider_name=self.provider_name,
+                    provider=self.provider_name,
                     error=error,
                     error_description=response_json.get('error_description') or response_json.get('raw'),
                 ) from exc
@@ -107,17 +107,17 @@ class OAuthGoogleProvider(BaseOAuthProvider):
             decoded_token = self.jwt_service.decode_unverified(token=token)
         except JWTTokenInvalidError as exc:
             raise OAuthInvalidTokenError(
-                provider_name=self.provider_name,
+                provider=self.provider_name,
                 error_description='Invalid Google id_token',
             ) from exc
 
         email = decoded_token.get('email')
         if email is None:
-            raise OAuthProviderEmailNotFoundError(provider_name=self.provider_name)
+            raise OAuthProviderEmailNotFoundError(provider=self.provider_name)
 
         provider_uid = decoded_token.get('sub')
         if provider_uid is None:
-            raise OAuthProviderUidNotFoundError(provider_name=self.provider_name)
+            raise OAuthProviderUidNotFoundError(provider=self.provider_name)
 
         first_name, last_name = self._get_user_names(
             given_name=decoded_token.get('given_name'),

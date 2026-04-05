@@ -2,13 +2,11 @@ from dataclasses import dataclass
 
 
 @dataclass(frozen=True, eq=False)
-class OAuthGetLoginUrlCommand:
-    provider: str
+class GetConnectedAuthProvidersCommand:
+    user_id: int | None
 
 
 @dataclass(frozen=True, eq=False)
-class OAuthVerifyCommand:
+class DisconnectAuthProviderCommand:
     user_id: int | None
-    code: str
-    state: str
     provider: str

@@ -3,29 +3,29 @@ from uuid import uuid4
 import pytest
 from punq import Container
 
-from src.apps.authentication.entities.social_account import SocialAccountEntity
-from src.apps.authentication.exceptions.social_account import SocialAccountProviderAlreadyConnectedError
-from src.apps.authentication.models.social_account import SocialAccount
-from src.apps.authentication.services.social_account import BaseSocialAccountService
+from src.apps.authentication.entities.auth_providers import AuthProviderEntity
+from src.apps.authentication.exceptions.auth_providers import AuthProviderAlreadyConnectedError
+from src.apps.authentication.models.auth_provider import AuthProvider
+from src.apps.authentication.services.auth_providers import BaseAuthProviderService
 from src.apps.users.models import User
 from tests.v1.authentication.oauth.factories import SocialAccountModelFactory
 
 
 @pytest.fixture
-def social_account_service(container: Container) -> BaseSocialAccountService:
-    return container.resolve(BaseSocialAccountService)
+def social_account_service(container: Container) -> BaseAuthProviderService:
+    return container.resolve(BaseAuthProviderService)
 
 
 @pytest.mark.django_db
 def test_get_provivder_by_uid_and_name_returns_provider_entity(
-    social_account_service: BaseSocialAccountService,
-    social_account: SocialAccount,
+    social_account_service: BaseAuthProviderService,
+    social_account: AuthProvider,
 ):
     social_account_entity = social_account_service.get_by_provider_uid_and_name(
         provider_uid=social_account.provider_uid,
         provider=social_account.provider,
     )
-    assert isinstance(social_account_entity, SocialAccountEntity)
+    assert isinstance(social_account_entity, AuthProviderEntity)
     assert social_account_entity.id == social_account.pk
     assert social_account_entity.user_id == social_account.user_id
     assert social_account_entity.provider == social_account.provider
@@ -36,7 +36,7 @@ def test_get_provivder_by_uid_and_name_returns_provider_entity(
 
 @pytest.mark.django_db
 def test_get_provivder_by_uid_and_name_returns_none_if_provider_does_not_exist(
-    social_account_service: BaseSocialAccountService,
+    social_account_service: BaseAuthProviderService,
 ):
     assert (
         social_account_service.get_by_provider_uid_and_name(provider_uid=uuid4().hex, provider='test_provider') is None
@@ -45,22 +45,22 @@ def test_get_provivder_by_uid_and_name_returns_none_if_provider_does_not_exist(
 
 @pytest.mark.django_db
 def test_social_account_successfully_saved(
-    social_account_service: BaseSocialAccountService,
+    social_account_service: BaseAuthProviderService,
     user: User,
 ):
     exepected_provider_uid = uuid4().hex
     exepected_provider = 'test_provider'
-    assert SocialAccount.objects.count() == 0
-    new_social_account_entity = SocialAccountEntity.create(
+    assert AuthProvider.objects.count() == 0
+    new_social_account_entity = AuthProviderEntity.create(
         user_id=user.pk,
         provider=exepected_provider,
         provider_uid=exepected_provider_uid,
     )
 
-    created_social_account = social_account_service.save(social_account=new_social_account_entity, update=False)
+    created_social_account = social_account_service.save(auth_provider=new_social_account_entity, update=False)
 
-    assert isinstance(created_social_account, SocialAccountEntity)
-    assert SocialAccount.objects.filter(
+    assert isinstance(created_social_account, AuthProviderEntity)
+    assert AuthProvider.objects.filter(
         user_id=user.pk,
         provider=exepected_provider,
         provider_uid=exepected_provider_uid,
@@ -69,35 +69,35 @@ def test_social_account_successfully_saved(
 
 @pytest.mark.django_db
 def test_social_account_not_saved_with_sane_name_and_uid_and_social_account_provider_already_connected_error_raised(
-    social_account_service: BaseSocialAccountService,
-    social_account: SocialAccount,
+    social_account_service: BaseAuthProviderService,
+    social_account: AuthProvider,
 ):
-    new_social_account_entity = SocialAccountEntity.create(
+    new_social_account_entity = AuthProviderEntity.create(
         user_id=social_account.user_id,
         provider=social_account.provider,
         provider_uid=social_account.provider_uid,
     )
-    with pytest.raises(SocialAccountProviderAlreadyConnectedError):
-        social_account_service.save(social_account=new_social_account_entity, update=False)
+    with pytest.raises(AuthProviderAlreadyConnectedError):
+        social_account_service.save(auth_provider=new_social_account_entity, update=False)
 
 
 @pytest.mark.django_db
 def test_social_account_not_saved_with_same_name_and_social_account_provider_already_connected_error_raised(
-    social_account_service: BaseSocialAccountService,
-    social_account: SocialAccount,
+    social_account_service: BaseAuthProviderService,
+    social_account: AuthProvider,
 ):
-    new_social_account_entity = SocialAccountEntity.create(
+    new_social_account_entity = AuthProviderEntity.create(
         user_id=social_account.user_id,
         provider=social_account.provider,
         provider_uid=uuid4().hex,
     )
-    with pytest.raises(SocialAccountProviderAlreadyConnectedError):
-        social_account_service.save(social_account=new_social_account_entity, update=False)
+    with pytest.raises(AuthProviderAlreadyConnectedError):
+        social_account_service.save(auth_provider=new_social_account_entity, update=False)
 
 
 @pytest.mark.django_db
 def test_get_many_by_user_id_returns_empty_list_if_no_connected_providers(
-    social_account_service: BaseSocialAccountService,
+    social_account_service: BaseAuthProviderService,
     user: User,
 ):
     result = social_account_service.get_many_by_user_id(user_id=user.pk)
@@ -108,7 +108,7 @@ def test_get_many_by_user_id_returns_empty_list_if_no_connected_providers(
 @pytest.mark.django_db
 @pytest.mark.parametrize('expected_providers_number', [1, 3, 5, 6, 7, 8, 10, 13, 17])
 def test_get_many_by_user_id_returns_correct_data_(
-    social_account_service: BaseSocialAccountService,
+    social_account_service: BaseAuthProviderService,
     user: User,
     expected_providers_number: int,
 ):

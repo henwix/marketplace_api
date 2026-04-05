@@ -1,9 +1,9 @@
-from src.apps.authentication.entities.social_account import SocialAccountEntity
-from src.apps.authentication.models.social_account import SocialAccount
+from src.apps.authentication.entities.auth_providers import AuthProviderEntity
+from src.apps.authentication.models.auth_provider import AuthProvider
 
 
-def social_account_to_entity(dto: SocialAccount) -> SocialAccountEntity:
-    return SocialAccountEntity(
+def auth_provider_to_entity(dto: AuthProvider) -> AuthProviderEntity:
+    return AuthProviderEntity(
         id=dto.pk,
         user_id=dto.user_id,
         provider=dto.provider,
@@ -13,8 +13,8 @@ def social_account_to_entity(dto: SocialAccount) -> SocialAccountEntity:
     )
 
 
-def social_account_from_entity(entity: SocialAccountEntity) -> SocialAccount:
-    return SocialAccount(
+def auth_provider_from_entity(entity: AuthProviderEntity) -> AuthProvider:
+    return AuthProvider(
         pk=entity.id,
         user_id=entity.user_id,
         provider=entity.provider,

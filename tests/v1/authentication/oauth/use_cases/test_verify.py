@@ -2,8 +2,8 @@ import pytest
 from punq import Container
 
 from src.apps.authentication.commands.oauth import OAuthVerifyCommand
-from src.apps.authentication.exceptions.social_account import SocialAccountProviderAlreadyConnectedError
-from src.apps.authentication.models.social_account import SocialAccount
+from src.apps.authentication.exceptions.auth_providers import AuthProviderAlreadyConnectedError
+from src.apps.authentication.models.auth_provider import AuthProvider
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError, UserWithEmailAlreadyExistsError
 from src.apps.users.models import User
 from tests.v1.authentication.oauth.factories import SocialAccountModelFactory
@@ -49,7 +49,7 @@ def test_oauth_verify_creates_new_user_and_returns_tokens_if_social_account_does
     )
 
     assert User.objects.count() == 0
-    assert SocialAccount.objects.count() == 0
+    assert AuthProvider.objects.count() == 0
 
     command = OAuthVerifyCommand(
         user_id=None,
@@ -69,9 +69,9 @@ def test_oauth_verify_creates_new_user_and_returns_tokens_if_social_account_does
     assert 'access' in tokens
     assert 'refresh' in tokens
     assert User.objects.count() == 1
-    assert SocialAccount.objects.count() == 1
+    assert AuthProvider.objects.count() == 1
     assert not created_user.has_usable_password()
-    assert SocialAccount.objects.filter(
+    assert AuthProvider.objects.filter(
         provider=expected_provider_name,
         user__first_name=expected_first_name,
         user__last_name=expected_last_name,
@@ -89,12 +89,12 @@ def test_oauth_verify_new_social_account_created_if_does_not_exists_and_user_aut
     use_case = get_mock_oauth_verify_use_case(mock_container=mock_container)
     command = OAuthVerifyCommand(user_id=user.pk, code='1', state='1', provider='test_provider')
 
-    assert not SocialAccount.objects.filter(user=user, provider='test_provider').exists()
+    assert not AuthProvider.objects.filter(user=user, provider='test_provider').exists()
 
     result = use_case.execute(command=command)
 
     assert expected_result == result
-    assert SocialAccount.objects.filter(user=user, provider='test_provider').exists()
+    assert AuthProvider.objects.filter(user=user, provider='test_provider').exists()
 
 
 @pytest.mark.django_db
@@ -120,14 +120,14 @@ def test_oauth_verify_provider_already_connected_error_raised_if_provider_alread
     )
     command = OAuthVerifyCommand(user_id=social_account.user.pk, code='1', state='1', provider=expected_provider_name)
 
-    with pytest.raises(SocialAccountProviderAlreadyConnectedError):
+    with pytest.raises(AuthProviderAlreadyConnectedError):
         use_case.execute(command=command)
 
 
 @pytest.mark.django_db
 def test_oauth_verify_provider_already_connected_error_raised_if_same_provider_already_connected_to_current_user(
     mock_container: Container,
-    social_account: SocialAccount,
+    social_account: AuthProvider,
 ):
     use_case = get_mock_oauth_verify_use_case(
         mock_container=mock_container,
@@ -145,7 +145,7 @@ def test_oauth_verify_provider_already_connected_error_raised_if_same_provider_a
         state='1',
         provider=social_account.provider,
     )
-    with pytest.raises(SocialAccountProviderAlreadyConnectedError):
+    with pytest.raises(AuthProviderAlreadyConnectedError):
         use_case.execute(command=command)
 
 
@@ -174,7 +174,7 @@ def test_oauth_verify_returns_tokens_if_provider_already_connected_and_user_not_
     assert 'access' in tokens
     assert 'refresh' in tokens
     assert User.objects.count() == 1
-    assert SocialAccount.objects.count() == 1
+    assert AuthProvider.objects.count() == 1
 
 
 @pytest.mark.django_db
