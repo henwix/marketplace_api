@@ -4,8 +4,19 @@ from rest_framework import status
 from src.api.v1.authentication.openapi.auth.responses import unauthorized_user_response
 from src.api.v1.authentication.serializers.auth_providers import AuthProviderOutSerializer
 from src.api.v1.common.openapi.parameters import build_enum_query_parameter
-from src.api.v1.common.openapi.responses import not_found_response, successful_response, unauthorized_response
+from src.api.v1.common.openapi.responses import (
+    bad_request_response,
+    forbidden_response,
+    not_found_response,
+    successful_response,
+)
 from src.apps.authentication.constants import SupportedAuthProviders
+from src.apps.authentication.exceptions.auth_providers import (
+    AuthProviderNotConnectedError,
+    AuthProviderNotSupportedError,
+    AuthProvidersNotConnectedError,
+    UnableToDisconnectAuthProviderError,
+)
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError
 
 
@@ -17,7 +28,7 @@ def extend_auth_provider_view_schema(view):
                     response=AuthProviderOutSerializer(many=True),
                 ),
                 status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
-                status.HTTP_403_FORBIDDEN: unauthorized_response(
+                status.HTTP_403_FORBIDDEN: forbidden_response(
                     UserNotActiveError,
                 ),
                 status.HTTP_404_NOT_FOUND: not_found_response(
@@ -37,6 +48,19 @@ def extend_auth_provider_view_schema(view):
             ],
             responses={
                 status.HTTP_204_NO_CONTENT: None,
+                status.HTTP_400_BAD_REQUEST: bad_request_response(
+                    AuthProviderNotSupportedError,
+                    UnableToDisconnectAuthProviderError,
+                ),
+                status.HTTP_401_UNAUTHORIZED: unauthorized_user_response(),
+                status.HTTP_403_FORBIDDEN: forbidden_response(
+                    UserNotActiveError,
+                ),
+                status.HTTP_404_NOT_FOUND: not_found_response(
+                    UserNotFoundError,
+                    AuthProvidersNotConnectedError,
+                    AuthProviderNotConnectedError,
+                ),
             },
             summary='Disconnect Auth Provider DELETE',
         ),

@@ -8,7 +8,7 @@ from src.apps.authentication.exceptions.auth_providers import AuthProviderAlread
 from src.apps.authentication.models.auth_provider import AuthProvider
 from src.apps.authentication.repositories.auth_providers import BaseAuthProviderRepository
 from src.apps.users.models import User
-from tests.v1.authentication.oauth.factories import AuthProviderModelFactory
+from tests.v1.authentication.auth_providers.factories import AuthProviderModelFactory
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def auth_provider_repository(container: Container) -> BaseAuthProviderRepository
 
 
 @pytest.mark.django_db
-def test_get_provivder_by_uid_and_name_returns_provider_entity(
+def test_get_provider_by_uid_and_name_returns_provider_entity(
     auth_provider_repository: BaseAuthProviderRepository,
     auth_provider: AuthProvider,
 ):
@@ -69,7 +69,7 @@ def test_auth_provider_successfully_saved(
 
 
 @pytest.mark.django_db
-def test_auth_provider_not_saved_with_sane_name_and_uid_and_auth_provider_provider_already_connected_error_raised(
+def test_auth_provider_not_saved_with_same_name_and_uid_and_auth_provider_already_connected_error_raised(
     auth_provider_repository: BaseAuthProviderRepository,
     auth_provider: AuthProvider,
 ):
@@ -83,7 +83,7 @@ def test_auth_provider_not_saved_with_sane_name_and_uid_and_auth_provider_provid
 
 
 @pytest.mark.django_db
-def test_auth_provider_not_saved_with_same_name_and_auth_provider_provider_already_connected_error_raised(
+def test_auth_provider_not_saved_with_same_name_and_auth_provider_already_connected_error_raised(
     auth_provider_repository: BaseAuthProviderRepository,
     auth_provider: AuthProvider,
 ):
@@ -108,7 +108,7 @@ def test_get_many_by_user_id_returns_empty_list_if_no_connected_providers(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize('expected_providers_number', [1, 3, 5, 6, 7, 8, 10, 13, 17])
-def test_get_many_by_user_id_returns_correct_data_(
+def test_get_many_by_user_id_returns_correct_data(
     auth_provider_repository: BaseAuthProviderRepository,
     user: User,
     expected_providers_number: int,
@@ -126,3 +126,65 @@ def test_get_many_by_user_id_returns_correct_data_(
         assert expected_auth_provider.provider_uid == retrieved_auth_provider.provider_uid
         assert expected_auth_provider.created_at == retrieved_auth_provider.created_at
         assert expected_auth_provider.updated_at == retrieved_auth_provider.updated_at
+
+
+@pytest.mark.django_db
+def test_get_many_for_update_by_user_id_returns_empty_list_if_no_connected_providers(
+    auth_provider_repository: BaseAuthProviderRepository,
+    user: User,
+):
+    result = auth_provider_repository.get_many_by_user_id_for_update(user_id=user.pk)
+    assert isinstance(result, list)
+    assert len(result) == 0
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize('expected_providers_number', [1, 3, 5, 6, 7, 8, 10, 13, 17])
+def test_get_many_for_update_by_user_id_returns_correct_data(
+    auth_provider_repository: BaseAuthProviderRepository,
+    user: User,
+    expected_providers_number: int,
+):
+    auth_providers = AuthProviderModelFactory.create_batch(size=expected_providers_number, user=user)
+
+    retrieved_auth_providers = auth_provider_repository.get_many_by_user_id_for_update(user_id=user.pk)
+    assert isinstance(retrieved_auth_providers, list)
+    assert len(retrieved_auth_providers) == expected_providers_number
+
+    for expected_auth_provider, retrieved_auth_provider in zip(auth_providers, retrieved_auth_providers, strict=True):
+        assert expected_auth_provider.provider == retrieved_auth_provider.provider
+        assert expected_auth_provider.user_id == retrieved_auth_provider.user_id
+        assert expected_auth_provider.id == retrieved_auth_provider.id
+        assert expected_auth_provider.provider_uid == retrieved_auth_provider.provider_uid
+        assert expected_auth_provider.created_at == retrieved_auth_provider.created_at
+        assert expected_auth_provider.updated_at == retrieved_auth_provider.updated_at
+
+
+@pytest.mark.django_db
+def test_delete_by_user_id_and_provider_returns_true_if_deleted(
+    auth_provider_repository: BaseAuthProviderRepository,
+    user: User,
+):
+    provider_one, provider_two = AuthProviderModelFactory.create_batch(size=2, user=user)
+
+    assert AuthProvider.objects.filter(user_id=user.pk).count() == 2
+
+    is_deleted = auth_provider_repository.delete_by_user_id_and_provider(
+        user_id=user.pk, provider=provider_one.provider
+    )
+
+    assert is_deleted is True
+    assert AuthProvider.objects.filter(user_id=user.pk).count() == 1
+    assert AuthProvider.objects.filter(
+        user_id=user.pk, provider=provider_two.provider, provider_uid=provider_two.provider_uid
+    ).exists()
+
+
+@pytest.mark.django_db
+def test_delete_by_user_id_and_provider_returns_false_if_not_deleted(
+    auth_provider_repository: BaseAuthProviderRepository,
+    user: User,
+):
+    assert AuthProvider.objects.filter(user_id=user.pk).count() == 0
+    is_deleted = auth_provider_repository.delete_by_user_id_and_provider(user_id=user.pk, provider='test_provider')
+    assert is_deleted is False

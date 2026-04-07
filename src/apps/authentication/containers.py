@@ -8,8 +8,13 @@ from src.apps.authentication.services.auth import AuthValidatorService, BaseAuth
 from src.apps.authentication.services.auth_providers import (
     AuthProviderMustExistValidatorService,
     AuthProviderService,
+    BaseAuthProviderDisconnectValidatorService,
     BaseAuthProviderMustExistValidatorService,
     BaseAuthProviderService,
+    ComposedAuthProviderDisconnectValidatorService,
+    UserHasAuthProvidersValidatorService,
+    UserHasAuthProviderValidatorService,
+    UserMustHaseAtLeastOneAuthMethodValidatorService,
 )
 from src.apps.authentication.services.jwt import BaseJWTService, JWTService
 from src.apps.authentication.services.oauth.factory import BaseOAuthServiceFactory, OAuthServiceFactory
@@ -28,6 +33,15 @@ def init_auth(container: Container) -> None:
             ]
         )
 
+    def _build_composed_disconnect_auth_provider_validator_service() -> BaseAuthProviderDisconnectValidatorService:
+        return ComposedAuthProviderDisconnectValidatorService(
+            validators=[
+                container.resolve(UserHasAuthProvidersValidatorService),
+                container.resolve(UserHasAuthProviderValidatorService),
+                container.resolve(UserMustHaseAtLeastOneAuthMethodValidatorService),
+            ]
+        )
+
     # use_cases
     container.register(OAuthGetLoginUrlUseCase)
     container.register(OAuthVerifyUseCase)
@@ -37,12 +51,19 @@ def init_auth(container: Container) -> None:
 
     # services
     container.register(BaseAuthValidatorService, AuthValidatorService)
+    container.register(BaseJWTService, JWTService)
+    container.register(BaseAuthProviderService, AuthProviderService)
     container.register(
         BaseAuthProviderMustExistValidatorService,
         AuthProviderMustExistValidatorService,
     )
-    container.register(BaseAuthProviderService, AuthProviderService)
-    container.register(BaseJWTService, JWTService)
+    container.register(UserHasAuthProvidersValidatorService)
+    container.register(UserHasAuthProviderValidatorService)
+    container.register(UserMustHaseAtLeastOneAuthMethodValidatorService)
+    container.register(
+        BaseAuthProviderDisconnectValidatorService,
+        factory=_build_composed_disconnect_auth_provider_validator_service,
+    )
 
     # service factories
     container.register(BaseOAuthServiceFactory, OAuthServiceFactory)

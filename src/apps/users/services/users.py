@@ -78,6 +78,9 @@ class UserService(BaseUserService):
         if not user.is_active:
             raise UserNotActiveError(user_id=user_id)
 
+    def _validate_user_names(self, first_name: str, last_name: str) -> tuple[str, str]:
+        return first_name[:150], last_name[:150]
+
     def create(
         self,
         first_name: str,
@@ -87,6 +90,7 @@ class UserService(BaseUserService):
         avatar: str | None = None,
         password: str | None = None,
     ) -> UserEntity:
+        first_name, last_name = self._validate_user_names(first_name=first_name, last_name=last_name)
         return self.repository.create(
             first_name=first_name,
             last_name=last_name,

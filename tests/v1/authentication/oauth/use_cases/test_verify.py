@@ -6,7 +6,7 @@ from src.apps.authentication.exceptions.auth_providers import AuthProviderAlread
 from src.apps.authentication.models.auth_provider import AuthProvider
 from src.apps.users.exceptions.users import UserNotActiveError, UserNotFoundError, UserWithEmailAlreadyExistsError
 from src.apps.users.models import User
-from tests.v1.authentication.oauth.factories import AuthProviderModelFactory
+from tests.v1.authentication.auth_providers.factories import AuthProviderModelFactory
 from tests.v1.authentication.oauth.use_cases.conftest import get_mock_oauth_verify_use_case
 from tests.v1.users.factories import UserModelFactory
 

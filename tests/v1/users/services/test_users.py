@@ -39,6 +39,21 @@ def test_create_user_created(
     assert user_from_entity(entity=created_user).check_password(expected_password) is True
 
 
+@pytest.mark.django_db
+def test_create_user_created_if_name_length_greater_than_150(user_service: BaseUserService):
+    created_user = user_service.create(
+        first_name='first' * 150,
+        last_name='last' * 150,
+        email='test@example.com',
+        phone='+88888888888',
+        password='1234q1234q',
+    )
+
+    assert isinstance(created_user, UserEntity)
+    assert len(created_user.first_name) == 150
+    assert len(created_user.last_name) == 150
+
+
 @pytest.mark.parametrize(argnames=CREATE_USER_ARGNAMES, argvalues=CREATE_USER_ARGVALUES)
 @pytest.mark.django_db
 def test_create_user_not_created_and_email_already_exists_error_raised(

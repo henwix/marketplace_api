@@ -15,7 +15,7 @@ from src.apps.products.models.products import Product
 from src.apps.sellers.models import Seller
 from src.apps.users.models import User
 from src.project.containers import _initialize_container, get_container
-from tests.v1.authentication.oauth.factories import AuthProviderModelFactory
+from tests.v1.authentication.auth_providers.factories import AuthProviderModelFactory
 from tests.v1.cart.factories import CartItemModelFactory, CartModelFactory
 from tests.v1.mocks.http_client import DummyHTTPClient
 from tests.v1.products.factories import ProductModelFactory, ProductVariantModelFactory

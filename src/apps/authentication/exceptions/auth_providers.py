@@ -21,9 +21,10 @@ class AuthProviderNotSupportedError(ServiceException):
 
 
 @dataclass(eq=False)
-class AuthProvidersNotFoundError(ServiceException):
+class AuthProvidersNotConnectedError(ServiceException):
     status_code = status.HTTP_404_NOT_FOUND
     message = 'No connected auth providers were found'
+    user_id: int
 
 
 @dataclass(eq=False)
@@ -38,4 +39,5 @@ class AuthProviderNotConnectedError(ServiceException):
 class UnableToDisconnectAuthProviderError(ServiceException):
     status_code = status.HTTP_400_BAD_REQUEST
     message = 'Auth provider cannot be disconnected because at least one working login method must be present'
+    user_id: int
     provider: str

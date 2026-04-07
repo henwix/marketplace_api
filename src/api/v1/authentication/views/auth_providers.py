@@ -23,8 +23,8 @@ class AuthProviderView(APIView):
         return Response(data=AuthProviderOutSerializer(providers, many=True).data, status=status.HTTP_200_OK)
 
     def delete(self, request: Request) -> Response:
-        request_data = AuthProviderInSerializer.validate_data(data=request.query_params)
+        request_query_params = AuthProviderInSerializer.validate_data(data=request.query_params)
         use_case: DisconnectAuthProviderUseCase = resolve_depends(DisconnectAuthProviderUseCase)
-        command = DisconnectAuthProviderCommand(user_id=request.user.id, **request_data)
+        command = DisconnectAuthProviderCommand(user_id=request.user.id, **request_query_params)
         use_case.execute(command=command)
         return Response(status=status.HTTP_204_NO_CONTENT)

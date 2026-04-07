@@ -21,7 +21,6 @@ class OAuthVerifyUseCase:
     auth_provider_service: BaseAuthProviderService
     jwt_service: BaseJWTService
     oauth_service_factory: BaseOAuthServiceFactory
-    _MAX_NAME_LENGTH: int = 150  # FIXME: add name length validation in entity
 
     def execute(self, command: OAuthVerifyCommand) -> dict[str, str]:
         oauth_service = self.oauth_service_factory.get(provider_name=command.provider)
@@ -58,8 +57,8 @@ class OAuthVerifyUseCase:
 
         with transaction.atomic():
             user = self.user_service.create(
-                first_name=user_data.get('first_name')[: self._MAX_NAME_LENGTH],
-                last_name=user_data.get('last_name')[: self._MAX_NAME_LENGTH],
+                first_name=user_data.get('first_name'),
+                last_name=user_data.get('last_name'),
                 email=user_data.get('email'),
                 avatar=user_data.get('avatar'),
             )
